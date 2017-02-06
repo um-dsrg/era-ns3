@@ -1,0 +1,41 @@
+## -*- Mode: python; py-indent-offset: 4; indent-tabs-mode: nil; coding: utf-8; -*-
+
+#import os
+#import sys
+
+# Location of the lemon library
+lemon_path = '/home/noel/libraries/lemon/'
+
+# Location of the GLPK library
+glpk_path = '/usr/lib/x86_64-linux-gnu/'
+
+# Location of the TinyXml2 library
+tinyxml2_path = '/usr/lib/x86_64-linux-gnu/'
+
+# Setting Library path
+lemon_lib_path = lemon_path + 'lib'
+glpk_lib_path = glpk_path
+tinyxml2_lib_path = tinyxml2_path
+
+# Setting include path
+lemon_inc_path = lemon_path + 'include'
+glpk_inc_path = ''
+tinyxml2_inc_path = ''
+
+def build(bld):
+
+    # Adding the LEMON and GLPK libraries
+    bld.read_stlib('emon', paths=[lemon_lib_path])
+    bld.read_stlib('tinyxml2', paths=[tinyxml2_lib_path])
+
+    def set_properties(obj):
+        # Adding the include folders
+        obj.includes = ['#', lemon_inc_path, glpk_inc_path, tinyxml2_inc_path]
+        # Adding the LEMON and GLPK libraries together with the ns-3 dependencies
+        obj.use = obj.ns3_module_dependencies + ['emon', 'glpk', 'tinyxml2']
+        obj.install_path = None
+
+    all_modules = [mod[len("ns3-"):] for mod in bld.env['NS3_ENABLED_MODULES']]
+    obj = bld.create_ns3_program('ospf-network', all_modules)
+    obj.source = ['ospf-network.cc']
+    set_properties(obj)
