@@ -24,7 +24,7 @@ tinyxml2_inc_path = ''
 
 def build(bld):
 
-    # Adding the LEMON and GLPK libraries
+    # Adding the LEMON and tinyxml2 libraries
     bld.read_stlib('emon', paths=[lemon_lib_path])
     bld.read_stlib('tinyxml2', paths=[tinyxml2_lib_path])
 
@@ -37,5 +37,15 @@ def build(bld):
 
     all_modules = [mod[len("ns3-"):] for mod in bld.env['NS3_ENABLED_MODULES']]
     obj = bld.create_ns3_program('ospf-network', all_modules)
-    obj.source = ['ospf-network.cc']
+    obj.source = ['ospf-network.cc',
+                  '../multipath-mcf/custom-bridge/custom-bridge-net-device.cc',
+                  '../multipath-mcf/custom-bridge/custom-bridge-helper.cc',
+                  '../multipath-mcf/custom-bridge/custom-bridge-channel.cc',
+                  '../multipath-mcf/classes/routing-table.cc',
+                  '../multipath-mcf/classes/graph-utilities.cc',
+                  '../multipath-mcf/classes/commodity-utilities.cc',
+                  '../multipath-mcf/classes/commodity-properties.cc',
+                  '../multipath-mcf/classes/simulation-configurator.cc',
+                  '../multipath-mcf/classes/log-manager.cc',
+                  '../multipath-mcf/classes/xml-file-handler.cc']
     set_properties(obj)

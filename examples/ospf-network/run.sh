@@ -7,10 +7,10 @@ RESULTS_BASE_DIR="/home/noel/Development/results"
 SIMULATION_NAME="ospf-network"
 
 # If set to "true" enable animation
-ENABLE_ANIM="false"
+ENABLE_ANIM="true"
 
 # If set to "true" enable eps file output
-ENABLE_EPS="false"
+ENABLE_EPS="true"
 
 # If set to "true" enable all the logging components in DEBUG only
 VERBOSE="true"
