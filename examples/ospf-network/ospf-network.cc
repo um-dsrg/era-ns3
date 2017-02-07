@@ -160,8 +160,6 @@ main (int argc, char *argv[])
 
   std::string socketType = "ns3::UdpSocketFactory";
 
-  double maxEndTime = 0.0;
-
   for (CommodityUtilities::CommodityIt_t commodity = commodityUtilities.CommoditiesBegin();
        commodity != commodityUtilities.CommoditiesEnd();
        ++commodity)
@@ -199,9 +197,6 @@ main (int argc, char *argv[])
       ApplicationContainer packetSinkApp = packetSinkHelper.Install (nodes.Get (commodity->GetSinkId()));
       packetSinkApp.Start (Seconds (commodity->GetTransmissionStartTime()));
       packetSinkApp.Stop (Seconds (commodity->GetTransmissionEndTime()));
-
-      if (commodity->GetTransmissionEndTime() > maxEndTime)
-        maxEndTime = commodity->GetTransmissionEndTime();
 
       // Log entry for OnOff application
       NS_LOG_INFO("OnOff installed on node " << commodity->GetSourceId()
@@ -277,8 +272,10 @@ main (int argc, char *argv[])
 
   resultManager.EnableTracingOnAllP2PChannels();
 
-  maxEndTime += 10; // Giving a 10 seconds buffer.
-  Simulator::Stop(Seconds (maxEndTime));
+  // Giving a 10 seconds buffer.
+  std::cout << commodityUtilities.GetLongestEndTime() << std::endl;
+
+  Simulator::Stop(Seconds (commodityUtilities.GetLongestEndTime() + 10.0));
   Simulator::Run();
 
   Ptr<Ipv4FlowClassifier> flowClassifier =
