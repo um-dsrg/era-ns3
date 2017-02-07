@@ -216,8 +216,6 @@ main (int argc, char *argv[])
   // Installing flow monitor on all the nodes.
   Ptr<FlowMonitor> flowMonitor = flowMonitorHelper.InstallAll();
 
-
-
   maxEndTime += 10; // Giving a 10 seconds buffer.
   Simulator::Stop(Seconds (maxEndTime));
   Simulator::Run();
