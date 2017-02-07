@@ -38,6 +38,7 @@
 #include "../multipath-mcf/classes/log-manager.h"
 #include "../multipath-mcf/classes/graph-utilities.h"
 #include "../multipath-mcf/classes/commodity-utilities.h"
+#include "../multipath-mcf/classes/result-manager.h"
 
 using namespace ns3;
 
@@ -92,12 +93,10 @@ main (int argc, char *argv[])
   NS_ABORT_MSG_IF(logDir.empty(), "Log directory must be specified");
   NS_ABORT_MSG_IF(logFileName.empty(), "Log file name must be specified");
 
+  // Logging
   LogManager logManager (logDir, logFileName);
   logManager.LogLgfFileLocation(lgfFile);
   logManager.LogResultsFile(resultsDir + resultsFileName);
-  logManager.SaveLog();
-
-  // FIXME: Add animation + eps conversion capabilities
 
   GraphUtilities graphUtilities (lgfFile); // Load and parse the LGF file
   if(!epsFile.empty())
@@ -109,6 +108,9 @@ main (int argc, char *argv[])
   uint32_t headerSize (30);
   CommodityUtilities commodityUtilities (graphUtilities, headerSize);
   commodityUtilities.LoadCommoditiesFromFile(lgfFile);
+
+  NodeIdMap_t nodeIdMap; /*!< Map use to hold a reference between the node and it's id. */
+  std::map<Id_t, char> nodeTypeMap; /*!< Map used to hold a reference between the node and it's type */
 
   // Creating the terminal and switch nodes
   NodeContainer nodes;
@@ -136,6 +138,12 @@ main (int argc, char *argv[])
 
       Id_t srcNodeId = it->GetSourceId();
       Id_t sinkNodeId = it->GetSinkId();
+
+      nodeTypeMap[srcNodeId] = it->GetSourceType();
+      nodeTypeMap[sinkNodeId] = it->GetSinkType();
+
+      nodeIdMap[nodes.Get(srcNodeId)] = srcNodeId;
+      nodeIdMap[nodes.Get(sinkNodeId)] = sinkNodeId;
 
       NetDeviceContainer link = p2pHelper.Install (nodes.Get(srcNodeId), nodes.Get(sinkNodeId));
       ipv4.Assign(link);
@@ -211,14 +219,72 @@ main (int argc, char *argv[])
                   << " Port Number: " << sinkSocket.GetPort());
     }
 
+
+  logManager.SaveLog();
+
+  MobilityHelper mobilityHelper;
+  // All nodes have a constant position and do not move
+  mobilityHelper.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
+  mobilityHelper.InstallAll (); // Installing mobility on all the nodes
+
+  std::unique_ptr<AnimationInterface> animInterface;
+  // Enable animation
+  if (!animFile.empty())
+    {
+      logManager.LogAnimation(animFile);
+      animInterface = std::unique_ptr <ns3::AnimationInterface> (new ns3::AnimationInterface (animFile));
+      animInterface->EnablePacketMetadata ();
+
+      uint32_t nodeIndex = 0;
+      for (ns3::NodeContainer::Iterator it = nodes.Begin(); it != nodes.End(); ++it)
+        {
+          if (nodeTypeMap[nodeIndex] == 'S') // Switches are blue
+              animInterface->UpdateNodeColor(*it, 0, 0, 255);
+          else if (nodeTypeMap[nodeIndex] == 'T') // Terminals are red
+              animInterface->UpdateNodeColor(*it, 255, 0, 0);
+
+          nodeIndex++;
+        }
+
+      // Setting coordinates
+      for (l_NodeIt nodeIt = graphUtilities.GetNodeIterator(); nodeIt != lemon::INVALID; ++nodeIt)
+        {
+          int x = 0;
+          int y = 0;
+
+          graphUtilities.GetNodeCoordinates(nodeIt, x, y);
+
+          // Inverting the y-axis because NetAnim has an inverted y-axis starts from 0 and draws onwards
+          // to the bottom not the top
+          y = -y;
+
+          // Get the nodeId
+          Id_t nodeId = graphUtilities.GetNodeId(nodeIt);
+
+          ns3::AnimationInterface::SetConstantPosition(nodes.Get(nodeId), x, y);
+        }
+    }
+
+  logManager.SaveLog(); // Save the Log file
+
   // Enable Flow Monitor
   FlowMonitorHelper flowMonitorHelper;
   // Installing flow monitor on all the nodes.
   Ptr<FlowMonitor> flowMonitor = flowMonitorHelper.InstallAll();
 
+  ResultManager resultManager (flowMonitor, nodes, nodeIdMap, commodityUtilities, graphUtilities,
+                               resultsDir, resultsFileName);
+
+  resultManager.EnableTracingOnAllP2PChannels();
+
   maxEndTime += 10; // Giving a 10 seconds buffer.
   Simulator::Stop(Seconds (maxEndTime));
   Simulator::Run();
+
+  Ptr<Ipv4FlowClassifier> flowClassifier =
+    DynamicCast<Ipv4FlowClassifier>(flowMonitorHelper.GetClassifier());
+
+  resultManager.ParseResultsToXML(flowClassifier);
 
   Simulator::Destroy();
   return 0;

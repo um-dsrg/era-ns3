@@ -13,7 +13,7 @@ ENABLE_ANIM="true"
 ENABLE_EPS="true"
 
 # If set to "true" enable all the logging components in DEBUG only
-VERBOSE="true"
+VERBOSE="false"
 
 LGF_FILE="$RESULTS_BASE_DIR/graphs/$SIMULATION_NAME.lgf"
 RESULTS_DIR="$RESULTS_BASE_DIR/results/"

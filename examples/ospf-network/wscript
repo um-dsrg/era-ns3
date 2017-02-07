@@ -46,6 +46,7 @@ def build(bld):
                   '../multipath-mcf/classes/commodity-utilities.cc',
                   '../multipath-mcf/classes/commodity-properties.cc',
                   '../multipath-mcf/classes/simulation-configurator.cc',
+                  '../multipath-mcf/classes/xml-file-handler.cc',
                   '../multipath-mcf/classes/log-manager.cc',
-                  '../multipath-mcf/classes/xml-file-handler.cc']
+                  '../multipath-mcf/classes/result-manager.cc']
     set_properties(obj)
