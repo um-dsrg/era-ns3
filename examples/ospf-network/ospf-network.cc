@@ -272,9 +272,6 @@ main (int argc, char *argv[])
 
   resultManager.EnableTracingOnAllP2PChannels();
 
-  // Giving a 10 seconds buffer.
-  std::cout << commodityUtilities.GetLongestEndTime() << std::endl;
-
   Simulator::Stop(Seconds (commodityUtilities.GetLongestEndTime() + 10.0));
   Simulator::Run();
 
