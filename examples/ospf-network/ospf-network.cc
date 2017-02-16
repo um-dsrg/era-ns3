@@ -214,6 +214,11 @@ main (int argc, char *argv[])
                   << " Port Number: " << sinkSocket.GetPort());
     }
 
+  // Setting the pointToPoint net devices to have a queue of 10,000 packets
+  Config::Set ("/NodeList/*/DeviceList/*/$ns3::PointToPointNetDevice/TxQueue/MaxPackets",
+               UintegerValue (10000));
+  Config::Set ("/NodeList/*/DeviceList/*/TxQueue/MaxPackets",
+             UintegerValue (10000));
 
   logManager.SaveLog();
 
@@ -266,6 +271,9 @@ main (int argc, char *argv[])
   FlowMonitorHelper flowMonitorHelper;
   // Installing flow monitor on all the nodes.
   Ptr<FlowMonitor> flowMonitor = flowMonitorHelper.InstallAll();
+
+  flowMonitor->SetAttribute("MaxPerHopDelay",
+                            TimeValue(Seconds(commodityUtilities.GetLongestEndTime())));
 
   ResultManager resultManager (flowMonitor, nodes, nodeIdMap, commodityUtilities, graphUtilities,
                                resultsDir, resultsFileName);
