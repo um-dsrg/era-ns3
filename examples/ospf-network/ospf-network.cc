@@ -275,7 +275,8 @@ main (int argc, char *argv[])
   flowMonitor->SetAttribute("MaxPerHopDelay",
                             TimeValue(Seconds(commodityUtilities.GetLongestEndTime())));
 
-  ResultManager resultManager (flowMonitor, nodes, nodeIdMap, commodityUtilities, graphUtilities,
+  ResultManager resultManager (flowMonitor, nodes, // nodeIdMap,
+                               commodityUtilities, graphUtilities,
                                resultsDir, resultsFileName);
 
   resultManager.EnableTracingOnAllP2PChannels();
