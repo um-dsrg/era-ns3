@@ -99,6 +99,12 @@ main (int argc, char *argv[])
   logManager.LogResultsFile(resultsDir + resultsFileName);
 
   GraphUtilities graphUtilities (lgfFile); // Load and parse the LGF file
+
+  NodeContainer nodes;
+  Ns3ToLemonNodeMap_t ns3ToLemonNodeMap;
+  LemonToNs3NodeMap_t lemonToNs3NodeMap;
+  graphUtilities.CreateNodesAndGenerateNetworkTopology(nodes, lemonToNs3NodeMap, ns3ToLemonNodeMap);
+
   if(!epsFile.empty())
     {
       graphUtilities.ExportGraphToEps(epsFile);
@@ -109,12 +115,7 @@ main (int argc, char *argv[])
   CommodityUtilities commodityUtilities (graphUtilities, headerSize);
   commodityUtilities.LoadCommoditiesFromFile(lgfFile);
 
-  NodeIdMap_t nodeIdMap; /*!< Map use to hold a reference between the node and it's id. */
   std::map<Id_t, char> nodeTypeMap; /*!< Map used to hold a reference between the node and it's type */
-
-  // Creating the terminal and switch nodes
-  NodeContainer nodes;
-  nodes.Create(graphUtilities.GetNumberOfSwitches() + graphUtilities.GetNumberOfTerminals());
 
   // Installing internet on all the nodes
   InternetStackHelper internetStack;
@@ -141,9 +142,6 @@ main (int argc, char *argv[])
 
       nodeTypeMap[srcNodeId] = it->GetSourceType();
       nodeTypeMap[sinkNodeId] = it->GetSinkType();
-
-      nodeIdMap[nodes.Get(srcNodeId)] = srcNodeId;
-      nodeIdMap[nodes.Get(sinkNodeId)] = sinkNodeId;
 
       NetDeviceContainer link = p2pHelper.Install (nodes.Get(srcNodeId), nodes.Get(sinkNodeId));
       ipv4.Assign(link);
@@ -275,7 +273,7 @@ main (int argc, char *argv[])
   flowMonitor->SetAttribute("MaxPerHopDelay",
                             TimeValue(Seconds(commodityUtilities.GetLongestEndTime())));
 
-  ResultManager resultManager (flowMonitor, nodes, // nodeIdMap,
+  ResultManager resultManager (flowMonitor, nodes, ns3ToLemonNodeMap,
                                commodityUtilities, graphUtilities,
                                resultsDir, resultsFileName);
 
