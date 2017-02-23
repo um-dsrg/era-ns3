@@ -66,6 +66,8 @@ main (int argc, char *argv[])
   std::string logFileName ("");
   std::string epsFile ("");
   std::string animFile ("");
+  uint32_t seed (1);
+  uint32_t run (1);
 
   cmdLine.AddValue("verbose", "If true output log values", verbose);
   cmdLine.AddValue("lgfFile", "The full path to the LGF file", lgfFile);
@@ -73,6 +75,8 @@ main (int argc, char *argv[])
   cmdLine.AddValue("resultsFileName", "The name + extension of the results file name", resultsFileName);
   cmdLine.AddValue("logDir", "The directory where to store the logs", logDir);
   cmdLine.AddValue("logFileName", "The log's file name", logFileName);
+  cmdLine.AddValue("seed", "The seed used by the random number generator. Default of 1.", seed);
+  cmdLine.AddValue("run", "The initial run value. Default of 1.", run);
   cmdLine.AddValue("animFile", "The path where to save the animation xml file. When blank it is disabled"
                    , animFile);
   cmdLine.AddValue("epsFile", "The path where to output the EPS file. If blank nothing will be output"
@@ -92,6 +96,10 @@ main (int argc, char *argv[])
   NS_ABORT_MSG_IF(resultsFileName.empty(), "Results file name must be specified");
   NS_ABORT_MSG_IF(logDir.empty(), "Log directory must be specified");
   NS_ABORT_MSG_IF(logFileName.empty(), "Log file name must be specified");
+
+  // Set the seed and run variables
+  RngSeedManager::SetSeed (seed);
+  RngSeedManager::SetRun (run);
 
   // Logging
   LogManager logManager (logDir, logFileName);
