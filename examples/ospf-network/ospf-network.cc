@@ -51,6 +51,19 @@ GetNodeIpAddress (Ptr<Node> node, uint32_t interface = 1, uint32_t addressIndex 
   return nodeIp->GetAddress (interface, addressIndex).GetLocal ();
 }
 
+// void
+// ScheduleRouteRecompute (uint64_t intervalInMs)
+// {
+//   NS_LOG_INFO("Re-Computing OSPF table");
+//   ns3::Time interval = MilliSeconds(intervalInMs);
+//   ns3::Time scheduleTime = Simulator::Now() + interval;
+
+//   Ipv4GlobalRoutingHelper::RecomputeRoutingTables();
+
+//   Simulator::Schedule (scheduleTime,
+//                        &ScheduleRouteRecompute, intervalInMs);
+// }
+
 int
 main (int argc, char *argv[])
 {
@@ -88,6 +101,7 @@ main (int argc, char *argv[])
     {
       LogComponentEnable ("OnOffApplication", LOG_LEVEL_INFO);
       LogComponentEnable ("PacketSink", LOG_LEVEL_INFO);
+      LogComponentEnable("OSPF-Network", LOG_LEVEL_INFO);
     }
 
   // Check the validity of the command line arguments.
@@ -130,7 +144,7 @@ main (int argc, char *argv[])
   internetStack.InstallAll();
 
   Ipv4AddressHelper ipv4;
-  ipv4.SetBase("1.0.0.0", "255.0.0.0");
+  ipv4.SetBase("0.0.0.0", "255.255.255.252");
 
   PointToPointHelper p2pHelper;
 
@@ -225,6 +239,7 @@ main (int argc, char *argv[])
                UintegerValue (1000000));
   Config::Set ("/NodeList/*/DeviceList/*/TxQueue/MaxPackets",
              UintegerValue (1000000));
+  Config::Set ("/NodeList/*/$ns3::Ipv4L3Protocol/DefaultTtl", UintegerValue(255));
 
   logManager.SaveLog();
 
@@ -286,6 +301,11 @@ main (int argc, char *argv[])
                                resultsDir, resultsFileName);
 
   resultManager.EnableTracingOnAllP2PChannels();
+
+  // // Scheduling route re-computation every 1 second
+  // Simulator::Schedule (Seconds(1),
+  //                      &ScheduleRouteRecompute, 1000);
+
 
   Simulator::Stop(Seconds (commodityUtilities.GetLongestEndTime() + 10.0));
   Simulator::Run();
