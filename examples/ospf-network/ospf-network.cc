@@ -234,11 +234,11 @@ main (int argc, char *argv[])
                   << " Port Number: " << sinkSocket.GetPort());
     }
 
-  // Setting the pointToPoint net devices to have a queue of 1,000,000 packets
+  // Setting the pointToPoint net devices to have a queue of 100,000,000 packets
   Config::Set ("/NodeList/*/DeviceList/*/$ns3::PointToPointNetDevice/TxQueue/MaxPackets",
-               UintegerValue (1000000));
+               UintegerValue (100000000));
   Config::Set ("/NodeList/*/DeviceList/*/TxQueue/MaxPackets",
-             UintegerValue (1000000));
+             UintegerValue (100000000));
   Config::Set ("/NodeList/*/$ns3::Ipv4L3Protocol/DefaultTtl", UintegerValue(255));
 
   logManager.SaveLog();
