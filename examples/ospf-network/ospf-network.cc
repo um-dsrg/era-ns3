@@ -234,12 +234,23 @@ main (int argc, char *argv[])
                   << " Port Number: " << sinkSocket.GetPort());
     }
 
-  // Setting the pointToPoint net devices to have a queue of 100,000,000 packets
-  Config::Set ("/NodeList/*/DeviceList/*/$ns3::PointToPointNetDevice/TxQueue/MaxPackets",
-               UintegerValue (100000000));
-  Config::Set ("/NodeList/*/DeviceList/*/TxQueue/MaxPackets",
-             UintegerValue (100000000));
-  Config::Set ("/NodeList/*/$ns3::Ipv4L3Protocol/DefaultTtl", UintegerValue(255));
+  // Setting a per port buffer of 60MB
+  Config::Set ("/NodeList/*/DeviceList/*/$ns3::PointToPointNetDevice/TxQueue/Mode",
+               StringValue ("QUEUE_MODE_BYTES"));
+  Config::Set ("/NodeList/*/DeviceList/*/TxQueue/Mode",
+               StringValue ("QUEUE_MODE_BYTES"));
+
+  Config::Set ("/NodeList/*/DeviceList/*/$ns3::PointToPointNetDevice/TxQueue/MaxBytes",
+               UintegerValue (62914560));
+  Config::Set ("/NodeList/*/DeviceList/*/TxQueue/MaxBytes",
+               UintegerValue (62914560));
+
+  // // Setting the pointToPoint net devices to have a queue of 100,000,000 packets
+  // Config::Set ("/NodeList/*/DeviceList/*/$ns3::PointToPointNetDevice/TxQueue/MaxPackets",
+  //              UintegerValue (100000000));
+  // Config::Set ("/NodeList/*/DeviceList/*/TxQueue/MaxPackets",
+  //            UintegerValue (100000000));
+  // Config::Set ("/NodeList/*/$ns3::Ipv4L3Protocol/DefaultTtl", UintegerValue(255));
 
   logManager.SaveLog();
 
