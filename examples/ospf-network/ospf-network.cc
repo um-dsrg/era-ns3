@@ -149,7 +149,8 @@ main (int argc, char *argv[])
   PointToPointHelper p2pHelper;
 
   NetworkTopology_t& networkTopology = graphUtilities.GetNetworkTopology();
-  // Loop through the network topology and setup the connections
+
+  //Loop through the network topology and setup the connections
   for (NetworkTopologyRevIt_t it = networkTopology.rbegin();
        it != networkTopology.rend();
        ++it)
@@ -234,23 +235,23 @@ main (int argc, char *argv[])
                   << " Port Number: " << sinkSocket.GetPort());
     }
 
-  // Setting a per port buffer of 60MB
-  Config::Set ("/NodeList/*/DeviceList/*/$ns3::PointToPointNetDevice/TxQueue/Mode",
-               StringValue ("QUEUE_MODE_BYTES"));
-  Config::Set ("/NodeList/*/DeviceList/*/TxQueue/Mode",
-               StringValue ("QUEUE_MODE_BYTES"));
+  // // Setting a per port buffer of 60MB
+  // Config::Set ("/NodeList/*/DeviceList/*/$ns3::PointToPointNetDevice/TxQueue/Mode",
+  //              StringValue ("QUEUE_MODE_BYTES"));
+  // Config::Set ("/NodeList/*/DeviceList/*/TxQueue/Mode",
+  //              StringValue ("QUEUE_MODE_BYTES"));
 
-  Config::Set ("/NodeList/*/DeviceList/*/$ns3::PointToPointNetDevice/TxQueue/MaxBytes",
-               UintegerValue (62914560));
-  Config::Set ("/NodeList/*/DeviceList/*/TxQueue/MaxBytes",
-               UintegerValue (62914560));
+  // Config::Set ("/NodeList/*/DeviceList/*/$ns3::PointToPointNetDevice/TxQueue/MaxBytes",
+  //              UintegerValue (62914560));
+  // Config::Set ("/NodeList/*/DeviceList/*/TxQueue/MaxBytes",
+  //              UintegerValue (62914560));
 
-  // // Setting the pointToPoint net devices to have a queue of 100,000,000 packets
-  // Config::Set ("/NodeList/*/DeviceList/*/$ns3::PointToPointNetDevice/TxQueue/MaxPackets",
-  //              UintegerValue (100000000));
-  // Config::Set ("/NodeList/*/DeviceList/*/TxQueue/MaxPackets",
-  //            UintegerValue (100000000));
-  // Config::Set ("/NodeList/*/$ns3::Ipv4L3Protocol/DefaultTtl", UintegerValue(255));
+  // Setting the pointToPoint net devices to have a queue of 100,000,000 packets
+  Config::Set ("/NodeList/*/DeviceList/*/$ns3::PointToPointNetDevice/TxQueue/MaxPackets",
+               UintegerValue (100000000));
+  Config::Set ("/NodeList/*/DeviceList/*/TxQueue/MaxPackets",
+             UintegerValue (100000000));
+  Config::Set ("/NodeList/*/$ns3::Ipv4L3Protocol/DefaultTtl", UintegerValue(255));
 
   logManager.SaveLog();
 
