@@ -1,0 +1,14 @@
+## -*- Mode: python; py-indent-offset: 4; indent-tabs-mode: nil; coding: utf-8; -*-
+
+def build(bld):
+    def set_properties(obj):
+        # Adding the tinyxml2 library as a dependency
+        obj.use = obj.ns3_module_dependencies + ['tinyxml2']
+        obj.install_path = None
+
+    all_modules = [mod[len("ns3-"):] for mod in bld.env['NS3_ENABLED_MODULES']]
+    obj = bld.create_ns3_program('ppfs', all_modules)
+    obj.source = ['ppfs.cc',
+                  'ppfs-switch.cc',
+                  'topology-builder.cc']
+    set_properties(obj)
