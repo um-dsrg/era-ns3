@@ -5,6 +5,7 @@
 #include "ns3/string.h"
 #include "ns3/point-to-point-channel.h"
 #include "ns3/point-to-point-net-device.h"
+#include "ns3/internet-module.h"
 
 #include "topology-builder.h"
 
@@ -12,8 +13,10 @@ using namespace ns3;
 using namespace tinyxml2;
 
 TopologyBuilder::TopologyBuilder (XMLNode* xmlRootNode, std::map<uint32_t, PpfsSwitch> &switchMap,
-                                  NodeContainer& allNodes) :
-  m_xmlRootNode(xmlRootNode), m_switchMap(switchMap), m_allNodes(allNodes)
+                                  NodeContainer& allNodes, NodeContainer& terminalNodes,
+                                  NodeContainer& switchNodes) :
+  m_xmlRootNode(xmlRootNode), m_switchMap(switchMap), m_allNodes(allNodes),
+  m_terminalNodes(terminalNodes), m_switchNodes(switchNodes)
 {}
 
 void
@@ -28,7 +31,7 @@ TopologyBuilder::CreateNodes()
 }
 
 void
-TopologyBuilder::CreatePpfsSwitches()
+TopologyBuilder::ParseNodeConfiguration()
 {
   XMLElement* nodeConfigurationElement = m_xmlRootNode->FirstChildElement("NodeConfiguration");
   NS_ABORT_MSG_IF(nodeConfigurationElement == nullptr, "NodeConfiguration Element not found");
@@ -46,13 +49,19 @@ TopologyBuilder::CreatePpfsSwitches()
         {
           auto ret = m_switchMap.insert({nodeId, PpfsSwitch(nodeId)});
           NS_ABORT_MSG_IF(ret.second == false, "A switch with Id " << nodeId << " exists already");
+          m_switchNodes.Add(m_allNodes.Get(nodeId)); // Add the node to the switches node container
         }
+      else if (nodeType == 'T')
+        m_terminalNodes.Add(m_allNodes.Get(nodeId)); // Add the node to the terminals node container
+      else
+        NS_ABORT_MSG("Unknown node type encountered");
+
       nodeElement = nodeElement->NextSiblingElement("Node");
     }
 }
 
 void
-TopologyBuilder::BuildNetworkTopology()
+TopologyBuilder::BuildNetworkTopology(std::map <uint32_t, LinkInformation>& linkInformation)
 {
   XMLElement* networkTopologyElement = m_xmlRootNode->FirstChildElement("NetworkTopology");
   NS_ABORT_MSG_IF(networkTopologyElement == nullptr, "NetworkTopology Element not found");
@@ -82,7 +91,7 @@ TopologyBuilder::BuildNetworkTopology()
           linkInfo.dstNodeType = *linkElementElement->Attribute("DestinationNodeType");
           linkElementElement->QueryAttribute("Capacity", &linkInfo.capacity);
 
-          auto ret = m_linkInformation.insert({linkInfo.linkId, linkInfo});
+          auto ret = linkInformation.insert({linkInfo.linkId, linkInfo});
           NS_ABORT_MSG_IF(ret.second == false, "Link ID " << linkInfo.linkId << " is duplicate");
 
           linkIds[linkElementCounter++] = linkInfo.linkId;
@@ -90,12 +99,24 @@ TopologyBuilder::BuildNetworkTopology()
         }
 
       if (linkIds[1] == -1)
-        InstallP2pLink(m_linkInformation[linkIds[0]], linkDelay);
+        InstallP2pLink(linkInformation[linkIds[0]], linkDelay);
       else
-        InstallP2pLink(m_linkInformation[linkIds[0]], m_linkInformation[linkIds[1]], linkDelay);
+        InstallP2pLink(linkInformation[linkIds[0]], linkInformation[linkIds[1]], linkDelay);
 
       linkElement = linkElement->NextSiblingElement("Link");
     }
+}
+
+void
+TopologyBuilder::AssignIpToTerminals()
+{
+  InternetStackHelper internet;
+  internet.Install(m_terminalNodes); //Add internet stack to the terminals ONLY
+
+  Ipv4AddressHelper ipv4;
+  ipv4.SetBase ("1.0.0.0", "255.0.0.0");
+
+  ipv4.Assign(m_terminalDevices);
 }
 
 void
@@ -121,6 +142,8 @@ TopologyBuilder::InstallP2pLink (LinkInformation& linkA, LinkInformation& linkB,
   // Only if if is a switch!!
   if (linkA.srcNodeType == 'S')
     m_switchMap[linkA.srcNode].InsertNetDevice(linkA.linkId, devA);
+  else if (linkA.srcNodeType == 'T')
+    m_terminalDevices.Add(devA);
 
   // Setting up link B ////////////////////////////////////////////////////////
   Ptr<Node> nodeB = m_allNodes.Get(linkB.srcNode);
@@ -134,6 +157,8 @@ TopologyBuilder::InstallP2pLink (LinkInformation& linkA, LinkInformation& linkB,
   // used when building the routing table.
   if (linkB.srcNodeType == 'S')
     m_switchMap[linkB.srcNode].InsertNetDevice(linkB.linkId, devB);
+  else if (linkB.srcNodeType == 'T')
+    m_terminalDevices.Add(devB);
 
   Ptr<PointToPointChannel> channel = m_channelFactory.Create<PointToPointChannel> ();
   devA->Attach (channel);
@@ -162,6 +187,8 @@ TopologyBuilder::InstallP2pLink (LinkInformation& link, uint32_t delay)
   // used when building the routing table.
   if (link.srcNodeType == 'S')
     m_switchMap[link.srcNode].InsertNetDevice(link.linkId, devA);
+  else if (link.srcNodeType == 'T')
+    m_terminalDevices.Add(devA);
 
   // Setting up link B ////////////////////////////////////////////////////////
   Ptr<Node> nodeB = m_allNodes.Get(link.dstNode);
@@ -171,6 +198,9 @@ TopologyBuilder::InstallP2pLink (LinkInformation& link, uint32_t delay)
   Ptr<Queue> queueB = queueFactory.Create<Queue> ();
   queueB->SetMaxPackets(0); /*!< Sanity check to make sure no packets are sent from this device */
   devB->SetQueue (queueB);
+
+  if (link.dstNodeType == 'T')
+    m_terminalDevices.Add(devB);
 
   Ptr<PointToPointChannel> channel = channelFactory.Create<PointToPointChannel> ();
   devA->Attach (channel);

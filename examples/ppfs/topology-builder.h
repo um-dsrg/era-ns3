@@ -26,20 +26,27 @@ class TopologyBuilder
 public:
   TopologyBuilder (tinyxml2::XMLNode* xmlRootNode,
                    std::map<uint32_t, PpfsSwitch> &switchMap,
-                   ns3::NodeContainer& allNodes);
+                   ns3::NodeContainer& allNodes,
+                   ns3::NodeContainer& terminalNodes,
+                   ns3::NodeContainer& switchNodes);
 
   void CreateNodes ();
-  void CreatePpfsSwitches ();
-  void BuildNetworkTopology ();
+  // Parses the node configuration element and creates PpfsSwitches instances
+  void ParseNodeConfiguration ();
+  // linkinformation is output.
+  void BuildNetworkTopology (std::map <uint32_t, LinkInformation>& linkInformation);
+  void AssignIpToTerminals ();
 
 private:
   void InstallP2pLink (LinkInformation& linkA, LinkInformation& linkB, uint32_t delay);
   void InstallP2pLink (LinkInformation& link, uint32_t delay);
 
-  std::map <uint32_t, LinkInformation> m_linkInformation; // Why is this here?!
   tinyxml2::XMLNode* m_xmlRootNode;
   std::map<uint32_t, PpfsSwitch> & m_switchMap;
   ns3::NodeContainer& m_allNodes;
+  ns3::NodeContainer& m_terminalNodes;
+  ns3::NodeContainer& m_switchNodes;
+  ns3::NetDeviceContainer m_terminalDevices;
 };
 
 #endif /* TOPOLOGY_BUILDER_H */
