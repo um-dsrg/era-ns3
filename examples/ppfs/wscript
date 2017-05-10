@@ -10,5 +10,6 @@ def build(bld):
     obj = bld.create_ns3_program('ppfs', all_modules)
     obj.source = ['ppfs.cc',
                   'ppfs-switch.cc',
-                  'topology-builder.cc']
+                  'topology-builder.cc',
+                  'routing-helper.cc']
     set_properties(obj)
