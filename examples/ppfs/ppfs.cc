@@ -39,6 +39,12 @@ main (int argc, char *argv[])
 {
   NS_LOG_UNCOND ("Per Packet Flow Splitting Simulator");
 
+  // We need to enable logging here!
+  LogComponentEnable ("RoutingHelper", LOG_LEVEL_INFO);
+  LogComponentEnable("PpfsSwitch", LOG_LEVEL_INFO);
+  LogComponentEnable ("OnOffApplication", LOG_LEVEL_INFO);
+  LogComponentEnable ("PacketSink", LOG_LEVEL_INFO);
+
   // Parsing the XML file.
   XMLDocument xmlLogFile;
   XMLError error = xmlLogFile.LoadFile("/home/noel/Development/source-code/ns3/log.xml");
@@ -58,13 +64,13 @@ main (int argc, char *argv[])
   topologyBuilder.BuildNetworkTopology (linkInformation);
   topologyBuilder.AssignIpToTerminals ();
 
-  RoutingHelper routingHelper;
-  routingHelper.PopulateRoutingTables(switchMap, linkInformation, allNodes, rootNode);
+  RoutingHelper routingHelper (switchMap);
+  routingHelper.PopulateRoutingTables(linkInformation, allNodes, rootNode);
   routingHelper.SetReceiveFunctionForSwitches(switchNodes);
 
   // Simple test application!
-  ns3::Ptr<Ipv4> nodeIp = allNodes.Get(8)->GetObject<Ipv4> (); // Get Ipv4 instance of the node
-  InetSocketAddress sinkSocket (nodeIp->GetAddress(1, 0).GetBroadcast(), 9);
+  ns3::Ptr<Ipv4> nodeIp = allNodes.Get(2)->GetObject<Ipv4> (); // Get Ipv4 instance of the node
+  InetSocketAddress sinkSocket (nodeIp->GetAddress(1, 0).GetLocal(), 1400);
   OnOffHelper onOff ("ns3::UdpSocketFactory", sinkSocket);
   onOff.SetAttribute ("OnTime",  StringValue ("ns3::ConstantRandomVariable[Constant=1]"));
   onOff.SetAttribute ("OffTime", StringValue ("ns3::ConstantRandomVariable[Constant=0]"));
@@ -78,7 +84,7 @@ main (int argc, char *argv[])
 
   // Configuring receiver
   PacketSinkHelper sinkHelper ("ns3::UdpSocketFactory", sinkSocket);
-  ApplicationContainer sinkApp = sinkHelper.Install(allNodes.Get(8));
+  ApplicationContainer sinkApp = sinkHelper.Install(allNodes.Get(2));
   sinkApp.Start(Seconds (0));
   sinkApp.Stop(Seconds (10));
 

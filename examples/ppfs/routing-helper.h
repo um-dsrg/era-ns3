@@ -15,8 +15,9 @@
 class RoutingHelper
 {
 public:
-  void PopulateRoutingTables (std::map<uint32_t, PpfsSwitch>& switchMap,
-                              std::map <uint32_t, LinkInformation>& linkInformation,
+  RoutingHelper (std::map<uint32_t, PpfsSwitch>& switchMap);
+
+  void PopulateRoutingTables (std::map <uint32_t, LinkInformation>& linkInformation,
                               ns3::NodeContainer& allNodes,
                               tinyxml2::XMLNode* rootNode);
   void SetReceiveFunctionForSwitches (ns3::NodeContainer switchNodes);
@@ -27,6 +28,8 @@ private:
   void ParseIncomingFlows (std::map<std::pair<uint32_t, uint32_t>, double>& incomingFlow,
                            tinyxml2::XMLNode* rootNode);
   inline uint32_t GetIpAddress (uint32_t nodeId, ns3::NodeContainer& nodes);
+
+  std::map<uint32_t, PpfsSwitch>& m_switchMap;
 };
 
 #endif /* ROUTING_HELPER_H */

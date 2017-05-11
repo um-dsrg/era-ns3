@@ -1,13 +1,27 @@
 #include "ns3/abort.h"
+#include "ns3/ipv4-header.h"
+#include "ns3/ipv4-l3-protocol.h"
+#include "ns3/udp-header.h"
+#include "ns3/udp-l4-protocol.h"
+#include "ns3/tcp-header.h"
+#include "ns3/tcp-l4-protocol.h"
+#include "ns3/log.h"
+#include "ns3/rng-seed-manager.h"
+#include "ns3/double.h"
+
 #include "ppfs-switch.h"
 
 using namespace ns3;
+
+NS_LOG_COMPONENT_DEFINE("PpfsSwitch");
 
 PpfsSwitch::PpfsSwitch ()
 {}
 
 PpfsSwitch::PpfsSwitch (uint32_t id) : m_id(id)
-{}
+{
+  SetRandomNumberGenerator(); // TODO: Update this!
+}
 
 void
 PpfsSwitch::InsertNetDevice(uint32_t linkId, ns3::Ptr<ns3::NetDevice> device)
@@ -29,12 +43,17 @@ PpfsSwitch::InsertEntryInRoutingTable(uint32_t srcIpAddr, uint32_t dstIpAddr, ui
                   "the routing table of Switch with Id " << m_id);
   Ptr<NetDevice> forwardDevice = ret->second;
 
+  NS_LOG_INFO("---------------------------------------------------------------");
+  NS_LOG_INFO("Inserting entry in Switch " << m_id << " routing table.\n" << currentFlow);
+
   auto routingTableEntry = m_routingTable.find(currentFlow);
   if (routingTableEntry == m_routingTable.end()) // Route does not exist in table
     {
       std::vector<ForwardingAction> forwardAction;
       forwardAction.push_back(ForwardingAction(forwardDevice, flowRatio));
       m_routingTable.insert({currentFlow, forwardAction});
+
+      NS_LOG_INFO(forwardAction.back()); // Logging the entry
     }
   else // Route already exists in table
     {
@@ -42,5 +61,120 @@ PpfsSwitch::InsertEntryInRoutingTable(uint32_t srcIpAddr, uint32_t dstIpAddr, ui
       ForwardingAction& lastAction = forwardActions.back();
       double currentSplitRatio = lastAction.splitRatio + flowRatio;
       forwardActions.push_back(ForwardingAction(forwardDevice, currentSplitRatio));
+
+      for (auto& action : forwardActions) NS_LOG_INFO(action);
     }
+}
+
+void
+PpfsSwitch::ForwardPacket(ns3::Ptr<const ns3::Packet> packet, uint16_t protocol, const Address& dst)
+{
+  FlowMatch flow (ParsePacket(packet, protocol));
+
+  auto ret = m_routingTable.find(flow);
+  NS_ABORT_MSG_IF(ret == m_routingTable.end(), "Routing Table Miss\n" << flow);
+
+  NS_LOG_INFO("Switch " << m_id << " forwarding packet at " << Simulator::Now().GetSeconds());
+
+  bool sendSuccessful = GetPort(ret->second)->Send(packet->Copy(), dst, protocol);
+  NS_ABORT_MSG_IF(sendSuccessful == false, "Packet transmission failed");
+}
+
+PpfsSwitch::FlowMatch
+PpfsSwitch::ParsePacket (ns3::Ptr<const ns3::Packet> packet, uint16_t protocol)
+{
+  // Copy the packet for parsing purposes
+  Ptr<Packet> recvPacket = packet->Copy ();
+  FlowMatch flow;
+  Ipv4Header ipHeader;
+
+  if (protocol == Ipv4L3Protocol::PROT_NUMBER) // Packet is IP
+    {
+      uint8_t ipProtocol (0);
+
+      if (recvPacket->PeekHeader(ipHeader)) // Parsing IP Header
+        {
+          ipProtocol = ipHeader.GetProtocol();
+          flow.srcIpAddr = ipHeader.GetSource().Get();
+          flow.dstIpAddr = ipHeader.GetDestination().Get();
+          recvPacket->RemoveHeader(ipHeader); // Removing the IP header
+        }
+
+      if (ipProtocol == UdpL4Protocol::PROT_NUMBER) // UDP Packet
+        {
+          UdpHeader udpHeader;
+          if (recvPacket->PeekHeader(udpHeader))
+            {
+              flow.portNumber = udpHeader.GetDestinationPort();
+              flow.protocol = FlowMatch::Protocol::Udp;
+            }
+        }
+      else if (ipProtocol == TcpL4Protocol::PROT_NUMBER) // TCP Packet
+        {
+          TcpHeader tcpHeader;
+          if (recvPacket->PeekHeader(tcpHeader))
+            {
+              flow.portNumber = tcpHeader.GetDestinationPort();
+              flow.protocol = FlowMatch::Protocol::Tcp;
+            }
+        }
+      else
+        NS_ABORT_MSG("Unknown packet type received. Packet Type " << ipProtocol);
+    }
+  else
+    NS_ABORT_MSG("Non-IP Packet received. Protocol value " << protocol);
+
+  return flow;
+}
+
+ns3::Ptr<ns3::NetDevice>
+PpfsSwitch::GetPort (const std::vector<PpfsSwitch::ForwardingAction>& forwardActions)
+{
+  double randomNumber (GenerateRandomNumber()); // Generate random number
+  double lhs = 0.0;
+  double rhs = 0.0;
+
+  typedef  std::vector<PpfsSwitch::ForwardingAction>::size_type sizeType;
+
+  // Loop through the routing table until a match is found
+  for (sizeType index = 0; index < forwardActions.size(); ++index)
+    { // A match is found based on the equation (lhs <= value < rhs)
+      lhs = (index == 0) ? 0.0 : forwardActions[index - 1].splitRatio;
+      rhs = forwardActions[index].splitRatio;
+
+      if ((lhs <= randomNumber) && (randomNumber < rhs))
+        return forwardActions[index].port; // Match found
+
+      /*
+       * If we are at the end and of the forwarding table and no match has been found yet the packet
+       * should be forwarded at the last forwarding slot. When such instance occur a log entry will
+       * be output to ease debugging.
+       */
+      if (index == (forwardActions.size()-1))
+        {
+          NS_LOG_INFO("The random number " << randomNumber << " did not fit any slot in" <<
+                      " the forwarding table.");
+          return forwardActions[index].port;
+        }
+    }
+
+  NS_FATAL_ERROR("Forwarding port number for packet not found.");
+}
+
+void
+PpfsSwitch::SetRandomNumberGenerator ()
+{
+  SeedManager::SetSeed (1);
+  SeedManager::SetRun (1);
+
+  m_uniformRandomVariable = CreateObject<UniformRandomVariable>();
+
+  m_uniformRandomVariable->SetAttribute("Min", DoubleValue(0.0));
+  m_uniformRandomVariable->SetAttribute ("Max", DoubleValue (1.0));
+}
+
+double
+PpfsSwitch::GenerateRandomNumber ()
+{
+  return m_uniformRandomVariable->GetValue();
 }

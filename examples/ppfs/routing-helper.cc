@@ -1,13 +1,19 @@
-#include "routing-helper.h"
-
 #include "ns3/ipv4.h"
+#include "ns3/log.h"
+#include "ns3/simulator.h"
+
+#include "routing-helper.h"
 
 using namespace ns3;
 using namespace tinyxml2;
 
+NS_LOG_COMPONENT_DEFINE ("RoutingHelper");
+
+RoutingHelper::RoutingHelper (std::map<uint32_t, PpfsSwitch>& switchMap) : m_switchMap(switchMap)
+{}
+
 void
-RoutingHelper::PopulateRoutingTables (std::map<uint32_t, PpfsSwitch>& switchMap,
-                                      std::map <uint32_t, LinkInformation>& linkInformation,
+RoutingHelper::PopulateRoutingTables (std::map <uint32_t, LinkInformation>& linkInformation,
                                       NodeContainer& allNodes, XMLNode* rootNode)
 {
   // Key -> Node Id, Flow Id, Value -> Incoming flow rate.
@@ -55,8 +61,8 @@ RoutingHelper::PopulateRoutingTables (std::map<uint32_t, PpfsSwitch>& switchMap,
               double nodeIncomingFlow = incomingFlow[std::make_pair(linkSrcNode, flowId)];
               double flowRatio = linkFlowRate / nodeIncomingFlow;
 
-              switchMap[linkSrcNode].InsertEntryInRoutingTable(srcIp, dstIp, portNumber, protocol,
-                                                               linkId, flowRatio);
+              m_switchMap[linkSrcNode].InsertEntryInRoutingTable(srcIp, dstIp, portNumber, protocol,
+                                                                 linkId, flowRatio);
             }
           linkElement = linkElement->NextSiblingElement("Link");
         }
@@ -86,8 +92,10 @@ RoutingHelper::ReceiveFromDevice(Ptr<NetDevice> incomingPort, Ptr<const Packet> 
                                  uint16_t protocol, const Address &src, const Address &dst,
                                  NetDevice::PacketType packetType)
 {
-  std::cout << "A packet was received on node " << incomingPort->GetNode()->GetId() << std::endl;
-  // TODO: We need to insert the functionality here.
+  uint32_t switchNode = incomingPort->GetNode()->GetId();
+  NS_LOG_INFO("Switch " << switchNode << " received a packet at " << Simulator::Now().GetSeconds());
+
+  m_switchMap[switchNode].ForwardPacket(packet, protocol, dst); // Forward the packet
 }
 
 void
