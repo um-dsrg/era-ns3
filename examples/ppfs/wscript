@@ -11,5 +11,6 @@ def build(bld):
     obj.source = ['ppfs.cc',
                   'ppfs-switch.cc',
                   'topology-builder.cc',
-                  'routing-helper.cc']
+                  'routing-helper.cc',
+                  'application-helper.cc']
     set_properties(obj)
