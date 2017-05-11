@@ -29,6 +29,7 @@
 #include "topology-builder.h"
 #include "routing-helper.h"
 #include "application-helper.h"
+#include "animation-helper.h"
 
 using namespace ns3;
 using namespace tinyxml2;
@@ -39,6 +40,8 @@ int
 main (int argc, char *argv[])
 {
   NS_LOG_UNCOND ("Per Packet Flow Splitting Simulator");
+
+  // TODO: Add cmdLine parameters!
 
   // We need to enable logging here!
   LogComponentEnable ("RoutingHelper", LOG_LEVEL_INFO);
@@ -52,7 +55,6 @@ main (int argc, char *argv[])
   NS_ABORT_MSG_IF(error != XML_SUCCESS, "Could not load LOG FILE");
   XMLNode* rootNode = xmlLogFile.LastChild();
   NS_ABORT_MSG_IF(rootNode == nullptr, "No root node node found");
-
 
   NodeContainer allNodes; /*!< Node container storing all the nodes */
   NodeContainer terminalNodes; /*!< Node container storing a reference to the terminal nodes */
@@ -70,6 +72,11 @@ main (int argc, char *argv[])
   RoutingHelper routingHelper (switchMap);
   routingHelper.PopulateRoutingTables(linkInformation, allNodes, rootNode);
   routingHelper.SetReceiveFunctionForSwitches(switchNodes);
+
+  AnimationHelper animHelper;
+  animHelper.SetNodeMobilityAndCoordinates(rootNode, allNodes);
+  animHelper.SetupAnimation("/home/noel/Development/source-code/ns3/animation.xml", terminalNodes,
+                            switchNodes);
 
   ApplicationHelper applicationHelper;
   uint32_t stopTime = applicationHelper.InstallApplicationOnTerminals(allNodes, rootNode);

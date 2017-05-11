@@ -12,5 +12,6 @@ def build(bld):
                   'ppfs-switch.cc',
                   'topology-builder.cc',
                   'routing-helper.cc',
-                  'application-helper.cc']
+                  'application-helper.cc',
+                  'animation-helper.cc']
     set_properties(obj)
