@@ -13,5 +13,6 @@ def build(bld):
                   'topology-builder.cc',
                   'routing-helper.cc',
                   'application-helper.cc',
-                  'animation-helper.cc']
+                  'animation-helper.cc',
+                  'result-manager.cc']
     set_properties(obj)

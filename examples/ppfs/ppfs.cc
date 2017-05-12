@@ -30,6 +30,7 @@
 #include "routing-helper.h"
 #include "application-helper.h"
 #include "animation-helper.h"
+#include "result-manager.h"
 
 using namespace ns3;
 using namespace tinyxml2;
@@ -81,8 +82,17 @@ main (int argc, char *argv[])
   ApplicationHelper applicationHelper;
   uint32_t stopTime = applicationHelper.InstallApplicationOnTerminals(allNodes, rootNode);
 
+  ResultManager resultManager;
+  resultManager.SetupFlowMonitor(allNodes, stopTime);
+
   Simulator::Stop(Seconds(stopTime));
   Simulator::Run ();
+
+  resultManager.GenerateFlowMonitorXmlLog();
+  resultManager.UpdateFlowIds(rootNode, allNodes);
+  resultManager.AddQueueStatistics(switchMap);
+  resultManager.SaveXmlResultFile("/home/noel/Development/source-code/ns3/results.xml");
+
   Simulator::Destroy ();
 
   return 0;

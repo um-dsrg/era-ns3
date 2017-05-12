@@ -1,6 +1,7 @@
 #include "ns3/ipv4.h"
 #include "ns3/log.h"
 #include "ns3/simulator.h"
+#include "ns3/point-to-point-net-device.h"
 
 #include "routing-helper.h"
 
@@ -93,7 +94,8 @@ RoutingHelper::ReceiveFromDevice(Ptr<NetDevice> incomingPort, Ptr<const Packet> 
                                  NetDevice::PacketType packetType)
 {
   uint32_t switchNode = incomingPort->GetNode()->GetId();
-  NS_LOG_INFO("Switch " << switchNode << " received a packet at " << Simulator::Now().GetSeconds());
+  NS_LOG_INFO("Switch " << switchNode << ": Received a packet at "
+              << Simulator::Now().GetSeconds());
 
   m_switchMap[switchNode].ForwardPacket(packet, protocol, dst); // Forward the packet
 }

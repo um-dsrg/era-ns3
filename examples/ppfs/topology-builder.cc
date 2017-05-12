@@ -137,9 +137,10 @@ TopologyBuilder::InstallP2pLink (LinkInformation& linkA, LinkInformation& linkB,
   nodeA->AddDevice(devA);
   Ptr<Queue> queueA = m_queueFactory.Create<Queue> ();
   devA->SetQueue (queueA);
-  // Inserting a reference to the net device in the switch. This information will be
-  // used when building the routing table.
-  // Only if if is a switch!!
+  /*
+   * Inserting a reference to the net device in the switch. This information will be
+   * used when building the routing table.
+   */
   if (linkA.srcNodeType == 'S')
     m_switchMap[linkA.srcNode].InsertNetDevice(linkA.linkId, devA);
   else if (linkA.srcNodeType == 'T')
@@ -153,8 +154,10 @@ TopologyBuilder::InstallP2pLink (LinkInformation& linkA, LinkInformation& linkB,
   nodeB->AddDevice (devB);
   Ptr<Queue> queueB = m_queueFactory.Create<Queue> ();
   devB->SetQueue (queueB);
-  // Inserting a reference to the net device in the switch. This information will be
-  // used when building the routing table.
+  /*
+   * Inserting a reference to the net device in the switch. This information will be
+   * used when building the routing table.
+   */
   if (linkB.srcNodeType == 'S')
     m_switchMap[linkB.srcNode].InsertNetDevice(linkB.linkId, devB);
   else if (linkB.srcNodeType == 'T')

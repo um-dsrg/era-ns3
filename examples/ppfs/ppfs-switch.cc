@@ -8,6 +8,8 @@
 #include "ns3/log.h"
 #include "ns3/rng-seed-manager.h"
 #include "ns3/double.h"
+#include "ns3/point-to-point-net-device.h"
+#include "ns3/queue.h"
 
 #include "ppfs-switch.h"
 
@@ -30,6 +32,10 @@ PpfsSwitch::InsertNetDevice(uint32_t linkId, ns3::Ptr<ns3::NetDevice> device)
   NS_ABORT_MSG_IF(ret.second == false,
                   "The Link ID " << linkId << " is already stored in node's "
                   << m_id << " Link->NetDevice map");
+
+  m_netDeviceLinkTable.insert({device, linkId});
+
+  m_switchQueueResults.insert({linkId, QueueResults()}); // Pre-populating the map with empty values
 }
 
 void
@@ -74,22 +80,30 @@ PpfsSwitch::ForwardPacket(ns3::Ptr<const ns3::Packet> packet, uint16_t protocol,
   auto ret = m_routingTable.find(flow);
   NS_ABORT_MSG_IF(ret == m_routingTable.end(), "Routing Table Miss\n" << flow);
 
-  NS_LOG_INFO("Switch " << m_id << " forwarding packet at " << Simulator::Now().GetSeconds());
+  NS_LOG_INFO("Switch " << m_id << ": Forwarding packet at " << Simulator::Now().GetSeconds());
 
-  bool sendSuccessful = GetPort(ret->second)->Send(packet->Copy(), dst, protocol);
+  Ptr<NetDevice> forwardingPort (GetPort(ret->second));
+
+  bool sendSuccessful = forwardingPort->Send(packet->Copy(), dst, protocol);
   NS_ABORT_MSG_IF(sendSuccessful == false, "Packet transmission failed");
+  LogQueueEntries(forwardingPort); // Log the net device's queue details
+}
+
+const std::map <uint32_t, PpfsSwitch::QueueResults>&
+PpfsSwitch::GetQueueResults() const
+{
+  return m_switchQueueResults;
 }
 
 PpfsSwitch::FlowMatch
 PpfsSwitch::ParsePacket (ns3::Ptr<const ns3::Packet> packet, uint16_t protocol)
 {
-  // Copy the packet for parsing purposes
-  Ptr<Packet> recvPacket = packet->Copy ();
+  Ptr<Packet> recvPacket = packet->Copy (); // Copy the packet for parsing purposes
   FlowMatch flow;
-  Ipv4Header ipHeader;
 
   if (protocol == Ipv4L3Protocol::PROT_NUMBER) // Packet is IP
     {
+      Ipv4Header ipHeader;
       uint8_t ipProtocol (0);
 
       if (recvPacket->PeekHeader(ipHeader)) // Parsing IP Header
@@ -159,6 +173,24 @@ PpfsSwitch::GetPort (const std::vector<PpfsSwitch::ForwardingAction>& forwardAct
     }
 
   NS_FATAL_ERROR("Forwarding port number for packet not found.");
+}
+
+void
+PpfsSwitch::LogQueueEntries (Ptr<NetDevice> port)
+{
+  Ptr<PointToPointNetDevice> p2pDevice = port->GetObject<PointToPointNetDevice>();
+  Ptr<Queue> queue = p2pDevice->GetQueue();
+
+  uint32_t numOfPackets (queue->GetNPackets());
+  uint32_t numOfBytes (queue->GetNBytes());
+
+  auto ret = m_netDeviceLinkTable.find(port);
+  NS_ABORT_MSG_IF(ret == m_netDeviceLinkTable.end() , "LinkId not found from NetDevice");
+
+  QueueResults& queueResults (m_switchQueueResults[ret->second/*link id*/]);
+
+  if (numOfPackets > queueResults.maxNumOfPackets) queueResults.maxNumOfPackets = numOfPackets;
+  if (numOfBytes > queueResults.maxNumOfBytes) queueResults.maxNumOfBytes = numOfBytes;
 }
 
 void
