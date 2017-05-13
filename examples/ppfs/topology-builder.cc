@@ -13,10 +13,12 @@ using namespace ns3;
 using namespace tinyxml2;
 
 TopologyBuilder::TopologyBuilder (XMLNode* xmlRootNode, std::map<uint32_t, PpfsSwitch> &switchMap,
+                                  std::map<Ptr<NetDevice>, uint32_t>& terminalToLinkId,
                                   NodeContainer& allNodes, NodeContainer& terminalNodes,
-                                  NodeContainer& switchNodes) :
-  m_xmlRootNode(xmlRootNode), m_switchMap(switchMap), m_allNodes(allNodes),
-  m_terminalNodes(terminalNodes), m_switchNodes(switchNodes)
+                                  NodeContainer& switchNodes, NetDeviceContainer& terminalDevices) :
+  m_xmlRootNode(xmlRootNode), m_switchMap(switchMap), m_terminalToLinkId(terminalToLinkId),
+  m_allNodes(allNodes), m_terminalNodes(terminalNodes), m_switchNodes(switchNodes),
+  m_terminalDevices(terminalDevices)
 {}
 
 void
@@ -81,7 +83,6 @@ TopologyBuilder::BuildNetworkTopology(std::map <uint32_t, LinkInformation>& link
       int linkElementCounter = 0;
       while (linkElementElement != nullptr)
         {
-          // TODO: Put this in a function!
           LinkInformation linkInfo;
 
           linkElementElement->QueryAttribute("Id", &linkInfo.linkId);
@@ -144,7 +145,10 @@ TopologyBuilder::InstallP2pLink (LinkInformation& linkA, LinkInformation& linkB,
   if (linkA.srcNodeType == 'S')
     m_switchMap[linkA.srcNode].InsertNetDevice(linkA.linkId, devA);
   else if (linkA.srcNodeType == 'T')
-    m_terminalDevices.Add(devA);
+    {
+      m_terminalToLinkId.insert({devA, linkA.linkId});
+      m_terminalDevices.Add(devA);
+    }
 
   // Setting up link B ////////////////////////////////////////////////////////
   Ptr<Node> nodeB = m_allNodes.Get(linkB.srcNode);
@@ -161,7 +165,10 @@ TopologyBuilder::InstallP2pLink (LinkInformation& linkA, LinkInformation& linkB,
   if (linkB.srcNodeType == 'S')
     m_switchMap[linkB.srcNode].InsertNetDevice(linkB.linkId, devB);
   else if (linkB.srcNodeType == 'T')
-    m_terminalDevices.Add(devB);
+    {
+      m_terminalToLinkId.insert({devB, linkB.linkId});
+      m_terminalDevices.Add(devB);
+    }
 
   Ptr<PointToPointChannel> channel = m_channelFactory.Create<PointToPointChannel> ();
   devA->Attach (channel);
@@ -191,7 +198,10 @@ TopologyBuilder::InstallP2pLink (LinkInformation& link, uint32_t delay)
   if (link.srcNodeType == 'S')
     m_switchMap[link.srcNode].InsertNetDevice(link.linkId, devA);
   else if (link.srcNodeType == 'T')
-    m_terminalDevices.Add(devA);
+    {
+      m_terminalToLinkId.insert({devA, link.linkId});
+      m_terminalDevices.Add(devA);
+    }
 
   // Setting up link B ////////////////////////////////////////////////////////
   Ptr<Node> nodeB = m_allNodes.Get(link.dstNode);

@@ -25,10 +25,12 @@ class TopologyBuilder
 {
 public:
   TopologyBuilder (tinyxml2::XMLNode* xmlRootNode,
-                   std::map<uint32_t, PpfsSwitch> &switchMap,
+                   std::map<uint32_t, PpfsSwitch>& switchMap,
+                   std::map<ns3::Ptr<ns3::NetDevice>, uint32_t>& terminalToLinkId,
                    ns3::NodeContainer& allNodes,
                    ns3::NodeContainer& terminalNodes,
-                   ns3::NodeContainer& switchNodes);
+                   ns3::NodeContainer& switchNodes,
+                   ns3::NetDeviceContainer& terminalDevices);
 
   void CreateNodes ();
   // Parses the node configuration element and creates PpfsSwitches instances
@@ -43,10 +45,11 @@ private:
 
   tinyxml2::XMLNode* m_xmlRootNode;
   std::map<uint32_t, PpfsSwitch> & m_switchMap;
+  std::map<ns3::Ptr<ns3::NetDevice>, uint32_t>& m_terminalToLinkId;
   ns3::NodeContainer& m_allNodes;
   ns3::NodeContainer& m_terminalNodes;
   ns3::NodeContainer& m_switchNodes;
-  ns3::NetDeviceContainer m_terminalDevices;
+  ns3::NetDeviceContainer& m_terminalDevices;
 };
 
 #endif /* TOPOLOGY_BUILDER_H */

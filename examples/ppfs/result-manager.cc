@@ -4,6 +4,7 @@
 
 #include "ns3/flow-monitor-helper.h"
 #include "ns3/flow-monitor-module.h"
+#include "ns3/point-to-point-net-device.h"
 
 #include "ppfs-switch.h"
 #include "result-manager.h"
@@ -19,6 +20,23 @@ ResultManager::SetupFlowMonitor(NodeContainer& allNodes, uint32_t stopTime)
 {
   m_flowMonitor = m_flowMonHelper.Install(allNodes); // Enable flow monitor on all the nodes
   m_flowMonitor->SetAttribute("MaxPerHopDelay", TimeValue(Seconds(stopTime)));
+}
+
+void
+ResultManager::TraceTerminalTransmissions(ns3::NetDeviceContainer &terminalDevices,
+                                          std::map <Ptr<NetDevice>, uint32_t>& terminalToLinkId)
+{
+  for (auto terminalDevice = terminalDevices.Begin(); terminalDevice != terminalDevices.End();
+       ++terminalDevice)
+    {
+      auto ret = terminalToLinkId.find((*terminalDevice));
+      NS_ABORT_MSG_IF(ret == terminalToLinkId.end(), "Link Id not found given the terminal's"
+                      " Net Device");
+
+      (*terminalDevice)->TraceConnect("PhyTxBegin", std::to_string(ret->second),
+                                      MakeCallback(&ResultManager::TerminalPacketTransmission,
+                                                   this));
+    }
 }
 
 void
@@ -188,6 +206,13 @@ ResultManager::SaveXmlResultFile(const char* resultPath)
   m_xmlResultFile->InsertFirstChild(m_xmlResultFile->NewDeclaration());
   XMLError saveResult = m_xmlResultFile->SaveFile(resultPath);
   NS_ABORT_MSG_IF(saveResult != XML_SUCCESS, "Could not save XML results file");
+}
+
+void
+ResultManager::TerminalPacketTransmission(std::string context, ns3::Ptr<const ns3::Packet> packet)
+{
+  std::cout << "Transmitting a packet at " << Simulator::Now().GetSeconds() << std::endl;
+  std::cout << context << std::endl;
 }
 
 void

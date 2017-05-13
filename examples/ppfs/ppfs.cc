@@ -44,7 +44,6 @@ main (int argc, char *argv[])
 
   // TODO: Add cmdLine parameters!
 
-  // We need to enable logging here!
   LogComponentEnable ("RoutingHelper", LOG_LEVEL_INFO);
   LogComponentEnable("PpfsSwitch", LOG_LEVEL_INFO);
   LogComponentEnable ("OnOffApplication", LOG_LEVEL_INFO);
@@ -60,11 +59,19 @@ main (int argc, char *argv[])
   NodeContainer allNodes; /*!< Node container storing all the nodes */
   NodeContainer terminalNodes; /*!< Node container storing a reference to the terminal nodes */
   NodeContainer switchNodes; /*!< Node container storing a reference to the switch nodes */
+  NetDeviceContainer terminalDevices; /*!< Container storing all the terminal's net devices */
 
   std::map<uint32_t, PpfsSwitch> switchMap; /*!< Key -> Node ID. Value -> Switch object */
   std::map <uint32_t, LinkInformation> linkInformation; /*!< Key -> Link ID, Value -> Link Info */
+  /*
+   * This map will be used for statistics purposes when we need to store the link id that a
+   * terminal's net device is connected to. This will be used when the simulation is running
+   * to calculate the link statistics.
+   */
+  std::map <Ptr<NetDevice>, uint32_t> terminalToLinkId; /*!< Key -> Net Device, Value -> Link Id */
 
-  TopologyBuilder topologyBuilder (rootNode, switchMap, allNodes, terminalNodes, switchNodes);
+  TopologyBuilder topologyBuilder (rootNode, switchMap, terminalToLinkId, allNodes,
+                                   terminalNodes, switchNodes, terminalDevices);
   topologyBuilder.CreateNodes ();
   topologyBuilder.ParseNodeConfiguration();
   topologyBuilder.BuildNetworkTopology (linkInformation);
@@ -84,6 +91,7 @@ main (int argc, char *argv[])
 
   ResultManager resultManager;
   resultManager.SetupFlowMonitor(allNodes, stopTime);
+  resultManager.TraceTerminalTransmissions(terminalDevices, terminalToLinkId);
 
   Simulator::Stop(Seconds(stopTime));
   Simulator::Run ();
