@@ -6,6 +6,7 @@
 #include "ns3/net-device.h"
 #include "ns3/packet.h"
 #include "ns3/random-variable-stream.h"
+#include "ns3/nstime.h"
 
 class PpfsSwitch
 {
@@ -14,7 +15,8 @@ public:
   PpfsSwitch (uint32_t id);
   void InsertNetDevice (uint32_t linkId, ns3::Ptr<ns3::NetDevice> device);
   void InsertEntryInRoutingTable (uint32_t srcIpAddr, uint32_t dstIpAddr, uint16_t portNumber,
-                                  char protocol, uint32_t linkId, double flowRatio);
+                                  char protocol, uint32_t flowId, uint32_t linkId,
+                                  double flowRatio);
   void ForwardPacket (ns3::Ptr<const ns3::Packet> packet, uint16_t protocol,
                       const ns3::Address &dst);
 
@@ -27,6 +29,36 @@ public:
     QueueResults () : maxNumOfPackets (0), maxNumOfBytes (0) {}
   };
   const std::map <uint32_t, QueueResults>& GetQueueResults () const;
+
+  struct LinkFlowId
+  {
+    uint32_t linkId;
+    uint32_t flowId;
+    LinkFlowId () : linkId (0), flowId (0) {}
+    LinkFlowId (uint32_t linkId, uint32_t flowId) : linkId (linkId), flowId (flowId) {}
+
+    bool operator<(const LinkFlowId &other) const
+    {
+      // Used by the map to store the keys in order.
+      if (linkId == other.linkId)
+        return flowId < other.flowId;
+      else
+        return linkId < other.linkId;
+    }
+  };
+
+  // TODO: Put this into a common header file.
+  struct LinkStatistic
+  {
+    ns3::Time timeFirstTx;
+    ns3::Time timeLastTx;
+    uint32_t packetsTransmitted;
+    uint32_t bytesTransmitted;
+
+    LinkStatistic () : timeFirstTx (0), timeLastTx (0), packetsTransmitted (0), bytesTransmitted (0)
+    {}
+  };
+  const std::map <LinkFlowId, LinkStatistic>& GetLinkStatistics () const;
 
   // TODO: Insert function to set up the random number generator
 private:
@@ -111,6 +143,7 @@ private:
 
   FlowMatch ParsePacket (ns3::Ptr<const ns3::Packet> packet, uint16_t protocol);
   ns3::Ptr<ns3::NetDevice> GetPort (const std::vector<ForwardingAction>& forwardActions);
+  void LogLinkStatistics (ns3::Ptr<ns3::NetDevice> port, uint32_t flowId, uint32_t packetSize);
   void LogQueueEntries (ns3::Ptr<ns3::NetDevice> port);
 
   void SetRandomNumberGenerator ();
@@ -131,8 +164,18 @@ private:
    * This map stores the routing table which is used to map a flow to
    * a set of forwarding actions.
    */
-  std::map <FlowMatch, std::vector<ForwardingAction>> m_routingTable;
+  struct FlowDetails
+  {
+    uint32_t flowId;
+    std::vector<ForwardingAction> forwardingActions;
 
+    FlowDetails () : flowId (0) {}
+    FlowDetails (uint32_t flowId) : flowId (flowId) {}
+  };
+  std::map <FlowMatch, FlowDetails> m_routingTable;
+
+  // Key -> link id + flow id, Value -> Statistics for that pair
+  std::map <LinkFlowId, LinkStatistic> m_linkStatistics;
   std::map <uint32_t, QueueResults> m_switchQueueResults; /*!< Key -> LinkId, Value -> QueueStats */
 
   ns3::Ptr<ns3::UniformRandomVariable> m_uniformRandomVariable; /*!< Used for flow splitting */

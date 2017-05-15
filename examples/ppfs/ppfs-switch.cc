@@ -40,7 +40,8 @@ PpfsSwitch::InsertNetDevice(uint32_t linkId, ns3::Ptr<ns3::NetDevice> device)
 
 void
 PpfsSwitch::InsertEntryInRoutingTable(uint32_t srcIpAddr, uint32_t dstIpAddr, uint16_t portNumber,
-                                      char protocol, uint32_t linkId, double flowRatio)
+                                      char protocol, uint32_t flowId, uint32_t linkId,
+                                      double flowRatio)
 {
   FlowMatch currentFlow (srcIpAddr, dstIpAddr, portNumber, protocol);
 
@@ -55,15 +56,15 @@ PpfsSwitch::InsertEntryInRoutingTable(uint32_t srcIpAddr, uint32_t dstIpAddr, ui
   auto routingTableEntry = m_routingTable.find(currentFlow);
   if (routingTableEntry == m_routingTable.end()) // Route does not exist in table
     {
-      std::vector<ForwardingAction> forwardAction;
-      forwardAction.push_back(ForwardingAction(forwardDevice, flowRatio));
-      m_routingTable.insert({currentFlow, forwardAction});
+      FlowDetails flowDetails (flowId);
+      flowDetails.forwardingActions.push_back(ForwardingAction(forwardDevice, flowRatio));
+      m_routingTable.insert({currentFlow, flowDetails});
 
-      NS_LOG_INFO(forwardAction.back()); // Logging the entry
+      NS_LOG_INFO(flowDetails.forwardingActions.back()); // Logging the entry
     }
   else // Route already exists in table
     {
-      std::vector<ForwardingAction>& forwardActions = routingTableEntry->second;
+      std::vector<ForwardingAction>& forwardActions = routingTableEntry->second.forwardingActions;
       ForwardingAction& lastAction = forwardActions.back();
       double currentSplitRatio = lastAction.splitRatio + flowRatio;
       forwardActions.push_back(ForwardingAction(forwardDevice, currentSplitRatio));
@@ -80,10 +81,13 @@ PpfsSwitch::ForwardPacket(ns3::Ptr<const ns3::Packet> packet, uint16_t protocol,
   auto ret = m_routingTable.find(flow);
   NS_ABORT_MSG_IF(ret == m_routingTable.end(), "Routing Table Miss\n" << flow);
 
-  NS_LOG_INFO("Switch " << m_id << ": Forwarding packet at " << Simulator::Now().GetSeconds());
+  NS_LOG_INFO("  Switch " << m_id << ": Forwarding packet at " << Simulator::Now().GetSeconds()
+              << "s");
 
-  Ptr<NetDevice> forwardingPort (GetPort(ret->second));
+  Ptr<NetDevice> forwardingPort (GetPort(ret->second.forwardingActions));
 
+  uint32_t packetSizeInclP2pHdr (packet->GetSize()+2);
+  LogLinkStatistics(forwardingPort, ret->second.flowId, packetSizeInclP2pHdr);
   bool sendSuccessful = forwardingPort->Send(packet->Copy(), dst, protocol);
   NS_ABORT_MSG_IF(sendSuccessful == false, "Packet transmission failed");
   LogQueueEntries(forwardingPort); // Log the net device's queue details
@@ -93,6 +97,12 @@ const std::map <uint32_t, PpfsSwitch::QueueResults>&
 PpfsSwitch::GetQueueResults() const
 {
   return m_switchQueueResults;
+}
+
+const std::map <PpfsSwitch::LinkFlowId, PpfsSwitch::LinkStatistic>&
+PpfsSwitch::GetLinkStatistics () const
+{
+  return m_linkStatistics;
 }
 
 PpfsSwitch::FlowMatch
@@ -173,6 +183,35 @@ PpfsSwitch::GetPort (const std::vector<PpfsSwitch::ForwardingAction>& forwardAct
     }
 
   NS_FATAL_ERROR("Forwarding port number for packet not found.");
+}
+
+void
+PpfsSwitch::LogLinkStatistics (ns3::Ptr<ns3::NetDevice> port, uint32_t flowId, uint32_t packetSize)
+{
+  auto linkRet = m_netDeviceLinkTable.find(port);
+  NS_ABORT_MSG_IF(linkRet == m_netDeviceLinkTable.end(), "The Link connected to the net device"
+                  "was not found");
+
+  LinkFlowId linkFlowId (linkRet->second, flowId);
+
+  auto linkStatRet = m_linkStatistics.find(linkFlowId);
+
+  if (linkStatRet == m_linkStatistics.end()) // Link statistics entry not found, create it
+    {
+      LinkStatistic linkStatistic;
+      linkStatistic.timeFirstTx = Simulator::Now();
+      linkStatistic.timeLastTx = Simulator::Now();
+      linkStatistic.packetsTransmitted++;
+      linkStatistic.bytesTransmitted += packetSize;
+      m_linkStatistics.insert({linkFlowId, linkStatistic});
+    }
+  else // Update the link statistics entry
+    {
+      LinkStatistic& linkStatistic = linkStatRet->second;
+      linkStatistic.timeLastTx = Simulator::Now();
+      linkStatistic.packetsTransmitted++;
+      linkStatistic.bytesTransmitted += packetSize;
+    }
 }
 
 void

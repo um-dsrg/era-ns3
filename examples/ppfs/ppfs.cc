@@ -99,6 +99,7 @@ main (int argc, char *argv[])
   resultManager.GenerateFlowMonitorXmlLog();
   resultManager.UpdateFlowIds(rootNode, allNodes);
   resultManager.AddQueueStatistics(switchMap);
+  resultManager.AddLinkStatistics(switchMap);
   resultManager.SaveXmlResultFile("/home/noel/Development/source-code/ns3/results.xml");
 
   Simulator::Destroy ();

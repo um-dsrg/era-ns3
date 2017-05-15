@@ -2,6 +2,7 @@
 #define RESULT_MANAGER_H
 
 #include <memory>
+#include <map>
 #include <tinyxml2.h>
 
 #include "ns3/flow-monitor-helper.h"
@@ -15,11 +16,23 @@ class ResultManager
 public:
   ResultManager ();
 
+  struct LinkStatistic
+  {
+    ns3::Time timeFirstTx;
+    ns3::Time timeLastTx;
+    uint32_t packetsTransmitted;
+    uint32_t bytesTransmitted;
+
+    LinkStatistic () : timeFirstTx (0), timeLastTx (0), packetsTransmitted (0), bytesTransmitted (0)
+    {}
+  };
+
   void SetupFlowMonitor (ns3::NodeContainer& allNodes, uint32_t stopTime);
   void TraceTerminalTransmissions (ns3::NetDeviceContainer& terminalDevices,
                                    std::map <ns3::Ptr<ns3::NetDevice>, uint32_t>& terminalToLinkId);
   void GenerateFlowMonitorXmlLog ();
   void UpdateFlowIds (tinyxml2::XMLNode* logFileRootNode, ns3::NodeContainer& allNodes);
+  void AddLinkStatistics (std::map<uint32_t, PpfsSwitch>& switchMap);
   void AddQueueStatistics (std::map<uint32_t, PpfsSwitch>& switchMap);
   void SaveXmlResultFile (const char* resultPath);
 
@@ -33,6 +46,12 @@ private:
   ns3::Ptr<ns3::FlowMonitor> m_flowMonitor;
   ns3::FlowMonitorHelper m_flowMonHelper;
   std::unique_ptr<tinyxml2::XMLDocument> m_xmlResultFile;
+  /*
+   * Key -> LinkId, Value -> Link Statistic
+   * This map will store the link statistics of links that are originating from the
+   * terminals.
+   */
+  std::map<uint32_t, LinkStatistic> m_terminalLinkStatistics;
 };
 
 #endif /* RESULT_MANAGER_H */
