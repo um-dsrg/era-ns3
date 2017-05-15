@@ -63,7 +63,7 @@ RoutingHelper::PopulateRoutingTables (std::map <uint32_t, LinkInformation>& link
               double flowRatio = linkFlowRate / nodeIncomingFlow;
 
               m_switchMap[linkSrcNode].InsertEntryInRoutingTable(srcIp, dstIp, portNumber, protocol,
-                                                                 linkId, flowRatio);
+                                                                 flowId, linkId, flowRatio);
             }
           linkElement = linkElement->NextSiblingElement("Link");
         }
@@ -83,7 +83,7 @@ RoutingHelper::SetReceiveFunctionForSwitches(NodeContainer switchNodes)
           (*switchNode)->RegisterProtocolHandler(MakeCallback(&RoutingHelper::ReceiveFromDevice,
                                                               this),
                                                  0, (*switchNode)->GetDevice(currentDevice),
-                                                 true);
+                                                 false); // Disabling promiscuous mode
         }
     }
 }
@@ -94,8 +94,8 @@ RoutingHelper::ReceiveFromDevice(Ptr<NetDevice> incomingPort, Ptr<const Packet> 
                                  NetDevice::PacketType packetType)
 {
   uint32_t switchNode = incomingPort->GetNode()->GetId();
-  NS_LOG_INFO("Switch " << switchNode << ": Received a packet at "
-              << Simulator::Now().GetSeconds());
+  NS_LOG_INFO("  Switch " << switchNode << ": Received a packet at "
+              << Simulator::Now().GetSeconds() << "s");
 
   m_switchMap[switchNode].ForwardPacket(packet, protocol, dst); // Forward the packet
 }
