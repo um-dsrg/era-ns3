@@ -1,36 +1,30 @@
 ## -*- Mode: python; py-indent-offset: 4; indent-tabs-mode: nil; coding: utf-8; -*-
 
-#import os
-#import sys
+import os
+import sys
 
-# Location of the lemon library
-lemon_path = '/home/noel/libraries/lemon/'
-
-# Location of the GLPK library
-glpk_path = '/usr/lib/x86_64-linux-gnu/'
-
-# Location of the TinyXml2 library
-tinyxml2_path = '/usr/lib/x86_64-linux-gnu/'
+# Setting the location for the LEMON library depending on the OS
+if sys.platform.startswith('darwin'):
+    lemon_path = '/Users/noel/libraries/lemon/'
+elif sys.platform.startswith('linux'):
+    lemon_path = '/home/noel/libraries/lemon/'
 
 # Setting Library path
 lemon_lib_path = lemon_path + 'lib'
-glpk_lib_path = glpk_path
-tinyxml2_lib_path = tinyxml2_path
 
 # Setting include path
 lemon_inc_path = lemon_path + 'include'
-glpk_inc_path = ''
-tinyxml2_inc_path = ''
 
 def build(bld):
 
     # Adding the LEMON and tinyxml2 libraries
     bld.read_stlib('emon', paths=[lemon_lib_path])
-    bld.read_stlib('tinyxml2', paths=[tinyxml2_lib_path])
+    bld.read_shlib('tinyxml2')
+    bld.read_shlib('glpk')
 
     def set_properties(obj):
         # Adding the include folders
-        obj.includes = ['#', lemon_inc_path, glpk_inc_path, tinyxml2_inc_path]
+        obj.includes = ['#', lemon_inc_path]
         # Adding the LEMON and GLPK libraries together with the ns-3 dependencies
         obj.use = obj.ns3_module_dependencies + ['emon', 'glpk', 'tinyxml2']
         obj.install_path = None
