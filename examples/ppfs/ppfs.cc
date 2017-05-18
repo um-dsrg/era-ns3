@@ -42,16 +42,32 @@ main (int argc, char *argv[])
 {
   NS_LOG_UNCOND ("Per Packet Flow Splitting Simulator");
 
-  // TODO: Add cmdLine parameters!
+  bool verbose (false);
+  std::string xmlLogFilePath ("");
+  std::string xmlResultFilePath ("");
+  std::string xmlAnimationFile ("");
 
-  LogComponentEnable ("RoutingHelper", LOG_LEVEL_INFO);
-  LogComponentEnable("PpfsSwitch", LOG_LEVEL_INFO);
-  LogComponentEnable ("OnOffApplication", LOG_LEVEL_INFO);
-  LogComponentEnable ("PacketSink", LOG_LEVEL_INFO);
+  CommandLine cmdLine;
+  cmdLine.AddValue("verbose", "If true display log values", verbose);
+  cmdLine.AddValue("log", "The full path to the XML log file", xmlLogFilePath);
+  cmdLine.AddValue("result", "The full path of the result file", xmlResultFilePath);
+  cmdLine.AddValue("animation", "The full path where to store the animation xml file."
+                   "If left blank animation will be disabled.", xmlAnimationFile);
+
+  cmdLine.Parse(argc, argv);
+
+  if (verbose)
+    {
+      LogComponentEnable ("RoutingHelper", LOG_LEVEL_INFO);
+      LogComponentEnable ("PpfsSwitch", LOG_LEVEL_INFO);
+      LogComponentEnable ("OnOffApplication", LOG_LEVEL_INFO);
+      LogComponentEnable ("PacketSink", LOG_LEVEL_INFO);
+      LogComponentEnable("ResultManager", LOG_LEVEL_INFO);
+    }
 
   // Parsing the XML file.
   XMLDocument xmlLogFile;
-  XMLError error = xmlLogFile.LoadFile("/home/noel/Development/source-code/ns3/log.xml");
+  XMLError error = xmlLogFile.LoadFile(xmlLogFilePath.c_str());
   NS_ABORT_MSG_IF(error != XML_SUCCESS, "Could not load LOG FILE");
   XMLNode* rootNode = xmlLogFile.LastChild();
   NS_ABORT_MSG_IF(rootNode == nullptr, "No root node node found");
@@ -81,10 +97,15 @@ main (int argc, char *argv[])
   routingHelper.PopulateRoutingTables(linkInformation, allNodes, rootNode);
   routingHelper.SetReceiveFunctionForSwitches(switchNodes);
 
-  AnimationHelper animHelper;
-  animHelper.SetNodeMobilityAndCoordinates(rootNode, allNodes);
-  animHelper.SetupAnimation("/home/noel/Development/source-code/ns3/animation.xml", terminalNodes,
-                            switchNodes);
+  std::unique_ptr<AnimationHelper> animHelper;
+
+  if (!xmlAnimationFile.empty())
+    {
+      animHelper = std::unique_ptr<AnimationHelper> (new AnimationHelper());
+      animHelper->SetNodeMobilityAndCoordinates(rootNode, allNodes);
+      animHelper->SetupAnimation(xmlAnimationFile, terminalNodes, switchNodes);
+    }
+
 
   ApplicationHelper applicationHelper;
   uint32_t stopTime = applicationHelper.InstallApplicationOnTerminals(allNodes, rootNode);
@@ -100,7 +121,7 @@ main (int argc, char *argv[])
   resultManager.UpdateFlowIds(rootNode, allNodes);
   resultManager.AddQueueStatistics(switchMap);
   resultManager.AddLinkStatistics(switchMap);
-  resultManager.SaveXmlResultFile("/home/noel/Development/source-code/ns3/results.xml");
+  resultManager.SaveXmlResultFile(xmlResultFilePath.c_str());
 
   Simulator::Destroy ();
 

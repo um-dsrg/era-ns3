@@ -89,7 +89,8 @@ PpfsSwitch::ForwardPacket(ns3::Ptr<const ns3::Packet> packet, uint16_t protocol,
   uint32_t packetSizeInclP2pHdr (packet->GetSize()+2);
   LogLinkStatistics(forwardingPort, ret->second.flowId, packetSizeInclP2pHdr);
   bool sendSuccessful = forwardingPort->Send(packet->Copy(), dst, protocol);
-  NS_ABORT_MSG_IF(sendSuccessful == false, "Packet transmission failed");
+  if (sendSuccessful == false) NS_LOG_INFO("WARNING: Packet Transmission failed");
+  //NS_ABORT_MSG_IF(sendSuccessful == false, "Packet transmission failed");
   LogQueueEntries(forwardingPort); // Log the net device's queue details
 }
 

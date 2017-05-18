@@ -73,7 +73,6 @@ TopologyBuilder::BuildNetworkTopology(std::map <uint32_t, LinkInformation>& link
   while (linkElement != nullptr) // Looping through all the link Elements.
     {
       linkElement->QueryAttribute("Delay", &linkDelay);
-      std::cout << "Link delay " << linkDelay << std::endl;
 
       // We need to loop through all the Link Elements here.
       XMLElement* linkElementElement = linkElement->FirstChildElement("LinkElement");

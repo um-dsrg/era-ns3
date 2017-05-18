@@ -3,6 +3,7 @@
 #include <sstream>
 #include <string>
 
+#include "ns3/log.h"
 #include "ns3/flow-monitor-helper.h"
 #include "ns3/flow-monitor-module.h"
 #include "ns3/point-to-point-net-device.h"
@@ -12,6 +13,8 @@
 
 using namespace ns3;
 using namespace tinyxml2;
+
+NS_LOG_COMPONENT_DEFINE ("ResultManager");
 
 ResultManager::ResultManager() : m_xmlResultFile(new XMLDocument)
 {}
@@ -31,8 +34,12 @@ ResultManager::TraceTerminalTransmissions(ns3::NetDeviceContainer &terminalDevic
        ++terminalDevice)
     {
       auto ret = terminalToLinkId.find((*terminalDevice));
-      NS_ABORT_MSG_IF(ret == terminalToLinkId.end(), "Link Id not found given the terminal's"
-                      " Net Device");
+      if (ret == terminalToLinkId.end())
+        {
+          NS_LOG_INFO("WARNING: The Node " << (*terminalDevice)->GetNode()->GetId() << " has no "
+                      "outgoing links");
+          continue;
+        }
 
       // Setting the link Id as the context for the callback function
       (*terminalDevice)->TraceConnect("PhyTxBegin", std::to_string(ret->second),
