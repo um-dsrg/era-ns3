@@ -46,6 +46,7 @@ main (int argc, char *argv[])
   std::string xmlLogFilePath ("");
   std::string xmlResultFilePath ("");
   std::string xmlAnimationFile ("");
+  uint32_t queuePacketSize (100);
 
   CommandLine cmdLine;
   cmdLine.AddValue("verbose", "If true display log values", verbose);
@@ -53,6 +54,8 @@ main (int argc, char *argv[])
   cmdLine.AddValue("result", "The full path of the result file", xmlResultFilePath);
   cmdLine.AddValue("animation", "The full path where to store the animation xml file."
                    "If left blank animation will be disabled.", xmlAnimationFile);
+  cmdLine.AddValue("queuePacketSize", "The maximum number of packets a queue can store."
+                   "The value is 100", queuePacketSize);
 
   cmdLine.Parse(argc, argv);
 
@@ -113,6 +116,9 @@ main (int argc, char *argv[])
   ResultManager resultManager;
   resultManager.SetupFlowMonitor(allNodes, stopTime);
   resultManager.TraceTerminalTransmissions(terminalDevices, terminalToLinkId);
+
+  Config::Set ("/NodeList/*/DeviceList/*/$ns3::PointToPointNetDevice/TxQueue/MaxPackets",
+               UintegerValue (queuePacketSize));
 
   Simulator::Stop(Seconds(stopTime));
   Simulator::Run ();
