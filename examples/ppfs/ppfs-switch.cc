@@ -90,8 +90,20 @@ PpfsSwitch::ForwardPacket(ns3::Ptr<const ns3::Packet> packet, uint16_t protocol,
   LogLinkStatistics(forwardingPort, ret->second.flowId, packetSizeInclP2pHdr);
   bool sendSuccessful = forwardingPort->Send(packet->Copy(), dst, protocol);
   if (sendSuccessful == false) NS_LOG_INFO("WARNING: Packet Transmission failed");
-  //NS_ABORT_MSG_IF(sendSuccessful == false, "Packet transmission failed");
+
   LogQueueEntries(forwardingPort); // Log the net device's queue details
+}
+
+Ptr<Queue>
+PpfsSwitch::GetQueueFromLinkId(uint32_t linkId) const
+{
+  auto ret = m_linkNetDeviceTable.find(linkId);
+  NS_ABORT_MSG_IF(ret == m_linkNetDeviceTable.end(), "The port connecting link id: " << linkId
+                  << " was not found");
+
+  Ptr<NetDevice> port = ret->second;
+  Ptr<PointToPointNetDevice> p2pDevice = port->GetObject<PointToPointNetDevice>();
+  return p2pDevice->GetQueue();
 }
 
 const std::map <uint32_t, PpfsSwitch::QueueResults>&
@@ -229,8 +241,8 @@ PpfsSwitch::LogQueueEntries (Ptr<NetDevice> port)
 
   QueueResults& queueResults (m_switchQueueResults[ret->second/*link id*/]);
 
-  if (numOfPackets > queueResults.maxNumOfPackets) queueResults.maxNumOfPackets = numOfPackets;
-  if (numOfBytes > queueResults.maxNumOfBytes) queueResults.maxNumOfBytes = numOfBytes;
+  if (numOfPackets > queueResults.peakNumOfPackets) queueResults.peakNumOfPackets = numOfPackets;
+  if (numOfBytes > queueResults.peakNumOfBytes) queueResults.peakNumOfBytes = numOfBytes;
 }
 
 void

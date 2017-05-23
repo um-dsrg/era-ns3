@@ -7,6 +7,7 @@
 #include "ns3/packet.h"
 #include "ns3/random-variable-stream.h"
 #include "ns3/nstime.h"
+#include "ns3/queue.h"
 
 class PpfsSwitch
 {
@@ -20,14 +21,17 @@ public:
   void ForwardPacket (ns3::Ptr<const ns3::Packet> packet, uint16_t protocol,
                       const ns3::Address &dst);
 
+  ns3::Ptr<ns3::Queue> GetQueueFromLinkId (uint32_t linkId) const;
+
   // Stores statistics about the queue of each net device.
   struct QueueResults
   {
-    uint32_t maxNumOfPackets;
-    uint32_t maxNumOfBytes;
+    uint32_t peakNumOfPackets;
+    uint32_t peakNumOfBytes;
 
-    QueueResults () : maxNumOfPackets (0), maxNumOfBytes (0) {}
+    QueueResults () : peakNumOfPackets (0), peakNumOfBytes (0) {}
   };
+  // Key -> Link ID
   const std::map <uint32_t, QueueResults>& GetQueueResults () const;
 
   struct LinkFlowId

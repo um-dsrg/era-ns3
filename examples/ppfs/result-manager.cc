@@ -267,9 +267,18 @@ ResultManager::AddQueueStatistics(std::map<uint32_t, PpfsSwitch>& switchMap)
       for (const auto& queueResult : switchNode.second.GetQueueResults())
         {
           XMLElement* linkElement = m_xmlResultFile->NewElement("Link");
-          linkElement->SetAttribute("Id", queueResult.first); // Link Id
-          linkElement->SetAttribute("MaxNumOfPackets", queueResult.second.maxNumOfPackets);
-          linkElement->SetAttribute("MaxNumOfBytes", queueResult.second.maxNumOfBytes);
+          uint32_t linkId = queueResult.first;
+          linkElement->SetAttribute("Id", linkId); // Link Id
+          linkElement->SetAttribute("PeakNumOfPackets", queueResult.second.peakNumOfPackets);
+          linkElement->SetAttribute("PeakNumOfBytes", queueResult.second.peakNumOfBytes);
+
+          // Given the link id I need to access the queue and retreive it's details.
+          Ptr<Queue> queue = switchNode.second.GetQueueFromLinkId(linkId);
+          linkElement->SetAttribute("QueueMaxNumPackets", queue->GetMaxPackets());
+          linkElement->SetAttribute("QueueMaxBytes", queue->GetMaxBytes());
+          linkElement->SetAttribute("TotalDroppedPackets", queue->GetTotalDroppedPackets());
+          linkElement->SetAttribute("TotalDroppedBytes", queue->GetTotalDroppedBytes());
+
           switchElement->InsertEndChild(linkElement);
         }
 
