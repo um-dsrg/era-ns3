@@ -22,7 +22,6 @@ PpfsSwitch::PpfsSwitch ()
 
 PpfsSwitch::PpfsSwitch (uint32_t id) : m_id(id)
 {
-  SetRandomNumberGenerator(); // TODO: Update this!
 }
 
 void
@@ -92,6 +91,18 @@ PpfsSwitch::ForwardPacket(ns3::Ptr<const ns3::Packet> packet, uint16_t protocol,
   if (sendSuccessful == false) NS_LOG_INFO("WARNING: Packet Transmission failed");
 
   LogQueueEntries(forwardingPort); // Log the net device's queue details
+}
+
+void
+PpfsSwitch::SetRandomNumberGenerator (uint32_t seed, uint32_t run)
+{
+  SeedManager::SetSeed (seed);
+  SeedManager::SetRun (run);
+
+  m_uniformRandomVariable = CreateObject<UniformRandomVariable>();
+
+  m_uniformRandomVariable->SetAttribute("Min", DoubleValue(0.0));
+  m_uniformRandomVariable->SetAttribute ("Max", DoubleValue (1.0));
 }
 
 Ptr<Queue>
@@ -243,18 +254,6 @@ PpfsSwitch::LogQueueEntries (Ptr<NetDevice> port)
 
   if (numOfPackets > queueResults.peakNumOfPackets) queueResults.peakNumOfPackets = numOfPackets;
   if (numOfBytes > queueResults.peakNumOfBytes) queueResults.peakNumOfBytes = numOfBytes;
-}
-
-void
-PpfsSwitch::SetRandomNumberGenerator ()
-{
-  SeedManager::SetSeed (1);
-  SeedManager::SetRun (1);
-
-  m_uniformRandomVariable = CreateObject<UniformRandomVariable>();
-
-  m_uniformRandomVariable->SetAttribute("Min", DoubleValue(0.0));
-  m_uniformRandomVariable->SetAttribute ("Max", DoubleValue (1.0));
 }
 
 double

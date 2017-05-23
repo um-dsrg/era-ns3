@@ -108,6 +108,16 @@ TopologyBuilder::BuildNetworkTopology(std::map <uint32_t, LinkInformation>& link
 }
 
 void
+TopologyBuilder::SetSwitchRandomNumberGenerator(uint32_t seed, uint32_t initRun)
+{
+  for (auto & switchNode : m_switchMap)
+    {
+      switchNode.second.SetRandomNumberGenerator(seed, initRun);
+      initRun++;
+    }
+}
+
+void
 TopologyBuilder::AssignIpToTerminals()
 {
   InternetStackHelper internet;

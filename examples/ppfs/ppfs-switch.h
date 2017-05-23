@@ -20,6 +20,7 @@ public:
                                   double flowRatio);
   void ForwardPacket (ns3::Ptr<const ns3::Packet> packet, uint16_t protocol,
                       const ns3::Address &dst);
+  void SetRandomNumberGenerator (uint32_t seed, uint32_t run);
 
   ns3::Ptr<ns3::Queue> GetQueueFromLinkId (uint32_t linkId) const;
 
@@ -150,7 +151,6 @@ private:
   void LogLinkStatistics (ns3::Ptr<ns3::NetDevice> port, uint32_t flowId, uint32_t packetSize);
   void LogQueueEntries (ns3::Ptr<ns3::NetDevice> port);
 
-  void SetRandomNumberGenerator ();
   double GenerateRandomNumber ();
 
   /*

@@ -37,6 +37,7 @@ public:
   void ParseNodeConfiguration ();
   // linkinformation is output.
   void BuildNetworkTopology (std::map <uint32_t, LinkInformation>& linkInformation);
+  void SetSwitchRandomNumberGenerator (uint32_t seed, uint32_t initRun);
   void AssignIpToTerminals ();
 
 private:
