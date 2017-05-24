@@ -157,7 +157,7 @@ ResultManager::UpdateFlowIds(XMLNode* logFileRootNode, NodeContainer& allNodes)
                       "Flow Id not found when parsing flow monitor results");
       flowElement->SetAttribute("flowId", ret->second/* Our Flow Id */);
 
-      flowElement = flowStatsElement->NextSiblingElement("Flow");
+      flowElement = flowElement->NextSiblingElement("Flow");
     }
   // Updating the Ipv4FlowClassifier element //////////////////////////////////
   XMLElement* flowClassifierElement = GetRootNode()->FirstChildElement("Ipv4FlowClassifier");
@@ -175,7 +175,7 @@ ResultManager::UpdateFlowIds(XMLNode* logFileRootNode, NodeContainer& allNodes)
                       "Flow Id not found when parsing flow monitor results");
       flowElement->SetAttribute("flowId", ret->second/* Our Flow Id */);
 
-      flowElement = flowClassifierElement->NextSiblingElement("Flow");
+      flowElement = flowElement->NextSiblingElement("Flow");
     }
 }
 
