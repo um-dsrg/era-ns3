@@ -30,7 +30,7 @@ public:
   void SetupFlowMonitor (ns3::NodeContainer& allNodes, uint32_t stopTime);
   void TraceTerminalTransmissions (ns3::NetDeviceContainer& terminalDevices,
                                    std::map <ns3::Ptr<ns3::NetDevice>, uint32_t>& terminalToLinkId);
-  void GenerateFlowMonitorXmlLog ();
+  void GenerateFlowMonitorXmlLog (bool enableHistograms, bool enableFlowProbes);
   void UpdateFlowIds (tinyxml2::XMLNode* logFileRootNode, ns3::NodeContainer& allNodes);
   void AddLinkStatistics (std::map<uint32_t, PpfsSwitch>& switchMap);
   void AddQueueStatistics (std::map<uint32_t, PpfsSwitch>& switchMap);

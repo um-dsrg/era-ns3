@@ -49,6 +49,8 @@ main (int argc, char *argv[])
   uint32_t queuePacketSize (100);
   uint32_t seed (1);
   uint32_t initRun (1);
+  bool enableHistograms (false);
+  bool enableFlowProbes (false);
 
   CommandLine cmdLine;
   cmdLine.AddValue("verbose", "If true display log values", verbose);
@@ -60,6 +62,10 @@ main (int argc, char *argv[])
                    "If left blank animation will be disabled.", xmlAnimationFile);
   cmdLine.AddValue("queuePacketSize", "The maximum number of packets a queue can store."
                    "The value is 100", queuePacketSize);
+  cmdLine.AddValue("enableHistograms", "If set enable FlowMonitor's delay and jitter histograms."
+                   "By default they are disabled", enableHistograms);
+  cmdLine.AddValue("enableFlowProbes", "If set enable FlowMonitor's flow probes."
+                   "By default they are disabled", enableFlowProbes);
 
   cmdLine.Parse(argc, argv);
 
@@ -128,7 +134,7 @@ main (int argc, char *argv[])
   Simulator::Stop(Seconds(stopTime));
   Simulator::Run ();
 
-  resultManager.GenerateFlowMonitorXmlLog();
+  resultManager.GenerateFlowMonitorXmlLog(enableHistograms, enableFlowProbes);
   resultManager.UpdateFlowIds(rootNode, allNodes);
   resultManager.AddQueueStatistics(switchMap);
   resultManager.AddLinkStatistics(switchMap);

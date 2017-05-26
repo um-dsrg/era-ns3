@@ -49,9 +49,11 @@ ResultManager::TraceTerminalTransmissions(ns3::NetDeviceContainer &terminalDevic
 }
 
 void
-ResultManager::GenerateFlowMonitorXmlLog()
+ResultManager::GenerateFlowMonitorXmlLog(bool enableHistograms, bool enableFlowProbes)
 {
-  XMLError eResult  = m_xmlResultFile->Parse(m_flowMonitor->SerializeToXmlString(2, true, false)
+  XMLError eResult  = m_xmlResultFile->Parse(m_flowMonitor->SerializeToXmlString(2,
+                                                                                 enableHistograms,
+                                                                                 enableFlowProbes)
                                              .c_str());
   NS_ABORT_MSG_IF(eResult != XML_SUCCESS, "TinyXml could not parse FlowMonitor results");
 
