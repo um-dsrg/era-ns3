@@ -40,7 +40,7 @@ public:
   // linkinformation is output.
   void BuildNetworkTopology (std::map <uint32_t, LinkInformation>& linkInformation);
   void SetSwitchRandomNumberGenerator (uint32_t seed, uint32_t initRun);
-  void AssignIpToTerminals ();
+  void AssignIpToNodes (bool assignToTerminals, bool assignToSwitches);
 
 private:
   void InstallP2pLink (LinkInformation& linkA, LinkInformation& linkB, uint32_t delay);
@@ -53,6 +53,7 @@ private:
   ns3::NodeContainer& m_terminalNodes;
   ns3::NodeContainer& m_switchNodes;
   ns3::NetDeviceContainer& m_terminalDevices;
+  ns3::NetDeviceContainer m_switchDevices;
 };
 
 #endif /* TOPOLOGY_BUILDER_H */

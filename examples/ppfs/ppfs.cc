@@ -105,7 +105,7 @@ main (int argc, char *argv[])
   topologyBuilder.ParseNodeConfiguration();
   topologyBuilder.BuildNetworkTopology (linkInformation);
   topologyBuilder.SetSwitchRandomNumberGenerator(seed, initRun);
-  topologyBuilder.AssignIpToTerminals ();
+  topologyBuilder.AssignIpToNodes(true, false);
 
   RoutingHelper routingHelper (switchMap);
   routingHelper.PopulateRoutingTables(linkInformation, allNodes, rootNode);

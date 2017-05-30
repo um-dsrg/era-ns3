@@ -127,7 +127,7 @@ TopologyBuilder<PpfsSwitch>::SetSwitchRandomNumberGenerator(uint32_t seed, uint3
 
 template <class SwitchType>
 void
-TopologyBuilder<SwitchType>::AssignIpToTerminals()
+TopologyBuilder<SwitchType>::AssignIpToNodes(bool assignToTerminals, bool assignToSwitches)
 {
   InternetStackHelper internet;
   internet.Install(m_terminalNodes); //Add internet stack to the terminals ONLY
@@ -135,7 +135,8 @@ TopologyBuilder<SwitchType>::AssignIpToTerminals()
   Ipv4AddressHelper ipv4;
   ipv4.SetBase ("1.0.0.0", "255.0.0.0");
 
-  ipv4.Assign(m_terminalDevices);
+  if (assignToTerminals == true) ipv4.Assign(m_terminalDevices);
+  if (assignToSwitches == true) ipv4.Assign(m_switchDevices);
 }
 
 template <class SwitchType>
@@ -163,7 +164,10 @@ TopologyBuilder<SwitchType>::InstallP2pLink (LinkInformation& linkA, LinkInforma
    * used when building the routing table.
    */
   if (linkA.srcNodeType == 'S')
-    m_switchMap[linkA.srcNode].InsertNetDevice(linkA.linkId, devA);
+    {
+      m_switchMap[linkA.srcNode].InsertNetDevice(linkA.linkId, devA);
+      m_switchDevices.Add(devA);
+    }
   else if (linkA.srcNodeType == 'T')
     {
       m_terminalToLinkId.insert({devA, linkA.linkId});
@@ -183,7 +187,10 @@ TopologyBuilder<SwitchType>::InstallP2pLink (LinkInformation& linkA, LinkInforma
    * used when building the routing table.
    */
   if (linkB.srcNodeType == 'S')
-    m_switchMap[linkB.srcNode].InsertNetDevice(linkB.linkId, devB);
+    {
+      m_switchMap[linkB.srcNode].InsertNetDevice(linkB.linkId, devB);
+      m_switchDevices.Add(devB);
+    }
   else if (linkB.srcNodeType == 'T')
     {
       m_terminalToLinkId.insert({devB, linkB.linkId});
@@ -217,7 +224,10 @@ TopologyBuilder<SwitchType>::InstallP2pLink (LinkInformation& link, uint32_t del
   // Inserting a reference to the net device in the switch. This information will be
   // used when building the routing table.
   if (link.srcNodeType == 'S')
-    m_switchMap[link.srcNode].InsertNetDevice(link.linkId, devA);
+    {
+      m_switchMap[link.srcNode].InsertNetDevice(link.linkId, devA);
+      m_switchDevices.Add(devA);
+    }
   else if (link.srcNodeType == 'T')
     {
       m_terminalToLinkId.insert({devA, link.linkId});
@@ -233,7 +243,9 @@ TopologyBuilder<SwitchType>::InstallP2pLink (LinkInformation& link, uint32_t del
   queueB->SetMaxPackets(0); /*!< Sanity check to make sure no packets are sent from this device */
   devB->SetQueue (queueB);
 
-  if (link.dstNodeType == 'T')
+  if (link.dstNodeType == 'S')
+    m_switchDevices.Add(devB);
+  else if (link.dstNodeType == 'T')
     m_terminalDevices.Add(devB);
 
   Ptr<PointToPointChannel> channel = channelFactory.Create<PointToPointChannel> ();
