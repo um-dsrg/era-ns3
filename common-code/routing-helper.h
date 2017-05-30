@@ -10,8 +10,6 @@
 #include "ns3/node-container.h"
 
 #include "../common-code/definitions.h"
-#include "examples/ppfs/ppfs-switch.h"
-
 #include "topology-builder.h"
 
 template <class SwitchType>
@@ -34,4 +32,5 @@ private:
   std::map<NodeId_t, SwitchType>& m_switchMap;
 };
 
+#include "routing-helper.tpp"
 #endif /* ROUTING_HELPER_H */

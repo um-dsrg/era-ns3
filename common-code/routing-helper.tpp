@@ -8,8 +8,6 @@
 using namespace ns3;
 using namespace tinyxml2;
 
-NS_LOG_COMPONENT_DEFINE ("RoutingHelper");
-
 template <class SwitchType>
 RoutingHelper<SwitchType>::RoutingHelper (std::map<NodeId_t, SwitchType>& switchMap) :
   m_switchMap(switchMap)
@@ -124,9 +122,3 @@ RoutingHelper<SwitchType>::GetIpAddress (uint32_t nodeId, NodeContainer& nodes)
 {
   return nodes.Get(nodeId)->GetObject<Ipv4>()->GetAddress(1,0).GetLocal().Get();
 }
-
-/**
- * Explicit instantiation for the template classes. Required to make the linker work.
- * An explicit instantiation is required for all the types that this class will be used for.
- */
-template class RoutingHelper<PpfsSwitch>;

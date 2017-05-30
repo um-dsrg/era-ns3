@@ -8,8 +8,9 @@
 #include "ns3/flow-monitor-helper.h"
 #include "ns3/node-container.h"
 #include "ns3/net-device-container.h"
+#include "ns3/ipv4.h"
 
-#include "examples/ppfs/ppfs-switch.h"
+#include "definitions.h"
 
 class ResultManager
 {
@@ -42,8 +43,13 @@ private:
   // Function will be called every time a terminal transmits a packet
   void TerminalPacketTransmission (std::string context, ns3::Ptr<const ns3::Packet> packet);
   void InsertTimeStamp (tinyxml2::XMLNode* node);
-  inline uint32_t GetIpAddress (NodeId_t nodeId, ns3::NodeContainer& allNodes);
-  inline tinyxml2::XMLNode* GetRootNode ();
+
+  // Inline functions /////////////////////////////////////////////////////////
+  inline uint32_t GetIpAddress (NodeId_t nodeId, ns3::NodeContainer& allNodes)
+  {
+    return allNodes.Get(nodeId)->GetObject<ns3::Ipv4>()->GetAddress(1,0).GetLocal().Get();
+  }
+  inline tinyxml2::XMLNode* GetRootNode () { return m_xmlResultFile->FirstChild(); }
 
   ns3::Ptr<ns3::FlowMonitor> m_flowMonitor;
   ns3::FlowMonitorHelper m_flowMonHelper;
@@ -56,4 +62,5 @@ private:
   std::map<LinkId_t, LinkStatistic> m_terminalLinkStatistics;
 };
 
+#include "result-manager.tpp"
 #endif /* RESULT_MANAGER_H */

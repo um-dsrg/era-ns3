@@ -115,9 +115,9 @@ TopologyBuilder<SwitchType>::BuildNetworkTopology(std::map <LinkId_t,
     }
 }
 
-template <>
+template <class SwitchType>
 void
-TopologyBuilder<PpfsSwitch>::SetSwitchRandomNumberGenerator(uint32_t seed, uint32_t initRun)
+TopologyBuilder<SwitchType>::SetSwitchRandomNumberGenerator(uint32_t seed, uint32_t initRun)
 {
   for (auto & switchNode : m_switchMap)
     {
@@ -253,9 +253,3 @@ TopologyBuilder<SwitchType>::InstallP2pLink (LinkInformation& link, uint32_t del
   devA->Attach (channel);
   devB->Attach (channel);
 }
-
-/**
- * Explicit instantiation for the template classes. Required to make the linker work.
- * An explicit instantiation is required for all the types that this class will be used for.
- */
-template class TopologyBuilder<PpfsSwitch>;

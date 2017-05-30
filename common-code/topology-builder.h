@@ -10,7 +10,6 @@
 #include "ns3/queue.h"
 
 #include "../common-code/definitions.h"
-#include "examples/ppfs/ppfs-switch.h"
 
 struct LinkInformation
 {
@@ -55,5 +54,7 @@ private:
   ns3::NetDeviceContainer& m_terminalDevices;
   ns3::NetDeviceContainer m_switchDevices;
 };
+
+#include "topology-builder.tpp"
 
 #endif /* TOPOLOGY_BUILDER_H */

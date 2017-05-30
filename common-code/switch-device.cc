@@ -36,6 +36,12 @@ SwitchDevice::GetQueueResults() const
   return m_switchQueueResults;
 }
 
+const std::map <SwitchDevice::LinkFlowId, LinkStatistic>&
+SwitchDevice::GetLinkStatistics () const
+{
+  return m_linkStatistics;
+}
+
 SwitchDevice::SwitchDevice() {}
 
 SwitchDevice::SwitchDevice(NodeId_t id, Ptr<Node> node) : m_id(id), m_node(node) {}

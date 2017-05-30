@@ -102,12 +102,6 @@ PpfsSwitch::SetRandomNumberGenerator (uint32_t seed, uint32_t run)
   m_uniformRandomVariable->SetAttribute ("Max", DoubleValue (1.0));
 }
 
-const std::map <PpfsSwitch::LinkFlowId, PpfsSwitch::LinkStatistic>&
-PpfsSwitch::GetLinkStatistics () const
-{
-  return m_linkStatistics;
-}
-
 void
 PpfsSwitch::ReceiveFromDevice(Ptr<NetDevice> incomingPort, Ptr<const Packet> packet,
                               uint16_t protocol, const Address &src, const Address &dst,

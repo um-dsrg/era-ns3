@@ -21,7 +21,8 @@ public:
    */
   void InsertNetDevice (LinkId_t linkId, ns3::Ptr<ns3::NetDevice> device);
 
-  struct QueueResults /*!< Stores statistics about the queue of each net device. */
+  // Queue Statistics /////////////////////////////////////////////////////////
+  struct QueueResults // Stores statistics about the queue of each net device
   {
     uint32_t peakNumOfPackets;
     uint32_t peakNumOfBytes;
@@ -39,15 +40,27 @@ public:
    */
   ns3::Ptr<ns3::Queue> GetQueueFromLinkId (LinkId_t linkId) const;
 
-  /**
-   *  \brief function description
-   *
-   *  Detailed description
-   *
-   *  \param param
-   *  \return return type
-   */
   const std::map <LinkId_t, QueueResults>& GetQueueResults () const;
+
+  // Link Statistics //////////////////////////////////////////////////////////
+  struct LinkFlowId
+  {
+    uint32_t linkId;
+    uint32_t flowId;
+    LinkFlowId () : linkId (0), flowId (0) {}
+    LinkFlowId (uint32_t linkId, uint32_t flowId) : linkId (linkId), flowId (flowId) {}
+
+    bool operator<(const LinkFlowId &other) const
+    {
+      // Used by the map to store the keys in order.
+      if (linkId == other.linkId)
+        return flowId < other.flowId;
+      else
+        return linkId < other.linkId;
+    }
+  };
+
+  const std::map <LinkFlowId, LinkStatistic>& GetLinkStatistics () const;
 protected:
   /**
    *  \brief Constructor is protected because this class cannot be instantiated directly
@@ -63,7 +76,13 @@ protected:
 
   virtual void SetPacketHandlingMechanism() = 0;
 
+  // Queue Statistics /////////////////////////////////////////////////////////
   void LogQueueEntries (ns3::Ptr<ns3::NetDevice> port);
+  std::map <LinkId_t, QueueResults> m_switchQueueResults; /*!< Key -> LinkId, Value -> QueueStats */
+
+  // Link Statistics //////////////////////////////////////////////////////////
+  // Key -> link id + flow id, Value -> Statistics for that pair
+  std::map <LinkFlowId, LinkStatistic> m_linkStatistics;
 
   /*
    * Key -> Link Id, Value -> Pointer to the net device connected to that link.
@@ -76,10 +95,8 @@ protected:
    */
   std::map <ns3::Ptr<ns3::NetDevice>, LinkId_t> m_netDeviceLinkTable;
 
-  std::map <LinkId_t, QueueResults> m_switchQueueResults; /*!< Key -> LinkId, Value -> QueueStats */
-
-  NodeId_t m_id;
-  ns3::Ptr<ns3::Node> m_node;
+  NodeId_t m_id; /*!< The id associated with this device */
+  ns3::Ptr<ns3::Node> m_node; /*!< Pointer to the ns3 node associated with this device */
 };
 
 #endif /* SWITCH_DEVICE_H */

@@ -15,7 +15,7 @@ class PpfsSwitch: public SwitchDevice
 {
 public:
   PpfsSwitch ();
-  PpfsSwitch (uint32_t id, ns3::Ptr<ns3::Node> switchNode);
+  PpfsSwitch (NodeId_t id, ns3::Ptr<ns3::Node> switchNode);
   void InsertEntryInRoutingTable (uint32_t srcIpAddr, uint32_t dstIpAddr, uint16_t portNumber,
                                   char protocol, uint32_t flowId, uint32_t linkId,
                                   double flowRatio);
@@ -23,36 +23,6 @@ public:
   void ForwardPacket (ns3::Ptr<const ns3::Packet> packet, uint16_t protocol,
                       const ns3::Address &dst);
   void SetRandomNumberGenerator (uint32_t seed, uint32_t run);
-
-  struct LinkFlowId
-  {
-    uint32_t linkId;
-    uint32_t flowId;
-    LinkFlowId () : linkId (0), flowId (0) {}
-    LinkFlowId (uint32_t linkId, uint32_t flowId) : linkId (linkId), flowId (flowId) {}
-
-    bool operator<(const LinkFlowId &other) const
-    {
-      // Used by the map to store the keys in order.
-      if (linkId == other.linkId)
-        return flowId < other.flowId;
-      else
-        return linkId < other.linkId;
-    }
-  };
-
-  // TODO: Put this into a common header file.
-  struct LinkStatistic
-  {
-    ns3::Time timeFirstTx;
-    ns3::Time timeLastTx;
-    uint32_t packetsTransmitted;
-    uint32_t bytesTransmitted;
-
-    LinkStatistic () : timeFirstTx (0), timeLastTx (0), packetsTransmitted (0), bytesTransmitted (0)
-    {}
-  };
-  const std::map <LinkFlowId, LinkStatistic>& GetLinkStatistics () const;
 
 private:
   void ReceiveFromDevice (ns3::Ptr<ns3::NetDevice> incomingPort, ns3::Ptr<const ns3::Packet> packet,
@@ -139,6 +109,7 @@ private:
 
   FlowMatch ParsePacket (ns3::Ptr<const ns3::Packet> packet, uint16_t protocol);
   ns3::Ptr<ns3::NetDevice> GetPort (const std::vector<ForwardingAction>& forwardActions);
+
   void LogLinkStatistics (ns3::Ptr<ns3::NetDevice> port, uint32_t flowId, uint32_t packetSize);
 
   double GenerateRandomNumber ();
@@ -156,13 +127,9 @@ private:
     FlowDetails () : flowId (0) {}
     FlowDetails (uint32_t flowId) : flowId (flowId) {}
   };
+
   std::map <FlowMatch, FlowDetails> m_routingTable;
-
-  // Key -> link id + flow id, Value -> Statistics for that pair
-  std::map <LinkFlowId, LinkStatistic> m_linkStatistics;
-
   ns3::Ptr<ns3::UniformRandomVariable> m_uniformRandomVariable; /*!< Used for flow splitting */
-  uint32_t m_id; /*!< Stores the node's id */
 };
 
 #endif /* PPFS_SWITCH_H */
