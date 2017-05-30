@@ -15,10 +15,11 @@ class PpfsSwitch: public SwitchDevice
 {
 public:
   PpfsSwitch ();
-  PpfsSwitch (uint32_t id);
+  PpfsSwitch (uint32_t id, ns3::Ptr<ns3::Node> switchNode);
   void InsertEntryInRoutingTable (uint32_t srcIpAddr, uint32_t dstIpAddr, uint16_t portNumber,
                                   char protocol, uint32_t flowId, uint32_t linkId,
                                   double flowRatio);
+  void SetPacketHandlingMechanism ();
   void ForwardPacket (ns3::Ptr<const ns3::Packet> packet, uint16_t protocol,
                       const ns3::Address &dst);
   void SetRandomNumberGenerator (uint32_t seed, uint32_t run);
@@ -53,8 +54,10 @@ public:
   };
   const std::map <LinkFlowId, LinkStatistic>& GetLinkStatistics () const;
 
-  // TODO: Insert function to set up the random number generator
 private:
+  void ReceiveFromDevice (ns3::Ptr<ns3::NetDevice> incomingPort, ns3::Ptr<const ns3::Packet> packet,
+                          uint16_t protocol, ns3::Address const &src, ns3::Address const &dst,
+                          ns3::NetDevice::PacketType packetType);
   struct FlowMatch
   {
     uint32_t srcIpAddr;

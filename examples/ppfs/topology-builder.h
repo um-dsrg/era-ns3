@@ -38,7 +38,7 @@ public:
   // Parses the node configuration element and creates PpfsSwitches instances
   void ParseNodeConfiguration ();
   // linkinformation is output.
-  void BuildNetworkTopology (std::map <uint32_t, LinkInformation>& linkInformation);
+  void BuildNetworkTopology (std::map <LinkId_t, LinkInformation>& linkInformation);
   void SetSwitchRandomNumberGenerator (uint32_t seed, uint32_t initRun);
   void AssignIpToNodes (bool assignToTerminals, bool assignToSwitches);
 

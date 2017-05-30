@@ -9,27 +9,29 @@
 #include "ns3/node.h"
 #include "ns3/node-container.h"
 
+#include "../common-code/definitions.h"
+
 #include "ppfs-switch.h"
 #include "topology-builder.h"
 
+template <class SwitchType>
 class RoutingHelper
 {
 public:
-  RoutingHelper (std::map<uint32_t, PpfsSwitch>& switchMap);
+  RoutingHelper (std::map<NodeId_t, SwitchType>& switchMap);
 
-  void PopulateRoutingTables (std::map <uint32_t, LinkInformation>& linkInformation,
+  void PopulateRoutingTables (std::map <LinkId_t, LinkInformation>& linkInformation,
                               ns3::NodeContainer& allNodes,
                               tinyxml2::XMLNode* rootNode);
-  void SetReceiveFunctionForSwitches (ns3::NodeContainer switchNodes);
-  void ReceiveFromDevice (ns3::Ptr<ns3::NetDevice> incomingPort, ns3::Ptr<const ns3::Packet> packet,
-                          uint16_t protocol, ns3::Address const &src, ns3::Address const &dst,
-                          ns3::NetDevice::PacketType packetType);
+
+  void SetSwitchesPacketHandler ();
+
 private:
-  void ParseIncomingFlows (std::map<std::pair<uint32_t, uint32_t>, double>& incomingFlow,
+  void ParseIncomingFlows (std::map<std::pair<NodeId_t, FlowId_t>, double>& incomingFlow,
                            tinyxml2::XMLNode* rootNode);
   inline uint32_t GetIpAddress (uint32_t nodeId, ns3::NodeContainer& nodes);
 
-  std::map<uint32_t, PpfsSwitch>& m_switchMap;
+  std::map<NodeId_t, SwitchType>& m_switchMap;
 };
 
 #endif /* ROUTING_HELPER_H */

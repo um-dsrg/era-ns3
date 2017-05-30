@@ -107,9 +107,9 @@ main (int argc, char *argv[])
   topologyBuilder.SetSwitchRandomNumberGenerator(seed, initRun);
   topologyBuilder.AssignIpToNodes(true, false);
 
-  RoutingHelper routingHelper (switchMap);
+  RoutingHelper<PpfsSwitch> routingHelper (switchMap);
   routingHelper.PopulateRoutingTables(linkInformation, allNodes, rootNode);
-  routingHelper.SetReceiveFunctionForSwitches(switchNodes);
+  routingHelper.SetSwitchesPacketHandler();
 
   std::unique_ptr<AnimationHelper> animHelper;
 

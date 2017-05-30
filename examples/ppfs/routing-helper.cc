@@ -10,15 +10,19 @@ using namespace tinyxml2;
 
 NS_LOG_COMPONENT_DEFINE ("RoutingHelper");
 
-RoutingHelper::RoutingHelper (std::map<uint32_t, PpfsSwitch>& switchMap) : m_switchMap(switchMap)
+template <class SwitchType>
+RoutingHelper<SwitchType>::RoutingHelper (std::map<NodeId_t, SwitchType>& switchMap) :
+  m_switchMap(switchMap)
 {}
 
+template <class SwitchType>
 void
-RoutingHelper::PopulateRoutingTables (std::map <uint32_t, LinkInformation>& linkInformation,
-                                      NodeContainer& allNodes, XMLNode* rootNode)
+RoutingHelper<SwitchType>::
+PopulateRoutingTables(std::map <LinkId_t, LinkInformation>& linkInformation,
+                      NodeContainer& allNodes, XMLNode* rootNode)
 {
   // Key -> Node Id, Flow Id, Value -> Incoming flow rate.
-  std::map<std::pair<uint32_t, uint32_t>, double> incomingFlow;
+  std::map<std::pair<NodeId_t, FlowId_t>, double> incomingFlow;
   ParseIncomingFlows(incomingFlow, rootNode);
   /*!< Key -> Node ID. Value -> Switch object switchMap*/
   /*!< Key -> Link ID, Value -> Link Info linkInformation*/
@@ -71,38 +75,22 @@ RoutingHelper::PopulateRoutingTables (std::map <uint32_t, LinkInformation>& link
     }
 }
 
+template <class SwitchType>
 void
-RoutingHelper::SetReceiveFunctionForSwitches(NodeContainer switchNodes)
+RoutingHelper<SwitchType>::SetSwitchesPacketHandler()
 {
-  for (auto switchNode = switchNodes.Begin(); switchNode != switchNodes.End(); ++switchNode)
+  // Loop through the switch map.
+  for (auto & switchNode : m_switchMap)
     {
-      uint32_t numOfDevices = (*switchNode)->GetNDevices();
-      NS_ASSERT(numOfDevices > 0);
-      for (uint32_t currentDevice = 0; currentDevice < numOfDevices; ++currentDevice)
-        {
-          (*switchNode)->RegisterProtocolHandler(MakeCallback(&RoutingHelper::ReceiveFromDevice,
-                                                              this),
-                                                 0, (*switchNode)->GetDevice(currentDevice),
-                                                 false); // Disabling promiscuous mode
-        }
+      switchNode.second.SetPacketHandlingMechanism();
     }
 }
 
+template <class SwitchType>
 void
-RoutingHelper::ReceiveFromDevice(Ptr<NetDevice> incomingPort, Ptr<const Packet> packet,
-                                 uint16_t protocol, const Address &src, const Address &dst,
-                                 NetDevice::PacketType packetType)
-{
-  uint32_t switchNode = incomingPort->GetNode()->GetId();
-  NS_LOG_INFO("  Switch " << switchNode << ": Received a packet at "
-              << Simulator::Now().GetSeconds() << "s");
-
-  m_switchMap[switchNode].ForwardPacket(packet, protocol, dst); // Forward the packet
-}
-
-void
-RoutingHelper::ParseIncomingFlows (std::map<std::pair<uint32_t, uint32_t>, double>& incomingFlow,
-                                   XMLNode* rootNode)
+RoutingHelper<SwitchType>::
+ParseIncomingFlows (std::map<std::pair<uint32_t, uint32_t>, double>& incomingFlow,
+                    XMLNode* rootNode)
 {
   XMLElement* incomingFlowElement = rootNode->FirstChildElement("IncomingFlow");
   NS_ABORT_MSG_IF(incomingFlowElement == nullptr, "IncomingFlow element not found");
@@ -130,8 +118,15 @@ RoutingHelper::ParseIncomingFlows (std::map<std::pair<uint32_t, uint32_t>, doubl
     }
 }
 
+template <class SwitchType>
 uint32_t
-RoutingHelper::GetIpAddress (uint32_t nodeId, NodeContainer& nodes)
+RoutingHelper<SwitchType>::GetIpAddress (uint32_t nodeId, NodeContainer& nodes)
 {
   return nodes.Get(nodeId)->GetObject<Ipv4>()->GetAddress(1,0).GetLocal().Get();
 }
+
+/**
+ * Explicit instantiation for the template classes. Required to make the linker work.
+ * An explicit instantiation is required for all the types that this class will be used for.
+ */
+template class RoutingHelper<PpfsSwitch>;

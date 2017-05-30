@@ -17,11 +17,9 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE("PpfsSwitch");
 
-PpfsSwitch::PpfsSwitch ()
-{}
+PpfsSwitch::PpfsSwitch () {}
 
-PpfsSwitch::PpfsSwitch (uint32_t id) : SwitchDevice(id)
-{}
+PpfsSwitch::PpfsSwitch (uint32_t id, Ptr<Node> node) : SwitchDevice(id, node) {}
 
 void
 PpfsSwitch::InsertEntryInRoutingTable(uint32_t srcIpAddr, uint32_t dstIpAddr, uint16_t portNumber,
@@ -55,6 +53,19 @@ PpfsSwitch::InsertEntryInRoutingTable(uint32_t srcIpAddr, uint32_t dstIpAddr, ui
       forwardActions.push_back(ForwardingAction(forwardDevice, currentSplitRatio));
 
       for (auto& action : forwardActions) NS_LOG_INFO(action);
+    }
+}
+
+void
+PpfsSwitch::SetPacketHandlingMechanism()
+{
+  uint32_t numOfDevices = m_node->GetNDevices();
+  NS_ASSERT(numOfDevices > 0);
+  for (uint32_t currentDevice = 0; currentDevice < numOfDevices; ++currentDevice)
+    {
+      m_node->RegisterProtocolHandler(MakeCallback(&PpfsSwitch::ReceiveFromDevice, this), 0,
+                                      m_node->GetDevice(currentDevice), false);
+      // False flag means that promiscuous mode is disabled
     }
 }
 
@@ -95,6 +106,17 @@ const std::map <PpfsSwitch::LinkFlowId, PpfsSwitch::LinkStatistic>&
 PpfsSwitch::GetLinkStatistics () const
 {
   return m_linkStatistics;
+}
+
+void
+PpfsSwitch::ReceiveFromDevice(Ptr<NetDevice> incomingPort, Ptr<const Packet> packet,
+                              uint16_t protocol, const Address &src, const Address &dst,
+                              NetDevice::PacketType packetType)
+{
+  NS_LOG_INFO("  Switch " << m_id << ": Received a packet at "
+              << Simulator::Now().GetSeconds() << "s");
+
+  ForwardPacket(packet, protocol, dst); // Forward the packet
 }
 
 PpfsSwitch::FlowMatch

@@ -54,9 +54,10 @@ TopologyBuilder<SwitchType>::ParseNodeConfiguration()
 
       if (nodeType == 'S')
         {
-          auto ret = m_switchMap.insert({nodeId, PpfsSwitch(nodeId)});
+          Ptr<Node> switchNode = m_allNodes.Get(nodeId);
+          auto ret = m_switchMap.insert({nodeId, SwitchType(nodeId, switchNode)});
           NS_ABORT_MSG_IF(ret.second == false, "A switch with Id " << nodeId << " exists already");
-          m_switchNodes.Add(m_allNodes.Get(nodeId)); // Add the node to the switches node container
+          m_switchNodes.Add(switchNode); // Add the node to the switches node container
         }
       else if (nodeType == 'T')
         m_terminalNodes.Add(m_allNodes.Get(nodeId)); // Add the node to the terminals node container
@@ -69,7 +70,7 @@ TopologyBuilder<SwitchType>::ParseNodeConfiguration()
 
 template <class SwitchType>
 void
-TopologyBuilder<SwitchType>::BuildNetworkTopology(std::map <uint32_t,
+TopologyBuilder<SwitchType>::BuildNetworkTopology(std::map <LinkId_t,
                                                   LinkInformation>& linkInformation)
 {
   XMLElement* networkTopologyElement = m_xmlRootNode->FirstChildElement("NetworkTopology");
@@ -159,7 +160,7 @@ TopologyBuilder<SwitchType>::InstallP2pLink (LinkInformation& linkA, LinkInforma
   nodeA->AddDevice(devA);
   Ptr<Queue> queueA = m_queueFactory.Create<Queue> ();
   devA->SetQueue (queueA);
-  /*
+  /*j
    * Inserting a reference to the net device in the switch. This information will be
    * used when building the routing table.
    */
