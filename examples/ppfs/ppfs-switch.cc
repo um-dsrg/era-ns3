@@ -20,22 +20,8 @@ NS_LOG_COMPONENT_DEFINE("PpfsSwitch");
 PpfsSwitch::PpfsSwitch ()
 {}
 
-PpfsSwitch::PpfsSwitch (uint32_t id) : m_id(id)
-{
-}
-
-void
-PpfsSwitch::InsertNetDevice(uint32_t linkId, ns3::Ptr<ns3::NetDevice> device)
-{
-  auto ret = m_linkNetDeviceTable.insert({linkId, device});
-  NS_ABORT_MSG_IF(ret.second == false,
-                  "The Link ID " << linkId << " is already stored in node's "
-                  << m_id << " Link->NetDevice map");
-
-  m_netDeviceLinkTable.insert({device, linkId});
-
-  m_switchQueueResults.insert({linkId, QueueResults()}); // Pre-populating the map with empty values
-}
+PpfsSwitch::PpfsSwitch (uint32_t id) : SwitchDevice(id)
+{}
 
 void
 PpfsSwitch::InsertEntryInRoutingTable(uint32_t srcIpAddr, uint32_t dstIpAddr, uint16_t portNumber,
@@ -103,24 +89,6 @@ PpfsSwitch::SetRandomNumberGenerator (uint32_t seed, uint32_t run)
 
   m_uniformRandomVariable->SetAttribute("Min", DoubleValue(0.0));
   m_uniformRandomVariable->SetAttribute ("Max", DoubleValue (1.0));
-}
-
-Ptr<Queue>
-PpfsSwitch::GetQueueFromLinkId(uint32_t linkId) const
-{
-  auto ret = m_linkNetDeviceTable.find(linkId);
-  NS_ABORT_MSG_IF(ret == m_linkNetDeviceTable.end(), "The port connecting link id: " << linkId
-                  << " was not found");
-
-  Ptr<NetDevice> port = ret->second;
-  Ptr<PointToPointNetDevice> p2pDevice = port->GetObject<PointToPointNetDevice>();
-  return p2pDevice->GetQueue();
-}
-
-const std::map <uint32_t, PpfsSwitch::QueueResults>&
-PpfsSwitch::GetQueueResults() const
-{
-  return m_switchQueueResults;
 }
 
 const std::map <PpfsSwitch::LinkFlowId, PpfsSwitch::LinkStatistic>&
@@ -236,24 +204,6 @@ PpfsSwitch::LogLinkStatistics (ns3::Ptr<ns3::NetDevice> port, uint32_t flowId, u
       linkStatistic.packetsTransmitted++;
       linkStatistic.bytesTransmitted += packetSize;
     }
-}
-
-void
-PpfsSwitch::LogQueueEntries (Ptr<NetDevice> port)
-{
-  Ptr<PointToPointNetDevice> p2pDevice = port->GetObject<PointToPointNetDevice>();
-  Ptr<Queue> queue = p2pDevice->GetQueue();
-
-  uint32_t numOfPackets (queue->GetNPackets());
-  uint32_t numOfBytes (queue->GetNBytes());
-
-  auto ret = m_netDeviceLinkTable.find(port);
-  NS_ABORT_MSG_IF(ret == m_netDeviceLinkTable.end() , "LinkId not found from NetDevice");
-
-  QueueResults& queueResults (m_switchQueueResults[ret->second/*link id*/]);
-
-  if (numOfPackets > queueResults.peakNumOfPackets) queueResults.peakNumOfPackets = numOfPackets;
-  if (numOfBytes > queueResults.peakNumOfBytes) queueResults.peakNumOfBytes = numOfBytes;
 }
 
 double

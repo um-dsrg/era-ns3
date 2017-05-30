@@ -9,31 +9,19 @@
 #include "ns3/nstime.h"
 #include "ns3/queue.h"
 
-class PpfsSwitch
+#include "../common-code/switch-device.h"
+
+class PpfsSwitch: public SwitchDevice
 {
 public:
   PpfsSwitch ();
   PpfsSwitch (uint32_t id);
-  void InsertNetDevice (uint32_t linkId, ns3::Ptr<ns3::NetDevice> device);
   void InsertEntryInRoutingTable (uint32_t srcIpAddr, uint32_t dstIpAddr, uint16_t portNumber,
                                   char protocol, uint32_t flowId, uint32_t linkId,
                                   double flowRatio);
   void ForwardPacket (ns3::Ptr<const ns3::Packet> packet, uint16_t protocol,
                       const ns3::Address &dst);
   void SetRandomNumberGenerator (uint32_t seed, uint32_t run);
-
-  ns3::Ptr<ns3::Queue> GetQueueFromLinkId (uint32_t linkId) const;
-
-  // Stores statistics about the queue of each net device.
-  struct QueueResults
-  {
-    uint32_t peakNumOfPackets;
-    uint32_t peakNumOfBytes;
-
-    QueueResults () : peakNumOfPackets (0), peakNumOfBytes (0) {}
-  };
-  // Key -> Link ID
-  const std::map <uint32_t, QueueResults>& GetQueueResults () const;
 
   struct LinkFlowId
   {
@@ -149,20 +137,9 @@ private:
   FlowMatch ParsePacket (ns3::Ptr<const ns3::Packet> packet, uint16_t protocol);
   ns3::Ptr<ns3::NetDevice> GetPort (const std::vector<ForwardingAction>& forwardActions);
   void LogLinkStatistics (ns3::Ptr<ns3::NetDevice> port, uint32_t flowId, uint32_t packetSize);
-  void LogQueueEntries (ns3::Ptr<ns3::NetDevice> port);
 
   double GenerateRandomNumber ();
 
-  /*
-   * Key -> Link Id, Value -> Pointer to the net device connected to that link.
-   * This map will be used for transmission and when building the routing table.
-   */
-  std::map <uint32_t, ns3::Ptr<ns3::NetDevice>> m_linkNetDeviceTable;
-  /*
-   * Key -> Pointer to the net device, Value -> The link Id that is connected to
-   * this net device. (This is the inverse of m_linkNetDeviceTable)
-   */
-  std::map <ns3::Ptr<ns3::NetDevice>, uint32_t> m_netDeviceLinkTable;
   /*
    * Key -> FlowMatch, Value -> Vector of Forwarding actions.
    * This map stores the routing table which is used to map a flow to
@@ -180,7 +157,6 @@ private:
 
   // Key -> link id + flow id, Value -> Statistics for that pair
   std::map <LinkFlowId, LinkStatistic> m_linkStatistics;
-  std::map <uint32_t, QueueResults> m_switchQueueResults; /*!< Key -> LinkId, Value -> QueueStats */
 
   ns3::Ptr<ns3::UniformRandomVariable> m_uniformRandomVariable; /*!< Used for flow splitting */
   uint32_t m_id; /*!< Stores the node's id */
