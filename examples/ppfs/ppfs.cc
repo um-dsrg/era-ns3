@@ -25,12 +25,13 @@
 #include "ns3/flow-monitor-helper.h"
 #include "ns3/flow-monitor-module.h"
 
+#include "../../common-code/topology-builder.h"
+#include "../../common-code/routing-helper.h"
+#include "../../common-code/application-helper.h"
+#include "../../common-code/animation-helper.h"
+#include "../../common-code/result-manager.h"
+
 #include "ppfs-switch.h"
-#include "topology-builder.h"
-#include "routing-helper.h"
-#include "application-helper.h"
-#include "animation-helper.h"
-#include "result-manager.h"
 
 using namespace ns3;
 using namespace tinyxml2;

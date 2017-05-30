@@ -10,8 +10,8 @@
 #include "ns3/node-container.h"
 
 #include "../common-code/definitions.h"
+#include "examples/ppfs/ppfs-switch.h"
 
-#include "ppfs-switch.h"
 #include "topology-builder.h"
 
 template <class SwitchType>

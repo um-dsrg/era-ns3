@@ -9,7 +9,7 @@
 #include "ns3/node-container.h"
 #include "ns3/net-device-container.h"
 
-#include "ppfs-switch.h"
+#include "examples/ppfs/ppfs-switch.h"
 
 class ResultManager
 {

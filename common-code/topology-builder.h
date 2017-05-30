@@ -10,7 +10,7 @@
 #include "ns3/queue.h"
 
 #include "../common-code/definitions.h"
-#include "ppfs-switch.h"
+#include "examples/ppfs/ppfs-switch.h"
 
 struct LinkInformation
 {

@@ -8,8 +8,8 @@
 #include "ns3/flow-monitor-module.h"
 #include "ns3/point-to-point-net-device.h"
 
-#include "ppfs-switch.h"
 #include "result-manager.h"
+#include "examples/ppfs/ppfs-switch.h"
 
 using namespace ns3;
 using namespace tinyxml2;
