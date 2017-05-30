@@ -28,7 +28,7 @@ ResultManager::SetupFlowMonitor(NodeContainer& allNodes, uint32_t stopTime)
 
 void
 ResultManager::TraceTerminalTransmissions(ns3::NetDeviceContainer &terminalDevices,
-                                          std::map <Ptr<NetDevice>, uint32_t>& terminalToLinkId)
+                                          std::map <Ptr<NetDevice>, LinkId_t>& terminalToLinkId)
 {
   for (auto terminalDevice = terminalDevices.Begin(); terminalDevice != terminalDevices.End();
        ++terminalDevice)
@@ -181,8 +181,9 @@ ResultManager::UpdateFlowIds(XMLNode* logFileRootNode, NodeContainer& allNodes)
     }
 }
 
+template <typename SwitchType>
 void
-ResultManager::AddLinkStatistics(std::map<uint32_t, PpfsSwitch>& switchMap)
+ResultManager::AddLinkStatistics(std::map<NodeId_t, SwitchType>& switchMap)
 {
   // switchMap: Key -> Node ID. Value -> Switch object
   XMLElement* linkStatisticsElement = m_xmlResultFile->NewElement("LinkStatistics");
@@ -254,8 +255,9 @@ ResultManager::AddLinkStatistics(std::map<uint32_t, PpfsSwitch>& switchMap)
   GetRootNode()->InsertFirstChild(linkStatisticsElement);
 }
 
+template <typename SwitchType>
 void
-ResultManager::AddQueueStatistics(std::map<uint32_t, PpfsSwitch>& switchMap)
+ResultManager::AddQueueStatistics(std::map<NodeId_t, SwitchType>& switchMap)
 {
   // switchMap: Key -> Node ID. Value -> Switch object
   XMLElement* queueStatisticsElement = m_xmlResultFile->NewElement("QueueStatistics");
@@ -342,7 +344,7 @@ ResultManager::InsertTimeStamp(XMLNode* node)
 }
 
 uint32_t
-ResultManager::GetIpAddress (uint32_t nodeId, ns3::NodeContainer& allNodes)
+ResultManager::GetIpAddress (NodeId_t nodeId, ns3::NodeContainer& allNodes)
 {
   return allNodes.Get(nodeId)->GetObject<Ipv4>()->GetAddress(1,0).GetLocal().Get();
 }
@@ -352,3 +354,10 @@ ResultManager::GetRootNode ()
 {
   return m_xmlResultFile->FirstChild();
 }
+
+/**
+ * Explicit instantiation for the template classes. Required to make the linker work.
+ * An explicit instantiation is required for all the types that this class will be used for.
+ */
+template void ResultManager::AddLinkStatistics(std::map<NodeId_t, PpfsSwitch> &switchMap);
+template void ResultManager::AddQueueStatistics(std::map<NodeId_t, PpfsSwitch> &switchMap);
