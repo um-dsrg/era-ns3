@@ -99,8 +99,8 @@ main (int argc, char *argv[])
    */
   std::map <Ptr<NetDevice>, uint32_t> terminalToLinkId; /*!< Key -> Net Device, Value -> Link Id */
 
-  TopologyBuilder topologyBuilder (rootNode, switchMap, terminalToLinkId, allNodes,
-                                   terminalNodes, switchNodes, terminalDevices);
+  TopologyBuilder<PpfsSwitch> topologyBuilder (rootNode, switchMap, terminalToLinkId, allNodes,
+                                               terminalNodes, switchNodes, terminalDevices);
   topologyBuilder.CreateNodes ();
   topologyBuilder.ParseNodeConfiguration();
   topologyBuilder.BuildNetworkTopology (linkInformation);

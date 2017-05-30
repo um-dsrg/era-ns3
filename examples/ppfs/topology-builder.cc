@@ -12,17 +12,21 @@
 using namespace ns3;
 using namespace tinyxml2;
 
-TopologyBuilder::TopologyBuilder (XMLNode* xmlRootNode, std::map<uint32_t, PpfsSwitch> &switchMap,
-                                  std::map<Ptr<NetDevice>, uint32_t>& terminalToLinkId,
-                                  NodeContainer& allNodes, NodeContainer& terminalNodes,
-                                  NodeContainer& switchNodes, NetDeviceContainer& terminalDevices) :
+template <class SwitchType>
+TopologyBuilder<SwitchType>::TopologyBuilder (XMLNode* xmlRootNode, std::map<uint32_t,
+                                              SwitchType> &switchMap,
+                                              std::map<Ptr<NetDevice>, uint32_t>& terminalToLinkId,
+                                              NodeContainer& allNodes, NodeContainer& terminalNodes,
+                                              NodeContainer& switchNodes,
+                                              NetDeviceContainer& terminalDevices) :
   m_xmlRootNode(xmlRootNode), m_switchMap(switchMap), m_terminalToLinkId(terminalToLinkId),
   m_allNodes(allNodes), m_terminalNodes(terminalNodes), m_switchNodes(switchNodes),
   m_terminalDevices(terminalDevices)
 {}
 
+template <class SwitchType>
 void
-TopologyBuilder::CreateNodes()
+TopologyBuilder<SwitchType>::CreateNodes()
 {
   XMLElement* networkTopologyElement = m_xmlRootNode->FirstChildElement("NetworkTopology");
   NS_ABORT_MSG_IF(networkTopologyElement == nullptr, "NetworkTopology Element not found");
@@ -32,8 +36,9 @@ TopologyBuilder::CreateNodes()
   m_allNodes.Create(numOfNodes);
 }
 
+template <class SwitchType>
 void
-TopologyBuilder::ParseNodeConfiguration()
+TopologyBuilder<SwitchType>::ParseNodeConfiguration()
 {
   XMLElement* nodeConfigurationElement = m_xmlRootNode->FirstChildElement("NodeConfiguration");
   NS_ABORT_MSG_IF(nodeConfigurationElement == nullptr, "NodeConfiguration Element not found");
@@ -62,8 +67,10 @@ TopologyBuilder::ParseNodeConfiguration()
     }
 }
 
+template <class SwitchType>
 void
-TopologyBuilder::BuildNetworkTopology(std::map <uint32_t, LinkInformation>& linkInformation)
+TopologyBuilder<SwitchType>::BuildNetworkTopology(std::map <uint32_t,
+                                                  LinkInformation>& linkInformation)
 {
   XMLElement* networkTopologyElement = m_xmlRootNode->FirstChildElement("NetworkTopology");
   NS_ABORT_MSG_IF(networkTopologyElement == nullptr, "NetworkTopology Element not found");
@@ -107,8 +114,9 @@ TopologyBuilder::BuildNetworkTopology(std::map <uint32_t, LinkInformation>& link
     }
 }
 
+template <>
 void
-TopologyBuilder::SetSwitchRandomNumberGenerator(uint32_t seed, uint32_t initRun)
+TopologyBuilder<PpfsSwitch>::SetSwitchRandomNumberGenerator(uint32_t seed, uint32_t initRun)
 {
   for (auto & switchNode : m_switchMap)
     {
@@ -117,8 +125,9 @@ TopologyBuilder::SetSwitchRandomNumberGenerator(uint32_t seed, uint32_t initRun)
     }
 }
 
+template <class SwitchType>
 void
-TopologyBuilder::AssignIpToTerminals()
+TopologyBuilder<SwitchType>::AssignIpToTerminals()
 {
   InternetStackHelper internet;
   internet.Install(m_terminalNodes); //Add internet stack to the terminals ONLY
@@ -129,8 +138,10 @@ TopologyBuilder::AssignIpToTerminals()
   ipv4.Assign(m_terminalDevices);
 }
 
+template <class SwitchType>
 void
-TopologyBuilder::InstallP2pLink (LinkInformation& linkA, LinkInformation& linkB, uint32_t delay)
+TopologyBuilder<SwitchType>::InstallP2pLink (LinkInformation& linkA, LinkInformation& linkB,
+                                             uint32_t delay)
 {
   ObjectFactory m_channelFactory("ns3::PointToPointChannel");
   ObjectFactory m_deviceFactory("ns3::PointToPointNetDevice");
@@ -184,8 +195,9 @@ TopologyBuilder::InstallP2pLink (LinkInformation& linkA, LinkInformation& linkB,
   devB->Attach (channel);
 }
 
+template <class SwitchType>
 void
-TopologyBuilder::InstallP2pLink (LinkInformation& link, uint32_t delay)
+TopologyBuilder<SwitchType>::InstallP2pLink (LinkInformation& link, uint32_t delay)
 {
   ObjectFactory channelFactory("ns3::PointToPointChannel");
   ObjectFactory deviceFactory("ns3::PointToPointNetDevice");
@@ -228,3 +240,9 @@ TopologyBuilder::InstallP2pLink (LinkInformation& link, uint32_t delay)
   devA->Attach (channel);
   devB->Attach (channel);
 }
+
+/**
+ * Explicit instantiation for the template classes. Required to make the linker work.
+ * An explicit instantiation is required for all the types that this class will be used for.
+ */
+template class TopologyBuilder<PpfsSwitch>;

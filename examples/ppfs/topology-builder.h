@@ -9,6 +9,7 @@
 #include "ns3/node-container.h"
 #include "ns3/queue.h"
 
+#include "../common-code/definitions.h"
 #include "ppfs-switch.h"
 
 struct LinkInformation
@@ -21,12 +22,13 @@ struct LinkInformation
   double capacity;
 };
 
+template <class SwitchType>
 class TopologyBuilder
 {
 public:
   TopologyBuilder (tinyxml2::XMLNode* xmlRootNode,
-                   std::map<uint32_t, PpfsSwitch>& switchMap,
-                   std::map<ns3::Ptr<ns3::NetDevice>, uint32_t>& terminalToLinkId,
+                   std::map<NodeId_t, SwitchType>& switchMap,
+                   std::map<ns3::Ptr<ns3::NetDevice>, LinkId_t>& terminalToLinkId,
                    ns3::NodeContainer& allNodes,
                    ns3::NodeContainer& terminalNodes,
                    ns3::NodeContainer& switchNodes,
@@ -45,8 +47,8 @@ private:
   void InstallP2pLink (LinkInformation& link, uint32_t delay);
 
   tinyxml2::XMLNode* m_xmlRootNode;
-  std::map<uint32_t, PpfsSwitch> & m_switchMap;
-  std::map<ns3::Ptr<ns3::NetDevice>, uint32_t>& m_terminalToLinkId;
+  std::map<NodeId_t, SwitchType> & m_switchMap;
+  std::map<ns3::Ptr<ns3::NetDevice>, LinkId_t>& m_terminalToLinkId;
   ns3::NodeContainer& m_allNodes;
   ns3::NodeContainer& m_terminalNodes;
   ns3::NodeContainer& m_switchNodes;
