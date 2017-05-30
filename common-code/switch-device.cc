@@ -38,7 +38,7 @@ SwitchDevice::GetQueueResults() const
 
 SwitchDevice::SwitchDevice() {}
 
-SwitchDevice::SwitchDevice(NodeId_t id) : m_id(id) {}
+SwitchDevice::SwitchDevice(NodeId_t id, Ptr<Node> node) : m_id(id), m_node(node) {}
 
 SwitchDevice::~SwitchDevice() {}
 
