@@ -55,6 +55,6 @@ private:
   ns3::NetDeviceContainer m_switchDevices;
 };
 
-#include "topology-builder.tpp"
+#include "topology-builder.cc"
 
 #endif /* TOPOLOGY_BUILDER_H */

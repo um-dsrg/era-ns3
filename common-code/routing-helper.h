@@ -32,5 +32,5 @@ private:
   std::map<NodeId_t, SwitchType>& m_switchMap;
 };
 
-#include "routing-helper.tpp"
+#include "routing-helper.cc"
 #endif /* ROUTING_HELPER_H */

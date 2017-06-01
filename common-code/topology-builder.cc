@@ -131,13 +131,19 @@ void
 TopologyBuilder<SwitchType>::AssignIpToNodes(bool assignToTerminals, bool assignToSwitches)
 {
   InternetStackHelper internet;
-  internet.Install(m_terminalNodes); //Add internet stack to the terminals ONLY
-
   Ipv4AddressHelper ipv4;
   ipv4.SetBase ("1.0.0.0", "255.0.0.0");
 
-  if (assignToTerminals == true) ipv4.Assign(m_terminalDevices);
-  if (assignToSwitches == true) ipv4.Assign(m_switchDevices);
+  if (assignToTerminals == true)
+    {
+      internet.Install(m_terminalNodes); //Add internet stack to the terminals ONLY
+      ipv4.Assign(m_terminalDevices);
+    }
+  if (assignToSwitches == true)
+    {
+      internet.Install(m_switchNodes);
+      ipv4.Assign(m_switchDevices);
+    }
 }
 
 template <class SwitchType>
