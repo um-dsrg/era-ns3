@@ -81,8 +81,8 @@ protected:
   std::map <LinkId_t, QueueResults> m_switchQueueResults; /*!< Key -> LinkId, Value -> QueueStats */
 
   // Link Statistics //////////////////////////////////////////////////////////
-  // Key -> link id + flow id, Value -> Statistics for that pair
-  std::map <LinkFlowId, LinkStatistic> m_linkStatistics;
+  void LogLinkStatistics (ns3::Ptr<ns3::NetDevice> port, FlowId_t flowId, uint32_t packetSize);
+  std::map <LinkFlowId, LinkStatistic> m_linkStatistics; /*!< Key -> Link+Flow, Value->LinkStats */
 
   /*
    * Key -> Link Id, Value -> Pointer to the net device connected to that link.

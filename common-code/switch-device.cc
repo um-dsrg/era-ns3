@@ -1,5 +1,6 @@
 #include "ns3/abort.h"
 #include "ns3/point-to-point-net-device.h"
+#include "ns3/simulator.h"
 
 #include "switch-device.h"
 
@@ -47,6 +48,35 @@ SwitchDevice::SwitchDevice() {}
 SwitchDevice::SwitchDevice(NodeId_t id, Ptr<Node> node) : m_id(id), m_node(node) {}
 
 SwitchDevice::~SwitchDevice() {}
+
+void
+SwitchDevice::LogLinkStatistics (Ptr<NetDevice> port, FlowId_t flowId, uint32_t packetSize)
+{
+  auto linkRet = m_netDeviceLinkTable.find(port);
+  NS_ABORT_MSG_IF(linkRet == m_netDeviceLinkTable.end(), "The Link connected to the net device"
+                  "was not found");
+
+  LinkFlowId linkFlowId (linkRet->second, flowId);
+
+  auto linkStatRet = m_linkStatistics.find(linkFlowId);
+
+  if (linkStatRet == m_linkStatistics.end()) // Link statistics entry not found, create it
+    {
+      LinkStatistic linkStatistic;
+      linkStatistic.timeFirstTx = Simulator::Now();
+      linkStatistic.timeLastTx = Simulator::Now();
+      linkStatistic.packetsTransmitted++;
+      linkStatistic.bytesTransmitted += packetSize;
+      m_linkStatistics.insert({linkFlowId, linkStatistic});
+    }
+  else // Update the link statistics entry
+    {
+      LinkStatistic& linkStatistic = linkStatRet->second;
+      linkStatistic.timeLastTx = Simulator::Now();
+      linkStatistic.packetsTransmitted++;
+      linkStatistic.bytesTransmitted += packetSize;
+    }
+}
 
 void
 SwitchDevice::LogQueueEntries (Ptr<NetDevice> port)

@@ -109,9 +109,6 @@ private:
 
   FlowMatch ParsePacket (ns3::Ptr<const ns3::Packet> packet, uint16_t protocol);
   ns3::Ptr<ns3::NetDevice> GetPort (const std::vector<ForwardingAction>& forwardActions);
-
-  void LogLinkStatistics (ns3::Ptr<ns3::NetDevice> port, uint32_t flowId, uint32_t packetSize);
-
   double GenerateRandomNumber ();
 
   /*
