@@ -72,7 +72,6 @@ main (int argc, char *argv[])
 
   if (verbose)
     {
-      LogComponentEnable ("RoutingHelper", LOG_LEVEL_INFO);
       LogComponentEnable ("PpfsSwitch", LOG_LEVEL_INFO);
       LogComponentEnable ("OnOffApplication", LOG_LEVEL_INFO);
       LogComponentEnable ("PacketSink", LOG_LEVEL_INFO);
