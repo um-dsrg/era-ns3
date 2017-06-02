@@ -3,6 +3,9 @@
 #include "ns3/simulator.h"
 #include "ns3/point-to-point-net-device.h"
 
+#include "../examples/ospf-network/ospf-switch.h"
+#include "../examples/ppfs/ppfs-switch.h"
+
 #include "routing-helper.h"
 
 using namespace ns3;
@@ -13,9 +16,49 @@ RoutingHelper<SwitchType>::RoutingHelper (std::map<NodeId_t, SwitchType>& switch
   m_switchMap(switchMap)
 {}
 
-template <class SwitchType>
+template <>
 void
-RoutingHelper<SwitchType>::
+RoutingHelper<OspfSwitch>::
+PopulateRoutingTables(NodeContainer& allNodes, XMLNode* rootNode)
+{
+  XMLElement* optimalSolutionElement = rootNode->FirstChildElement("OptimalSolution");
+  NS_ABORT_MSG_IF(optimalSolutionElement == nullptr, "OptimalSolution element not found");
+
+  XMLElement* flowElement = optimalSolutionElement->FirstChildElement("Flow");
+
+  while (flowElement != nullptr)
+    {
+      // Parse the required flow details
+      uint32_t flowId (0);
+      uint32_t sourceNodeId (0);
+      uint32_t destinationNodeId (0);
+      uint32_t portNumberXml (0);
+      uint16_t portNumber (0);
+      char protocol (0);
+
+      flowElement->QueryAttribute("Id", &flowId);
+      flowElement->QueryAttribute("SourceNode", &sourceNodeId);
+      flowElement->QueryAttribute("DestinationNode", &destinationNodeId);
+      flowElement->QueryAttribute("PortNumber", &portNumberXml);
+      portNumber = (uint16_t) portNumberXml; // Required because tinyxml does not handle uint16_t
+      protocol = *flowElement->Attribute("Protocol");
+
+      uint32_t srcIp = GetIpAddress(sourceNodeId, allNodes);
+      uint32_t dstIp = GetIpAddress(destinationNodeId, allNodes);
+
+      for (auto & switchDetails : m_switchMap)
+        {
+          switchDetails.second.InsertEntryInRoutingTable (srcIp, dstIp, portNumber, protocol,
+                                                          flowId);
+        }
+
+      flowElement = flowElement->NextSiblingElement("Flow");
+    }
+}
+
+template <>
+void
+RoutingHelper<PpfsSwitch>::
 PopulateRoutingTables(std::map <LinkId_t, LinkInformation>& linkInformation,
                       NodeContainer& allNodes, XMLNode* rootNode)
 {
