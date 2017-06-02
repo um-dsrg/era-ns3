@@ -110,6 +110,7 @@ main (int argc, char *argv[])
   topologyBuilder.AssignIpToNodes(true, true);
 
   RoutingHelper<OspfSwitch> routingHelper (switchMap);
+  routingHelper.PopulateRoutingTables(allNodes, rootNode);
   routingHelper.SetSwitchesPacketHandler();
 
   std::unique_ptr<AnimationHelper> animHelper;
