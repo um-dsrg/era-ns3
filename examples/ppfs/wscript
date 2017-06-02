@@ -11,6 +11,7 @@ def build(bld):
                   '../../common-code/application-helper.cc',
                   '../../common-code/animation-helper.cc',
                   '../../common-code/result-manager.cc',
+                  '../ospf-network/ospf-switch.cc',
                   'ppfs-switch.cc']
     obj.env.append_value('LIB', ['tinyxml2'])  # Adding the tinyxml2 library
     set_properties(obj)
