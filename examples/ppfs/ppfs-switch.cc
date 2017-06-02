@@ -107,56 +107,10 @@ PpfsSwitch::ReceiveFromDevice(Ptr<NetDevice> incomingPort, Ptr<const Packet> pac
                               uint16_t protocol, const Address &src, const Address &dst,
                               NetDevice::PacketType packetType)
 {
-  NS_LOG_INFO("  Switch " << m_id << ": Received a packet at "
+  NS_LOG_INFO("  Switch " << m_id << ": Received a packet (" << packet->GetSize() << "bytes) at "
               << Simulator::Now().GetSeconds() << "s");
 
   ForwardPacket(packet, protocol, dst); // Forward the packet
-}
-
-PpfsSwitch::FlowMatch
-PpfsSwitch::ParsePacket (ns3::Ptr<const ns3::Packet> packet, uint16_t protocol)
-{
-  Ptr<Packet> recvPacket = packet->Copy (); // Copy the packet for parsing purposes
-  FlowMatch flow;
-
-  if (protocol == Ipv4L3Protocol::PROT_NUMBER) // Packet is IP
-    {
-      Ipv4Header ipHeader;
-      uint8_t ipProtocol (0);
-
-      if (recvPacket->PeekHeader(ipHeader)) // Parsing IP Header
-        {
-          ipProtocol = ipHeader.GetProtocol();
-          flow.srcIpAddr = ipHeader.GetSource().Get();
-          flow.dstIpAddr = ipHeader.GetDestination().Get();
-          recvPacket->RemoveHeader(ipHeader); // Removing the IP header
-        }
-
-      if (ipProtocol == UdpL4Protocol::PROT_NUMBER) // UDP Packet
-        {
-          UdpHeader udpHeader;
-          if (recvPacket->PeekHeader(udpHeader))
-            {
-              flow.portNumber = udpHeader.GetDestinationPort();
-              flow.protocol = FlowMatch::Protocol::Udp;
-            }
-        }
-      else if (ipProtocol == TcpL4Protocol::PROT_NUMBER) // TCP Packet
-        {
-          TcpHeader tcpHeader;
-          if (recvPacket->PeekHeader(tcpHeader))
-            {
-              flow.portNumber = tcpHeader.GetDestinationPort();
-              flow.protocol = FlowMatch::Protocol::Tcp;
-            }
-        }
-      else
-        NS_ABORT_MSG("Unknown packet type received. Packet Type " << ipProtocol);
-    }
-  else
-    NS_ABORT_MSG("Non-IP Packet received. Protocol value " << protocol);
-
-  return flow;
 }
 
 ns3::Ptr<ns3::NetDevice>
