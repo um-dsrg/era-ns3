@@ -25,17 +25,18 @@ struct LinkInformation /*!< Stores information about a link */
 #include "ns3/ipv4-address.h"
 struct Flow
 {
+  FlowId_t id;
   uint32_t srcIpAddr;
   uint32_t dstIpAddr;
   uint16_t portNumber; // Destination Port Number
   enum Protocol { Tcp = 'T', Udp = 'U', Undefined = 'X' };
 
   // Default Constructor
-  Flow () : srcIpAddr(0), dstIpAddr(0),
+  Flow () : id(0), srcIpAddr(0), dstIpAddr(0),
             portNumber(0), protocol(Protocol::Undefined)
   {}
-  Flow (uint32_t srcIpAddr, uint32_t dstIpAddr,
-        uint16_t port, char protocol) : srcIpAddr (srcIpAddr), dstIpAddr (dstIpAddr),
+  Flow (FlowId_t id, uint32_t srcIpAddr, uint32_t dstIpAddr,
+        uint16_t port, char protocol) : id (id), srcIpAddr (srcIpAddr), dstIpAddr (dstIpAddr),
                                         portNumber (port)
   {
     SetProtocol(protocol);
@@ -75,7 +76,7 @@ struct Flow
   friend std::ostream& operator<< (std::ostream& output, Flow& value)
   {
     ns3::Ipv4Address address;
-
+    output << "Flow ID: " << value.id << "\n";
     // Source Ip Address
     output << "Source IP Addr: " << value.srcIpAddr << " (";
     address.Set(value.srcIpAddr);
