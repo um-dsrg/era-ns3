@@ -12,6 +12,7 @@
 
 #include "definitions.h"
 #include "switch-device.h"
+#include "../examples/ppfs/ppfs-switch.h"
 
 class ResultManager
 {
@@ -27,6 +28,7 @@ public:
   void AddLinkStatistics (std::map<NodeId_t, SwitchType>& switchMap);
   template <typename SwitchType>
   void AddQueueStatistics (std::map<NodeId_t, SwitchType>& switchMap);
+  void AddSwitchDetails (std::map<NodeId_t, PpfsSwitch>& switchMap);
   void SaveXmlResultFile (const char* resultPath);
 
 private:

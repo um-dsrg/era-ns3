@@ -21,6 +21,18 @@ PpfsSwitch::PpfsSwitch () {}
 
 PpfsSwitch::PpfsSwitch (NodeId_t id, Ptr<Node> node) : SwitchDevice(id, node) {}
 
+const uint32_t
+PpfsSwitch::GetSeed () const
+{
+  return m_seed;
+}
+
+const uint32_t
+PpfsSwitch::GetRun () const
+{
+  return m_run;
+}
+
 void
 PpfsSwitch::InsertEntryInRoutingTable(uint32_t srcIpAddr, uint32_t dstIpAddr, uint16_t portNumber,
                                       char protocol, FlowId_t flowId, LinkId_t linkId,
@@ -102,6 +114,9 @@ PpfsSwitch::SetRandomNumberGenerator (uint32_t seed, uint32_t run)
 
   m_uniformRandomVariable->SetAttribute("Min", DoubleValue(0.0));
   m_uniformRandomVariable->SetAttribute ("Max", DoubleValue (1.0));
+
+  m_seed = seed;
+  m_run = run;
 }
 
 void

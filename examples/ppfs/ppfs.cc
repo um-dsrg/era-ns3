@@ -138,6 +138,7 @@ main (int argc, char *argv[])
   resultManager.UpdateFlowIds(rootNode, allNodes);
   resultManager.AddQueueStatistics(switchMap);
   resultManager.AddLinkStatistics(switchMap);
+  resultManager.AddSwitchDetails(switchMap);
   resultManager.SaveXmlResultFile(xmlResultFilePath.c_str());
 
   Simulator::Destroy ();

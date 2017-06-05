@@ -16,6 +16,10 @@ class PpfsSwitch: public SwitchDevice
 public:
   PpfsSwitch ();
   PpfsSwitch (NodeId_t id, ns3::Ptr<ns3::Node> switchNode);
+
+  const uint32_t GetSeed () const;
+  const uint32_t GetRun () const;
+
   void InsertEntryInRoutingTable (uint32_t srcIpAddr, uint32_t dstIpAddr, uint16_t portNumber,
                                   char protocol, FlowId_t flowId, LinkId_t linkId,
                                   double flowRatio);
@@ -58,6 +62,9 @@ private:
    */
   std::map <Flow, std::vector<ForwardingAction>> m_routingTable;
   ns3::Ptr<ns3::UniformRandomVariable> m_uniformRandomVariable; /*!< Used for flow splitting */
+
+  uint32_t m_seed;
+  uint32_t m_run;
 };
 
 #endif /* PPFS_SWITCH_H */

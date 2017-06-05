@@ -162,6 +162,25 @@ ResultManager::UpdateFlowIds(XMLNode* logFileRootNode, NodeContainer& allNodes)
 }
 
 void
+ResultManager::AddSwitchDetails (std::map<NodeId_t, PpfsSwitch>& switchMap)
+{
+  // switchMap: Key -> Node ID. Value -> Switch object
+  XMLElement* switchDetailsElement = m_xmlResultFile->NewElement("SwitchDetails");
+
+  for (const auto& switchNode : switchMap) // Loop through all the switches
+    {
+      XMLElement* switchElement = m_xmlResultFile->NewElement("Switch");
+      switchElement->SetAttribute("Id", switchNode.first);
+      switchElement->SetAttribute("Seed", switchNode.second.GetSeed());
+      switchElement->SetAttribute("Run", switchNode.second.GetRun());
+
+      switchDetailsElement->InsertEndChild(switchElement);
+    }
+
+  GetRootNode()->InsertFirstChild(switchDetailsElement);
+}
+
+void
 ResultManager::SaveXmlResultFile(const char* resultPath)
 {
   m_xmlResultFile->InsertFirstChild(m_xmlResultFile->NewDeclaration());
