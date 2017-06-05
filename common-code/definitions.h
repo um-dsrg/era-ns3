@@ -37,7 +37,7 @@ struct Flow
   {}
   Flow (FlowId_t id, uint32_t srcIpAddr, uint32_t dstIpAddr,
         uint16_t port, char protocol) : id (id), srcIpAddr (srcIpAddr), dstIpAddr (dstIpAddr),
-                                        portNumber (port)
+                                        portNumber (port), protocol(Protocol::Undefined)
   {
     SetProtocol(protocol);
   }
