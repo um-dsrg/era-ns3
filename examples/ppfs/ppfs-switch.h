@@ -50,20 +50,13 @@ private:
   double GenerateRandomNumber ();
 
   /*
-   * Key -> FlowMatch, Value -> Vector of Forwarding actions.
+   * Routing Table
+   *
+   * Key -> Flow, Value -> Vector of Forwarding actions.
    * This map stores the routing table which is used to map a flow to
    * a set of forwarding actions.
    */
-  struct FlowDetails
-  {
-    FlowId_t flowId;
-    std::vector<ForwardingAction> forwardingActions;
-
-    FlowDetails () : flowId (0) {}
-    FlowDetails (FlowId_t flowId) : flowId (flowId) {}
-  };
-
-  std::map <Flow, FlowDetails> m_routingTable; /*!< Routing table */
+  std::map <Flow, std::vector<ForwardingAction>> m_routingTable;
   ns3::Ptr<ns3::UniformRandomVariable> m_uniformRandomVariable; /*!< Used for flow splitting */
 };
 

@@ -26,7 +26,7 @@ PpfsSwitch::InsertEntryInRoutingTable(uint32_t srcIpAddr, uint32_t dstIpAddr, ui
                                       char protocol, FlowId_t flowId, LinkId_t linkId,
                                       double flowRatio)
 {
-  Flow currentFlow (srcIpAddr, dstIpAddr, portNumber, protocol);
+  Flow currentFlow (flowId, srcIpAddr, dstIpAddr, portNumber, protocol);
 
   auto ret = m_linkNetDeviceTable.find(linkId);
   NS_ABORT_MSG_IF(ret == m_linkNetDeviceTable.end(), "Link " << linkId << " was not found in "<<
@@ -39,15 +39,15 @@ PpfsSwitch::InsertEntryInRoutingTable(uint32_t srcIpAddr, uint32_t dstIpAddr, ui
   auto routingTableEntry = m_routingTable.find(currentFlow);
   if (routingTableEntry == m_routingTable.end()) // Route does not exist in table
     {
-      FlowDetails flowDetails (flowId);
-      flowDetails.forwardingActions.push_back(ForwardingAction(forwardDevice, flowRatio));
-      m_routingTable.insert({currentFlow, flowDetails});
+      std::vector<ForwardingAction> forwardingActions;
+      forwardingActions.push_back(ForwardingAction(forwardDevice, flowRatio));
+      m_routingTable.insert({currentFlow, forwardingActions});
 
-      NS_LOG_INFO(flowDetails.forwardingActions.back()); // Logging the entry
+      NS_LOG_INFO(forwardingActions.back()); // Logging the entry
     }
   else // Route already exists in table
     {
-      std::vector<ForwardingAction>& forwardActions = routingTableEntry->second.forwardingActions;
+      std::vector<ForwardingAction>& forwardActions = routingTableEntry->second;
       ForwardingAction& lastAction = forwardActions.back();
       double currentSplitRatio = lastAction.splitRatio + flowRatio;
       forwardActions.push_back(ForwardingAction(forwardDevice, currentSplitRatio));
@@ -80,10 +80,12 @@ PpfsSwitch::ForwardPacket(ns3::Ptr<const ns3::Packet> packet, uint16_t protocol,
   NS_LOG_INFO("  Switch " << m_id << ": Forwarding packet at " << Simulator::Now().GetSeconds()
               << "s");
 
-  Ptr<NetDevice> forwardingPort (GetPort(ret->second.forwardingActions));
-
+  Ptr<NetDevice> forwardingPort (GetPort(ret->second));
   uint32_t packetSizeInclP2pHdr (packet->GetSize()+2);
-  LogLinkStatistics(forwardingPort, ret->second.flowId, packetSizeInclP2pHdr);
+
+  // To get the flow id use the one from the routing table *ret*, because the variable *flow* does
+  // not have a valid flow id set.
+  LogLinkStatistics(forwardingPort, ret->first.id, packetSizeInclP2pHdr);
   bool sendSuccessful = forwardingPort->Send(packet->Copy(), dst, protocol);
   if (sendSuccessful == false) NS_LOG_INFO("WARNING: Packet Transmission failed");
 
