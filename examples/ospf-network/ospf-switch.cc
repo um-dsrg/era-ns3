@@ -30,9 +30,9 @@ OspfSwitch::SetPacketHandlingMechanism ()
 
 void
 OspfSwitch::InsertEntryInRoutingTable(uint32_t srcIpAddr, uint32_t dstIpAddr, uint16_t portNumber,
-                                      char protocol, uint32_t flowId)
+                                      char protocol, FlowId_t flowId)
 {
-  Flow flow (srcIpAddr, dstIpAddr, portNumber, protocol);
+  Flow flow (flowId, srcIpAddr, dstIpAddr, portNumber, protocol);
 
   auto ret = m_routingTable.find (flow);
 
