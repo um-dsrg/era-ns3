@@ -13,17 +13,8 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-// Standard C++ Includes
-#include <iostream>
-#include <vector>
+#include <tinyxml2.h>
 #include <map>
-#include <libgen.h>
-
-// LEMON Includes
-#include <lemon/smart_graph.h>
-#include <lemon/lgf_reader.h>
-#include <lemon/lgf_writer.h>
-#include <lemon/graph_to_eps.h>
 
 // ns3 Includes
 #include "ns3/core-module.h"
@@ -34,299 +25,121 @@
 #include "ns3/flow-monitor-helper.h"
 #include "ns3/flow-monitor-module.h"
 
-#include "../multipath-mcf/classes/type-defs.h"
-#include "../multipath-mcf/classes/log-manager.h"
-#include "../multipath-mcf/classes/graph-utilities.h"
-#include "../multipath-mcf/classes/commodity-utilities.h"
-#include "../multipath-mcf/classes/result-manager.h"
+#include "../../common-code/topology-builder.h"
+#include "../../common-code/routing-helper.h"
+#include "../../common-code/application-helper.h"
+#include "../../common-code/animation-helper.h"
+#include "../../common-code/result-manager.h"
+
+#include "ospf-switch.h"
 
 using namespace ns3;
+using namespace tinyxml2;
 
-NS_LOG_COMPONENT_DEFINE ("OSPF-Network");
-
-Ipv4Address
-GetNodeIpAddress (Ptr<Node> node, uint32_t interface = 1, uint32_t addressIndex = 0)
-{
-  Ptr<Ipv4> nodeIp = node->GetObject<Ipv4> (); // Get Ipv4 instance of the node
-  return nodeIp->GetAddress (interface, addressIndex).GetLocal ();
-}
-
-// void
-// ScheduleRouteRecompute (uint64_t intervalInMs)
-// {
-//   NS_LOG_INFO("Re-Computing OSPF table");
-//   ns3::Time interval = MilliSeconds(intervalInMs);
-//   ns3::Time scheduleTime = Simulator::Now() + interval;
-
-//   Ipv4GlobalRoutingHelper::RecomputeRoutingTables();
-
-//   Simulator::Schedule (scheduleTime,
-//                        &ScheduleRouteRecompute, intervalInMs);
-// }
+NS_LOG_COMPONENT_DEFINE ("ospf-network");
 
 int
 main (int argc, char *argv[])
 {
-  NS_LOG_UNCOND ("OSPF Network simulator");
+  NS_LOG_UNCOND ("OSPF network simulator");
+
+  bool verbose (false);
+  std::string xmlLogFilePath ("");
+  std::string xmlResultFilePath ("");
+  std::string xmlAnimationFile ("");
+  uint32_t queuePacketSize (100);
+  bool enableHistograms (false);
+  bool enableFlowProbes (false);
 
   CommandLine cmdLine;
+  cmdLine.AddValue("verbose", "If true display log values", verbose);
+  cmdLine.AddValue("log", "The full path to the XML log file", xmlLogFilePath);
+  cmdLine.AddValue("result", "The full path of the result file", xmlResultFilePath);
+  cmdLine.AddValue("animation", "The full path where to store the animation xml file."
+                   "If left blank animation will be disabled.", xmlAnimationFile);
+  cmdLine.AddValue("queuePacketSize", "The maximum number of packets a queue can store."
+                   "The value is 100", queuePacketSize);
+  cmdLine.AddValue("enableHistograms", "If set enable FlowMonitor's delay and jitter histograms."
+                   "By default they are disabled", enableHistograms);
+  cmdLine.AddValue("enableFlowProbes", "If set enable FlowMonitor's flow probes."
+                   "By default they are disabled", enableFlowProbes);
 
-  bool verbose = false;
-  std::string lgfFile ("");
-  std::string resultsDir ("");
-  std::string resultsFileName ("");
-  std::string logDir ("");
-  std::string logFileName ("");
-  std::string epsFile ("");
-  std::string animFile ("");
-  uint32_t seed (1);
-  uint32_t run (1);
+  cmdLine.Parse(argc, argv);
 
-  cmdLine.AddValue("verbose", "If true output log values", verbose);
-  cmdLine.AddValue("lgfFile", "The full path to the LGF file", lgfFile);
-  cmdLine.AddValue("resultsDir", "The directory where to store the results", resultsDir);
-  cmdLine.AddValue("resultsFileName", "The name + extension of the results file name", resultsFileName);
-  cmdLine.AddValue("logDir", "The directory where to store the logs", logDir);
-  cmdLine.AddValue("logFileName", "The log's file name", logFileName);
-  cmdLine.AddValue("seed", "The seed used by the random number generator. Default of 1.", seed);
-  cmdLine.AddValue("run", "The initial run value. Default of 1.", run);
-  cmdLine.AddValue("animFile", "The path where to save the animation xml file. When blank it is disabled"
-                   , animFile);
-  cmdLine.AddValue("epsFile", "The path where to output the EPS file. If blank nothing will be output"
-                   , epsFile);
-
-  cmdLine.Parse (argc,argv);
-
-  if (verbose) // Enable logging if verbose is set to true
+  if (verbose)
     {
+      LogComponentEnable ("OspfSwitch", LOG_LEVEL_INFO);
       LogComponentEnable ("OnOffApplication", LOG_LEVEL_INFO);
       LogComponentEnable ("PacketSink", LOG_LEVEL_INFO);
-      LogComponentEnable("OSPF-Network", LOG_LEVEL_INFO);
+      LogComponentEnable ("ResultManager", LOG_LEVEL_INFO);
     }
 
-  // Check the validity of the command line arguments.
-  NS_ABORT_MSG_IF(lgfFile.empty(), "LGF file location must be specified");
-  NS_ABORT_MSG_IF(resultsDir.empty(), "Results directory must be specified");
-  NS_ABORT_MSG_IF(resultsFileName.empty(), "Results file name must be specified");
-  NS_ABORT_MSG_IF(logDir.empty(), "Log directory must be specified");
-  NS_ABORT_MSG_IF(logFileName.empty(), "Log file name must be specified");
+  // TODO: verify that the result and log file parameters are passed correctly
 
-  // Set the seed and run variables
-  RngSeedManager::SetSeed (seed);
-  RngSeedManager::SetRun (run);
+  // Parsing the XML file.
+  XMLDocument xmlLogFile;
+  XMLError error = xmlLogFile.LoadFile(xmlLogFilePath.c_str());
+  NS_ABORT_MSG_IF(error != XML_SUCCESS, "Could not load LOG FILE");
+  XMLNode* rootNode = xmlLogFile.LastChild();
+  NS_ABORT_MSG_IF(rootNode == nullptr, "No root node node found");
 
-  // Logging
-  LogManager logManager (logDir, logFileName);
-  logManager.LogLgfFileLocation(lgfFile);
-  logManager.LogResultsFile(resultsDir + resultsFileName);
+  NodeContainer allNodes; /*!< Node container storing all the nodes */
+  NodeContainer terminalNodes; /*!< Node container storing a reference to the terminal nodes */
+  NodeContainer switchNodes; /*!< Node container storing a reference to the switch nodes */
+  NetDeviceContainer terminalDevices; /*!< Container storing all the terminal's net devices */
 
-  GraphUtilities graphUtilities (lgfFile); // Load and parse the LGF file
+  std::map<NodeId_t, OspfSwitch> switchMap; /*!< Key -> Node ID. Value -> Switch object */
+  std::map <LinkId_t, LinkInformation> linkInformation; /*!< Key -> Link ID, Value -> Link Info */
+  /*
+   * This map will be used for statistics purposes when we need to store the link id that a
+   * terminal's net device is connected to. This will be used when the simulation is running
+   * to calculate the link statistics.
+   */
+  std::map <Ptr<NetDevice>, LinkId_t> terminalToLinkId; /*!< Key -> Net Device, Value -> Link Id */
 
-  NodeContainer nodes;
-  Ns3ToLemonNodeMap_t ns3ToLemonNodeMap;
-  LemonToNs3NodeMap_t lemonToNs3NodeMap;
-  graphUtilities.CreateNodesAndGenerateNetworkTopology(nodes, lemonToNs3NodeMap, ns3ToLemonNodeMap);
+  TopologyBuilder<OspfSwitch> topologyBuilder (rootNode, switchMap, terminalToLinkId, allNodes,
+                                               terminalNodes, switchNodes, terminalDevices);
+  topologyBuilder.CreateNodes ();
+  topologyBuilder.ParseNodeConfiguration();
+  topologyBuilder.BuildNetworkTopology (linkInformation);
+  topologyBuilder.AssignIpToNodes(true, true);
 
-  if(!epsFile.empty())
+  RoutingHelper<OspfSwitch> routingHelper (switchMap);
+  routingHelper.PopulateRoutingTables(allNodes, rootNode);
+  routingHelper.SetSwitchesPacketHandler();
+
+  std::unique_ptr<AnimationHelper> animHelper;
+
+  if (!xmlAnimationFile.empty())
     {
-      graphUtilities.ExportGraphToEps(epsFile);
-      logManager.LogEpsExport(epsFile);
+      animHelper = std::unique_ptr<AnimationHelper> (new AnimationHelper());
+      animHelper->SetNodeMobilityAndCoordinates(rootNode, allNodes);
+      animHelper->SetupAnimation(xmlAnimationFile, terminalNodes, switchNodes);
     }
 
-  uint32_t headerSize (30);
-  CommodityUtilities commodityUtilities (graphUtilities, headerSize);
-  commodityUtilities.LoadCommoditiesFromFile(lgfFile);
+  ApplicationHelper applicationHelper;
+  uint32_t stopTime = applicationHelper.InstallApplicationOnTerminals(allNodes, rootNode);
 
-  std::map<Id_t, char> nodeTypeMap; /*!< Map used to hold a reference between the node and it's type */
+  ResultManager resultManager;
+  resultManager.SetupFlowMonitor(allNodes, stopTime);
+  resultManager.TraceTerminalTransmissions(terminalDevices, terminalToLinkId);
 
-  // Installing internet on all the nodes
-  InternetStackHelper internetStack;
-  internetStack.InstallAll();
-
-  Ipv4AddressHelper ipv4;
-  ipv4.SetBase("0.0.0.0", "255.255.255.252");
-
-  PointToPointHelper p2pHelper;
-
-  NetworkTopology_t& networkTopology = graphUtilities.GetNetworkTopology();
-
-  //Loop through the network topology and setup the connections
-  for (NetworkTopologyRevIt_t it = networkTopology.rbegin();
-       it != networkTopology.rend();
-       ++it)
-    {
-      // Configuring the PointToPoint channel Data rate (bits per second)
-      p2pHelper.SetDeviceAttribute ("DataRate", DataRateValue (it->GetEdgeCapacity() * 1000000));
-      // Configuring the PointToPoint channel delay
-      p2pHelper.SetChannelAttribute ("Delay", TimeValue (MilliSeconds(it->GetEdgeDelay())));
-
-      Id_t srcNodeId = it->GetSourceId();
-      Id_t sinkNodeId = it->GetSinkId();
-
-      nodeTypeMap[srcNodeId] = it->GetSourceType();
-      nodeTypeMap[sinkNodeId] = it->GetSinkType();
-
-      NetDeviceContainer link = p2pHelper.Install (nodes.Get(srcNodeId), nodes.Get(sinkNodeId));
-      ipv4.Assign(link);
-      // Assigning new network address per node due to the fact that OSPF routes networks not
-      // specific IP Addresses.
-      ipv4.NewNetwork ();
-    }
+  Config::Set ("/NodeList/*/DeviceList/*/$ns3::PointToPointNetDevice/TxQueue/MaxPackets",
+               UintegerValue (queuePacketSize));
 
   // Building the routing table
   Ipv4GlobalRoutingHelper::PopulateRoutingTables();
 
-  // Installing the OnOff application
-  NS_LOG_INFO ("Installing Applications on terminals");
+  Simulator::Stop(Seconds(stopTime));
+  Simulator::Run ();
 
-  std::string socketType = "ns3::UdpSocketFactory";
+  resultManager.GenerateFlowMonitorXmlLog(enableHistograms, enableFlowProbes);
+  resultManager.UpdateFlowIds(rootNode, allNodes);
+  resultManager.AddQueueStatistics(switchMap);
+  resultManager.AddLinkStatistics(switchMap);
+  resultManager.SaveXmlResultFile(xmlResultFilePath.c_str());
 
-  for (CommodityUtilities::CommodityIt_t commodity = commodityUtilities.CommoditiesBegin();
-       commodity != commodityUtilities.CommoditiesEnd();
-       ++commodity)
-    {
-      // NOTE: This code assumes that the terminal only has 1 IP Address. I.E only one link
-      // is entering the terminal. For now this should suffice. If the need changes, this
-      // code needs to change as well.
+  Simulator::Destroy ();
 
-      // Binding the IP Address with the port number.
-      // This address signifies the destination IP Address + port number
-      // We need the ip address of the receiver.
-
-      // Get the IP Address of the receiver node.
-      Ipv4Address sinkIpAddress = GetNodeIpAddress (nodes.Get(commodity->GetSinkId()));
-      InetSocketAddress sinkSocket (sinkIpAddress, commodity->GetPortNumber());
-
-      uint32_t packetSize = commodity->GetPacketSize ();
-      double dataRateInBps = commodity->GetDataRate () * 1000000;
-      uint32_t maxBytes = packetSize * commodity->GetNumOfPackets ();
-
-      // Configure the Transmitter on the Source Node /////////////////////////
-      OnOffHelper onOff (socketType, sinkSocket);
-      onOff.SetAttribute ("OnTime",  StringValue ("ns3::ConstantRandomVariable[Constant=1]"));
-      onOff.SetAttribute ("OffTime", StringValue ("ns3::ConstantRandomVariable[Constant=0]"));
-      onOff.SetAttribute ("PacketSize", UintegerValue (packetSize));
-      onOff.SetAttribute ("DataRate", DataRateValue(dataRateInBps)); // Data rate is set in Bps
-      onOff.SetAttribute("MaxBytes", UintegerValue (maxBytes));
-
-      ApplicationContainer srcApps = onOff.Install (nodes.Get (commodity->GetSourceId()));
-      srcApps.Start (Seconds (commodity->GetTransmissionStartTime()));
-      srcApps.Stop (Seconds (commodity->GetTransmissionEndTime()));
-
-      // Configure the Receiver on the Sink Node //////////////////////////////
-      PacketSinkHelper packetSinkHelper (socketType, sinkSocket);
-      ApplicationContainer packetSinkApp = packetSinkHelper.Install (nodes.Get (commodity->GetSinkId()));
-      packetSinkApp.Start (Seconds (commodity->GetTransmissionStartTime()));
-      packetSinkApp.Stop (Seconds (commodity->GetTransmissionEndTime()));
-
-      // Log entry for OnOff application
-      NS_LOG_INFO("OnOff installed on node " << commodity->GetSourceId()
-                  << "\n  Dst Ip: " << sinkSocket.GetIpv4().Get()
-                  << " Dst Port: " << sinkSocket.GetPort() << "\n  "
-                  << "Packet size: " << packetSize
-                  << "bytes" << " @ " << commodity->GetDataRate () << "Mbps\n  "
-                  << "Maximum Bytes to transfer " << maxBytes << "\n  "
-                  << "No. of Packets " << commodity->GetNumOfPackets ());
-
-      // Log entry for the packet sink helper
-      NS_LOG_INFO("PacketSink installed on node " << commodity->GetSinkId()
-                  << "\n  "
-                  << "Dst Ip: " << sinkSocket.GetIpv4().Get()
-                  << " Port Number: " << sinkSocket.GetPort());
-    }
-
-  // // Setting a per port buffer of 60MB
-  // Config::Set ("/NodeList/*/DeviceList/*/$ns3::PointToPointNetDevice/TxQueue/Mode",
-  //              StringValue ("QUEUE_MODE_BYTES"));
-  // Config::Set ("/NodeList/*/DeviceList/*/TxQueue/Mode",
-  //              StringValue ("QUEUE_MODE_BYTES"));
-
-  // Config::Set ("/NodeList/*/DeviceList/*/$ns3::PointToPointNetDevice/TxQueue/MaxBytes",
-  //              UintegerValue (62914560));
-  // Config::Set ("/NodeList/*/DeviceList/*/TxQueue/MaxBytes",
-  //              UintegerValue (62914560));
-
-  // Setting the pointToPoint net devices to have a queue of 100,000,000 packets
-  Config::Set ("/NodeList/*/DeviceList/*/$ns3::PointToPointNetDevice/TxQueue/MaxPackets",
-               UintegerValue (100000000));
-  Config::Set ("/NodeList/*/DeviceList/*/TxQueue/MaxPackets",
-             UintegerValue (100000000));
-  Config::Set ("/NodeList/*/$ns3::Ipv4L3Protocol/DefaultTtl", UintegerValue(255));
-
-  logManager.SaveLog();
-
-  MobilityHelper mobilityHelper;
-  // All nodes have a constant position and do not move
-  mobilityHelper.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
-  mobilityHelper.InstallAll (); // Installing mobility on all the nodes
-
-  std::unique_ptr<AnimationInterface> animInterface;
-  // Enable animation
-  if (!animFile.empty())
-    {
-      logManager.LogAnimation(animFile);
-      animInterface = std::unique_ptr <ns3::AnimationInterface> (new ns3::AnimationInterface (animFile));
-      animInterface->EnablePacketMetadata ();
-
-      uint32_t nodeIndex = 0;
-      for (ns3::NodeContainer::Iterator it = nodes.Begin(); it != nodes.End(); ++it)
-        {
-          if (nodeTypeMap[nodeIndex] == 'S') // Switches are blue
-              animInterface->UpdateNodeColor(*it, 0, 0, 255);
-          else if (nodeTypeMap[nodeIndex] == 'T') // Terminals are red
-              animInterface->UpdateNodeColor(*it, 255, 0, 0);
-
-          nodeIndex++;
-        }
-
-      // Setting coordinates
-      for (l_NodeIt nodeIt = graphUtilities.GetNodeIterator(); nodeIt != lemon::INVALID; ++nodeIt)
-        {
-          int x = 0;
-          int y = 0;
-
-          graphUtilities.GetNodeCoordinates(nodeIt, x, y);
-
-          // Inverting the y-axis because NetAnim has an inverted y-axis starts from 0 and draws onwards
-          // to the bottom not the top
-          y = -y;
-
-          // Get the nodeId
-          Id_t nodeId = graphUtilities.GetNodeId(nodeIt);
-
-          ns3::AnimationInterface::SetConstantPosition(nodes.Get(nodeId), x, y);
-        }
-    }
-
-  logManager.SaveLog(); // Save the Log file
-
-  // Enable Flow Monitor
-  FlowMonitorHelper flowMonitorHelper;
-  // Installing flow monitor on all the nodes.
-  Ptr<FlowMonitor> flowMonitor = flowMonitorHelper.InstallAll();
-
-  flowMonitor->SetAttribute("MaxPerHopDelay",
-                            TimeValue(Seconds(commodityUtilities.GetLongestEndTime())));
-
-  ResultManager resultManager (flowMonitor, nodes, ns3ToLemonNodeMap,
-                               commodityUtilities, graphUtilities,
-                               resultsDir, resultsFileName);
-
-  resultManager.EnableTracingOnAllP2PChannels();
-
-  // // Scheduling route re-computation every 1 second
-  // Simulator::Schedule (Seconds(1),
-  //                      &ScheduleRouteRecompute, 1000);
-
-
-  Simulator::Stop(Seconds (commodityUtilities.GetLongestEndTime() + 10.0));
-  Simulator::Run();
-
-  Ptr<Ipv4FlowClassifier> flowClassifier =
-    DynamicCast<Ipv4FlowClassifier>(flowMonitorHelper.GetClassifier());
-
-  resultManager.ParseResultsToXML(flowClassifier);
-
-  Simulator::Destroy();
   return 0;
 }
