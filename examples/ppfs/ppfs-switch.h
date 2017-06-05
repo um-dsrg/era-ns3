@@ -17,7 +17,7 @@ public:
   PpfsSwitch ();
   PpfsSwitch (NodeId_t id, ns3::Ptr<ns3::Node> switchNode);
   void InsertEntryInRoutingTable (uint32_t srcIpAddr, uint32_t dstIpAddr, uint16_t portNumber,
-                                  char protocol, uint32_t flowId, uint32_t linkId,
+                                  char protocol, FlowId_t flowId, LinkId_t linkId,
                                   double flowRatio);
   void SetPacketHandlingMechanism ();
   void ForwardPacket (ns3::Ptr<const ns3::Packet> packet, uint16_t protocol,
@@ -56,14 +56,14 @@ private:
    */
   struct FlowDetails
   {
-    uint32_t flowId;
+    FlowId_t flowId;
     std::vector<ForwardingAction> forwardingActions;
 
     FlowDetails () : flowId (0) {}
-    FlowDetails (uint32_t flowId) : flowId (flowId) {}
+    FlowDetails (FlowId_t flowId) : flowId (flowId) {}
   };
 
-  std::map <FlowMatch, FlowDetails> m_routingTable;
+  std::map <Flow, FlowDetails> m_routingTable; /*!< Routing table */
   ns3::Ptr<ns3::UniformRandomVariable> m_uniformRandomVariable; /*!< Used for flow splitting */
 };
 

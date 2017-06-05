@@ -19,14 +19,14 @@ NS_LOG_COMPONENT_DEFINE("PpfsSwitch");
 
 PpfsSwitch::PpfsSwitch () {}
 
-PpfsSwitch::PpfsSwitch (uint32_t id, Ptr<Node> node) : SwitchDevice(id, node) {}
+PpfsSwitch::PpfsSwitch (NodeId_t id, Ptr<Node> node) : SwitchDevice(id, node) {}
 
 void
 PpfsSwitch::InsertEntryInRoutingTable(uint32_t srcIpAddr, uint32_t dstIpAddr, uint16_t portNumber,
-                                      char protocol, uint32_t flowId, uint32_t linkId,
+                                      char protocol, FlowId_t flowId, LinkId_t linkId,
                                       double flowRatio)
 {
-  FlowMatch currentFlow (srcIpAddr, dstIpAddr, portNumber, protocol);
+  Flow currentFlow (srcIpAddr, dstIpAddr, portNumber, protocol);
 
   auto ret = m_linkNetDeviceTable.find(linkId);
   NS_ABORT_MSG_IF(ret == m_linkNetDeviceTable.end(), "Link " << linkId << " was not found in "<<
@@ -72,7 +72,7 @@ PpfsSwitch::SetPacketHandlingMechanism()
 void
 PpfsSwitch::ForwardPacket(ns3::Ptr<const ns3::Packet> packet, uint16_t protocol, const Address& dst)
 {
-  FlowMatch flow (ParsePacket(packet, protocol));
+  Flow flow (ParsePacket(packet, protocol));
 
   auto ret = m_routingTable.find(flow);
   NS_ABORT_MSG_IF(ret == m_routingTable.end(), "Routing Table Miss\n" << flow);

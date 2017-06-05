@@ -9,17 +9,7 @@
 #include "ns3/node-container.h"
 #include "ns3/queue.h"
 
-#include "../common-code/definitions.h"
-
-struct LinkInformation
-{
-  uint32_t linkId;
-  uint32_t srcNode;
-  char srcNodeType;
-  uint32_t dstNode;
-  char dstNodeType;
-  double capacity;
-};
+#include "definitions.h"
 
 template <class SwitchType>
 class TopologyBuilder

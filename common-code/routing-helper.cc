@@ -29,9 +29,9 @@ PopulateRoutingTables(NodeContainer& allNodes, XMLNode* rootNode)
   while (flowElement != nullptr)
     {
       // Parse the required flow details
-      uint32_t flowId (0);
-      uint32_t sourceNodeId (0);
-      uint32_t destinationNodeId (0);
+      FlowId_t flowId (0);
+      NodeId_t sourceNodeId (0);
+      NodeId_t destinationNodeId (0);
       uint32_t portNumberXml (0);
       uint16_t portNumber (0);
       char protocol (0);
@@ -95,12 +95,12 @@ PopulateRoutingTables(std::map <LinkId_t, LinkInformation>& linkInformation,
       XMLElement* linkElement = flowElement->FirstChildElement("Link");
       while (linkElement != nullptr)
         {
-          uint32_t linkId (0);
+          LinkId_t linkId (0);
           double linkFlowRate (0.0);
           linkElement->QueryAttribute("Id", &linkId);
           linkElement->QueryAttribute("FlowRate", &linkFlowRate);
 
-          uint32_t linkSrcNode = linkInformation[linkId].srcNode; // Get the link's source node
+          NodeId_t linkSrcNode = linkInformation[linkId].srcNode; // Get the link's source node
 
           if (linkInformation[linkId].srcNodeType == 'S') // Only switches have routing tables.
             {
@@ -130,7 +130,7 @@ RoutingHelper<SwitchType>::SetSwitchesPacketHandler()
 template <class SwitchType>
 void
 RoutingHelper<SwitchType>::
-ParseIncomingFlows (std::map<std::pair<uint32_t, uint32_t>, double>& incomingFlow,
+ParseIncomingFlows (std::map<std::pair<NodeId_t, FlowId_t>, double>& incomingFlow,
                     XMLNode* rootNode)
 {
   XMLElement* incomingFlowElement = rootNode->FirstChildElement("IncomingFlow");
@@ -139,13 +139,13 @@ ParseIncomingFlows (std::map<std::pair<uint32_t, uint32_t>, double>& incomingFlo
   XMLElement* nodeElement = incomingFlowElement->FirstChildElement("Node");
   while (nodeElement != nullptr)
     {
-      uint32_t nodeId (0);
+      NodeId_t nodeId (0);
       nodeElement->QueryAttribute("Id", &nodeId);
 
       XMLElement* flowElement = nodeElement->FirstChildElement("Flow");
       while (flowElement != nullptr)
         {
-          uint32_t flowId (0);
+          FlowId_t flowId (0);
           double flowValue (0);
           flowElement->QueryAttribute("Id", &flowId);
           flowElement->QueryAttribute("IncomingFlow", &flowValue);
@@ -161,7 +161,7 @@ ParseIncomingFlows (std::map<std::pair<uint32_t, uint32_t>, double>& incomingFlo
 
 template <class SwitchType>
 uint32_t
-RoutingHelper<SwitchType>::GetIpAddress (uint32_t nodeId, NodeContainer& nodes)
+RoutingHelper<SwitchType>::GetIpAddress (NodeId_t nodeId, NodeContainer& nodes)
 {
   return nodes.Get(nodeId)->GetObject<Ipv4>()->GetAddress(1,0).GetLocal().Get();
 }

@@ -17,7 +17,7 @@ public:
                                   char protocol, uint32_t flowId);
 private:
   void LogPacketTransmission (std::string context, ns3::Ptr<const ns3::Packet> packet);
-  std::map <FlowMatch, FlowId_t> m_routingTable;
+  std::map <Flow, FlowId_t> m_routingTable;
 };
 
 #endif /* OSPF_SWITCH_H */

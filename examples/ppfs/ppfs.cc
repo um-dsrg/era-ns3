@@ -90,14 +90,14 @@ main (int argc, char *argv[])
   NodeContainer switchNodes; /*!< Node container storing a reference to the switch nodes */
   NetDeviceContainer terminalDevices; /*!< Container storing all the terminal's net devices */
 
-  std::map<uint32_t, PpfsSwitch> switchMap; /*!< Key -> Node ID. Value -> Switch object */
-  std::map <uint32_t, LinkInformation> linkInformation; /*!< Key -> Link ID, Value -> Link Info */
+  std::map<NodeId_t, PpfsSwitch> switchMap; /*!< Key -> Node ID. Value -> Switch object */
+  std::map<LinkId_t, LinkInformation> linkInformation; /*!< Key -> Link ID, Value -> Link Info */
   /*
    * This map will be used for statistics purposes when we need to store the link id that a
    * terminal's net device is connected to. This will be used when the simulation is running
    * to calculate the link statistics.
    */
-  std::map <Ptr<NetDevice>, uint32_t> terminalToLinkId; /*!< Key -> Net Device, Value -> Link Id */
+  std::map <Ptr<NetDevice>, LinkId_t> terminalToLinkId; /*!< Key -> Net Device, Value -> Link Id */
 
   TopologyBuilder<PpfsSwitch> topologyBuilder (rootNode, switchMap, terminalToLinkId, allNodes,
                                                terminalNodes, switchNodes, terminalDevices);

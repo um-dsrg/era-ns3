@@ -32,7 +32,7 @@ void
 OspfSwitch::InsertEntryInRoutingTable(uint32_t srcIpAddr, uint32_t dstIpAddr, uint16_t portNumber,
                                       char protocol, uint32_t flowId)
 {
-  FlowMatch flow (srcIpAddr, dstIpAddr, portNumber, protocol);
+  Flow flow (srcIpAddr, dstIpAddr, portNumber, protocol);
 
   auto ret = m_routingTable.find (flow);
 
@@ -59,7 +59,7 @@ OspfSwitch::LogPacketTransmission (std::string context, ns3::Ptr<const ns3::Pack
   NS_ABORT_MSG_IF((recvPacket->PeekHeader(pppHeader) == 0), "The PPP Header was not found");
   recvPacket->RemoveHeader(pppHeader);
 
-  FlowMatch flow (ParsePacket (recvPacket, Ipv4L3Protocol::PROT_NUMBER));
+  Flow flow (ParsePacket (recvPacket, Ipv4L3Protocol::PROT_NUMBER));
 
   auto tableMatch = m_routingTable.find(flow);
   NS_ABORT_MSG_IF(tableMatch == m_routingTable.end(), "Routing Table Miss for flow\n" << flow);

@@ -24,7 +24,7 @@ ApplicationHelper::InstallApplicationOnTerminals(ns3::NodeContainer& allNodes,
     {
       uint32_t pktSizeInclHdr (0);
       uint32_t numOfPackets (0);
-      uint32_t dstNodeId (0);
+      NodeId_t dstNodeId (0);
       uint32_t portNumber (0);
       double dataRateInclHdr (0);
 
@@ -55,7 +55,7 @@ ApplicationHelper::InstallApplicationOnTerminals(ns3::NodeContainer& allNodes,
       onOff.SetAttribute("DataRate", DataRateValue(dataRateExclHdr * 1000000)); // In bps
       onOff.SetAttribute("MaxBytes", UintegerValue(maxBytes));
 
-      uint32_t srcNodeId (0);
+      NodeId_t srcNodeId (0);
       uint32_t startTime (0);
       uint32_t endTime (0);
       flowElement->QueryAttribute("SourceNode", &srcNodeId);
@@ -97,7 +97,7 @@ ApplicationHelper::CalculateHeaderSize (char protocol)
 }
 
 Ipv4Address
-ApplicationHelper::GetIpAddress (uint32_t nodeId, ns3::NodeContainer& nodes)
+ApplicationHelper::GetIpAddress (NodeId_t nodeId, ns3::NodeContainer& nodes)
 {
   return nodes.Get(nodeId)->GetObject<Ipv4>()->GetAddress(1,0).GetLocal();
 }

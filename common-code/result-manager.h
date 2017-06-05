@@ -11,22 +11,12 @@
 #include "ns3/ipv4.h"
 
 #include "definitions.h"
+#include "switch-device.h"
 
 class ResultManager
 {
 public:
   ResultManager ();
-
-  struct LinkStatistic
-  {
-    ns3::Time timeFirstTx;
-    ns3::Time timeLastTx;
-    uint32_t packetsTransmitted;
-    uint32_t bytesTransmitted;
-
-    LinkStatistic () : timeFirstTx (0), timeLastTx (0), packetsTransmitted (0), bytesTransmitted (0)
-    {}
-  };
 
   void SetupFlowMonitor (ns3::NodeContainer& allNodes, uint32_t stopTime);
   void TraceTerminalTransmissions (ns3::NetDeviceContainer& terminalDevices,
@@ -101,7 +91,7 @@ ResultManager::AddLinkStatistics(std::map<NodeId_t, SwitchType>& switchMap)
       switchElement->SetAttribute("Id", switchNode.first);
 
       // Loop through all the links the switch is connected to
-      uint32_t prevLinkId (0);
+      LinkId_t prevLinkId (0);
       bool firstLinkInserted (false);
       XMLElement* linkElement (0);
       for (const auto& linkStatistic : switchNode.second.GetLinkStatistics())

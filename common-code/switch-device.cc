@@ -84,11 +84,11 @@ SwitchDevice::LogLinkStatistics (Ptr<NetDevice> port, FlowId_t flowId, uint32_t 
     }
 }
 
-SwitchDevice::FlowMatch
+Flow
 SwitchDevice::ParsePacket (Ptr<const Packet> packet, uint16_t protocol)
 {
   Ptr<Packet> recvPacket = packet->Copy (); // Copy the packet for parsing purposes
-  FlowMatch flow;
+  Flow flow;
 
   if (protocol == Ipv4L3Protocol::PROT_NUMBER) // Packet is IP
     {
@@ -109,7 +109,7 @@ SwitchDevice::ParsePacket (Ptr<const Packet> packet, uint16_t protocol)
           if (recvPacket->PeekHeader(udpHeader))
             {
               flow.portNumber = udpHeader.GetDestinationPort();
-              flow.protocol = FlowMatch::Protocol::Udp;
+              flow.SetProtocol(Flow::Protocol::Udp);
             }
         }
       else if (ipProtocol == TcpL4Protocol::PROT_NUMBER) // TCP Packet
@@ -118,7 +118,7 @@ SwitchDevice::ParsePacket (Ptr<const Packet> packet, uint16_t protocol)
           if (recvPacket->PeekHeader(tcpHeader))
             {
               flow.portNumber = tcpHeader.GetDestinationPort();
-              flow.protocol = FlowMatch::Protocol::Tcp;
+              flow.SetProtocol(Flow::Protocol::Tcp);
             }
         }
       else

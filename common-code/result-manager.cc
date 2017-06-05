@@ -70,44 +70,25 @@ ResultManager::UpdateFlowIds(XMLNode* logFileRootNode, NodeContainer& allNodes)
   XMLElement* optimalSolutionElement = logFileRootNode->FirstChildElement("OptimalSolution");
   NS_ABORT_MSG_IF(optimalSolutionElement == nullptr, "OptimalSolution element not found");
 
-  struct FlowDetails
-  {
-    uint32_t srcIpAddr;
-    uint32_t dstIpAddr;
-    uint32_t portNumber; // Destination Port Number
-    char protocol; // T = TCP, U = UDP
-
-    bool operator<(const FlowDetails &other) const
-    {
-      if (srcIpAddr == other.srcIpAddr)
-        {
-          if (dstIpAddr == other.dstIpAddr)
-            return portNumber < other.portNumber;
-          else
-            return dstIpAddr < other.dstIpAddr;
-        }
-      else
-        return srcIpAddr < other.srcIpAddr;
-    }
-  };
-
-  std::map<FlowDetails, uint32_t> flowToIdMap; /*!< Key -> Flow Details, Value -> Flow Id */
+  std::map<Flow, FlowId_t> flowToIdMap; /*!< Key -> Flow Details, Value -> Flow Id */
   XMLElement* flowElement = optimalSolutionElement->FirstChildElement("Flow");
   while (flowElement != nullptr)
     {
-      uint32_t srcNodeId (0);
-      uint32_t dstNodeId (0);
-      uint32_t flowId (0);
+      NodeId_t srcNodeId (0);
+      NodeId_t dstNodeId (0);
+      FlowId_t flowId (0);
       flowElement->QueryAttribute("SourceNode", &srcNodeId);
       flowElement->QueryAttribute("DestinationNode", &dstNodeId);
       flowElement->QueryAttribute("Id", &flowId);
 
-      FlowDetails flow;
+      Flow flow;
       flow.srcIpAddr = GetIpAddress(srcNodeId, allNodes);
       flow.dstIpAddr = GetIpAddress(dstNodeId, allNodes);
-      flowElement->QueryAttribute("PortNumber", &flow.portNumber);
-      flow.protocol = *flowElement->Attribute("Protocol");
-
+      // This conversion is needed because tinyxml2 does not handle uint16_t parameters
+      uint32_t portNumber;
+      flowElement->QueryAttribute("PortNumber", &portNumber);
+      flow.portNumber = (uint16_t) portNumber;
+      flow.SetProtocol(*flowElement->Attribute("Protocol"));
       flowToIdMap.insert({flow, flowId});
 
       flowElement = flowElement->NextSiblingElement("Flow");
@@ -120,20 +101,20 @@ ResultManager::UpdateFlowIds(XMLNode* logFileRootNode, NodeContainer& allNodes)
 
   // Parsing the FlowMonitor's flows //////////////////////////////////////////
   // Key -> FlowMonitor Flow Id, Value -> Our FlowId
-  std::map<uint32_t, uint32_t> flowMonIdToFlowId;
+  std::map<FlowId_t, FlowId_t> flowMonIdToFlowId;
   for (const auto& flow : flowStatistics)
     {
       uint32_t flowMonFlowId (flow.first);
       Ipv4FlowClassifier::FiveTuple flowMonFlow = flowClassifier->FindFlow(flowMonFlowId);
 
-      FlowDetails flowDetails;
+      Flow flowDetails;
       flowDetails.srcIpAddr = flowMonFlow.sourceAddress.Get();
       flowDetails.dstIpAddr = flowMonFlow.destinationAddress.Get();
       flowDetails.portNumber = flowMonFlow.destinationPort; // Destination Port Number
 
       // Protocol numbers taken from ipv4-flow-classifier.cc
-      if (flowMonFlow.protocol == 6) flowDetails.protocol = 'T';
-      else if (flowMonFlow.protocol == 17) flowDetails.protocol = 'U';
+      if (flowMonFlow.protocol == 6) flowDetails.SetProtocol(Flow::Protocol::Tcp);
+      else if (flowMonFlow.protocol == 17) flowDetails.SetProtocol(Flow::Protocol::Udp);
 
       auto ourFlowIt = flowToIdMap.find(flowDetails);
       NS_ABORT_MSG_IF(ourFlowIt == flowToIdMap.end(),
@@ -150,7 +131,7 @@ ResultManager::UpdateFlowIds(XMLNode* logFileRootNode, NodeContainer& allNodes)
 
   while (flowElement != nullptr)
     {
-      uint32_t flowMonFlowId (0);
+      FlowId_t flowMonFlowId (0);
       flowElement->QueryAttribute("flowId", &flowMonFlowId);
 
       auto ret = flowMonIdToFlowId.find(flowMonFlowId);
@@ -168,7 +149,7 @@ ResultManager::UpdateFlowIds(XMLNode* logFileRootNode, NodeContainer& allNodes)
 
   while (flowElement != nullptr)
     {
-      uint32_t flowMonFlowId (0);
+      FlowId_t flowMonFlowId (0);
       flowElement->QueryAttribute("flowId", &flowMonFlowId);
 
       auto ret = flowMonIdToFlowId.find(flowMonFlowId);
@@ -191,7 +172,7 @@ ResultManager::SaveXmlResultFile(const char* resultPath)
 void
 ResultManager::TerminalPacketTransmission(std::string context, ns3::Ptr<const ns3::Packet> packet)
 {
-  uint32_t linkId (std::stoul(context));
+  LinkId_t linkId (std::stoul(context));
   Simulator::Now();
 
   auto ret = m_terminalLinkStatistics.find(linkId);

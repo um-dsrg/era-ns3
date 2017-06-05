@@ -9,7 +9,7 @@
 #include "ns3/node.h"
 #include "ns3/node-container.h"
 
-#include "../common-code/definitions.h"
+#include "definitions.h"
 #include "topology-builder.h"
 
 template <class SwitchType>
@@ -27,7 +27,7 @@ public:
 private:
   void ParseIncomingFlows (std::map<std::pair<NodeId_t, FlowId_t>, double>& incomingFlow,
                            tinyxml2::XMLNode* rootNode);
-  inline uint32_t GetIpAddress (uint32_t nodeId, ns3::NodeContainer& nodes);
+  inline uint32_t GetIpAddress (NodeId_t nodeId, ns3::NodeContainer& nodes);
 
   std::map<NodeId_t, SwitchType>& m_switchMap;
 };

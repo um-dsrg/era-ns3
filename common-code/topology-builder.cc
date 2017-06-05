@@ -46,7 +46,7 @@ TopologyBuilder<SwitchType>::ParseNodeConfiguration()
   XMLElement* nodeElement = nodeConfigurationElement->FirstChildElement("Node");
   while (nodeElement != nullptr)
     {
-      uint32_t nodeId;
+      NodeId_t nodeId;
       char nodeType;
 
       nodeElement->QueryAttribute("Id", &nodeId);
