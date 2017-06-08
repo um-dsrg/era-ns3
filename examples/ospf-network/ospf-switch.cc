@@ -59,11 +59,16 @@ OspfSwitch::LogPacketTransmission (std::string context, ns3::Ptr<const ns3::Pack
   NS_ABORT_MSG_IF((recvPacket->PeekHeader(pppHeader) == 0), "The PPP Header was not found");
   recvPacket->RemoveHeader(pppHeader);
 
-  Flow flow (ParsePacket (recvPacket, Ipv4L3Protocol::PROT_NUMBER));
+  Flow flow (ParsePacket (recvPacket, Ipv4L3Protocol::PROT_NUMBER,
+                          true /*ICMP packets are supported in this simulation*/));
 
-  auto tableMatch = m_routingTable.find(flow);
-  NS_ABORT_MSG_IF(tableMatch == m_routingTable.end(), "Routing Table Miss for flow\n" << flow);
+  // Log only UDP and TCP packets
+  if (flow.GetProtocol() == Flow::Udp || flow.GetProtocol() == Flow::Tcp)
+    {
+      auto tableMatch = m_routingTable.find(flow);
+      NS_ABORT_MSG_IF(tableMatch == m_routingTable.end(), "Routing Table Miss for flow\n" << flow);
 
-  LogQueueEntries(linkNetDevice->second);
-  LogLinkStatistics(linkNetDevice->second, tableMatch->second, packet->GetSize());
+      LogQueueEntries(linkNetDevice->second);
+      LogLinkStatistics(linkNetDevice->second, tableMatch->second, packet->GetSize());
+    }
 }
