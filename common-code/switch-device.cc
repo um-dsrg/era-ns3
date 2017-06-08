@@ -1,4 +1,5 @@
 #include "ns3/abort.h"
+#include "ns3/log.h"
 #include "ns3/point-to-point-net-device.h"
 #include "ns3/simulator.h"
 #include "ns3/ipv4-header.h"
@@ -7,10 +8,13 @@
 #include "ns3/udp-l4-protocol.h"
 #include "ns3/tcp-header.h"
 #include "ns3/tcp-l4-protocol.h"
+#include "ns3/icmpv4-l4-protocol.h"
 
 #include "switch-device.h"
 
 using namespace ns3;
+
+NS_LOG_COMPONENT_DEFINE("SwitchDevice");
 
 void
 SwitchDevice::InsertNetDevice(LinkId_t linkId, Ptr<NetDevice> device)
@@ -85,7 +89,7 @@ SwitchDevice::LogLinkStatistics (Ptr<NetDevice> port, FlowId_t flowId, uint32_t 
 }
 
 Flow
-SwitchDevice::ParsePacket (Ptr<const Packet> packet, uint16_t protocol)
+SwitchDevice::ParsePacket (Ptr<const Packet> packet, uint16_t protocol, bool allowIcmpPackets)
 {
   Ptr<Packet> recvPacket = packet->Copy (); // Copy the packet for parsing purposes
   Flow flow;
@@ -121,8 +125,34 @@ SwitchDevice::ParsePacket (Ptr<const Packet> packet, uint16_t protocol)
               flow.SetProtocol(Flow::Protocol::Tcp);
             }
         }
+      else if (ipProtocol == Icmpv4L4Protocol::PROT_NUMBER && allowIcmpPackets) // ICMP Packet
+        {
+          Icmpv4Header icmpHeader;
+          if (recvPacket->PeekHeader(icmpHeader))
+            {
+              flow.SetProtocol(Flow::Protocol::Icmp);
+              switch (icmpHeader.GetType())
+                {
+                case Icmpv4Header::ECHO:
+                  NS_LOG_INFO("ICMP Echo message received at Switch " << m_id);
+                  break;
+                case Icmpv4Header::ECHO_REPLY:
+                  NS_LOG_INFO("ICMP Echo reply message received at Switch " << m_id);
+                  break;
+                case Icmpv4Header::DEST_UNREACH:
+                  NS_LOG_INFO("ICMP Destination Unreachable message received at Switch " << m_id);
+                  break;
+                case Icmpv4Header::TIME_EXCEEDED:
+                  NS_LOG_INFO("ICMP Time exceeded message received at Switch " << m_id);
+                  break;
+                default:
+                  NS_ABORT_MSG("ICMP unidentified message received at Switch " << m_id);
+                  break;
+                }
+            }
+        }
       else
-        NS_ABORT_MSG("Unknown packet type received. Packet Type " << ipProtocol);
+        NS_ABORT_MSG("Unknown packet type received. Packet Type " << std::to_string(ipProtocol));
     }
   else
     NS_ABORT_MSG("Non-IP Packet received. Protocol value " << protocol);
