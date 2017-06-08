@@ -73,9 +73,10 @@ main (int argc, char *argv[])
   if (verbose)
     {
       LogComponentEnable ("PpfsSwitch", LOG_LEVEL_INFO);
+      LogComponentEnable ("SwitchDevice", LOG_LEVEL_INFO);
       LogComponentEnable ("OnOffApplication", LOG_LEVEL_INFO);
       LogComponentEnable ("PacketSink", LOG_LEVEL_INFO);
-      LogComponentEnable("ResultManager", LOG_LEVEL_INFO);
+      LogComponentEnable ("ResultManager", LOG_LEVEL_INFO);
     }
 
   // Parsing the XML file.

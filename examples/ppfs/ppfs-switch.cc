@@ -84,7 +84,7 @@ PpfsSwitch::SetPacketHandlingMechanism()
 void
 PpfsSwitch::ForwardPacket(ns3::Ptr<const ns3::Packet> packet, uint16_t protocol, const Address& dst)
 {
-  Flow flow (ParsePacket(packet, protocol));
+  Flow flow (ParsePacket(packet, protocol, false /*This simulation does not handle ICMP packets*/));
 
   auto ret = m_routingTable.find(flow);
   NS_ABORT_MSG_IF(ret == m_routingTable.end(), "Routing Table Miss\n" << flow);
