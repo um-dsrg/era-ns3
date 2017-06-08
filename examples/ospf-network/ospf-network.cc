@@ -69,6 +69,7 @@ main (int argc, char *argv[])
   if (verbose)
     {
       LogComponentEnable ("OspfSwitch", LOG_LEVEL_INFO);
+      LogComponentEnable ("SwitchDevice", LOG_LEVEL_INFO);
       LogComponentEnable ("OnOffApplication", LOG_LEVEL_INFO);
       LogComponentEnable ("PacketSink", LOG_LEVEL_INFO);
       LogComponentEnable ("ResultManager", LOG_LEVEL_INFO);
@@ -126,6 +127,9 @@ main (int argc, char *argv[])
 
   Config::Set ("/NodeList/*/DeviceList/*/$ns3::PointToPointNetDevice/TxQueue/MaxPackets",
                UintegerValue (queuePacketSize));
+
+  // Set a TTL value to Max of 255
+  Config::Set ("/NodeList/*/$ns3::Ipv4L3Protocol/DefaultTtl", UintegerValue(255));
 
   // Building the routing table
   Ipv4GlobalRoutingHelper::PopulateRoutingTables();
