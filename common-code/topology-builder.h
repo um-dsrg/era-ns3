@@ -21,7 +21,8 @@ public:
                    ns3::NodeContainer& allNodes,
                    ns3::NodeContainer& terminalNodes,
                    ns3::NodeContainer& switchNodes,
-                   ns3::NetDeviceContainer& terminalDevices);
+                   ns3::NetDeviceContainer& terminalDevices,
+                   bool storeNetDeviceLinkPairs);
 
   void CreateNodes ();
   // Parses the node configuration element and creates PpfsSwitches instances
@@ -29,7 +30,7 @@ public:
   // linkinformation is output.
   void BuildNetworkTopology (std::map <LinkId_t, LinkInformation>& linkInformation);
   void SetSwitchRandomNumberGenerator (uint32_t seed, uint32_t initRun);
-  void AssignIpToNodes (bool assignToTerminals, bool assignToSwitches);
+  void AssignIpToNodes ();
 
 private:
   void InstallP2pLink (LinkInformation& linkA, LinkInformation& linkB, uint32_t delay);
@@ -43,6 +44,14 @@ private:
   ns3::NodeContainer& m_switchNodes;
   ns3::NetDeviceContainer& m_terminalDevices;
   ns3::NetDeviceContainer m_switchDevices;
+
+  std::vector<ns3::NetDeviceContainer> m_linkNetDeviceContainers;
+  /*
+   * When set to true, the tow net devices that make one whole link will be stored in the vector
+   * m_linkNetDevicePair. This information will be used to assign IP addresses in the OSPF scenario
+   * because each link must have a net "network".
+   */
+  bool m_storeNetDeviceLinkPairs;
 };
 
 #include "topology-builder.cc"

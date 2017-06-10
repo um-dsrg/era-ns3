@@ -7,6 +7,8 @@
 #include "ns3/point-to-point-net-device.h"
 #include "ns3/internet-module.h"
 
+#include "../examples/ppfs/ppfs-switch.h"
+#include "../examples/ospf-network/ospf-switch.h"
 #include "topology-builder.h"
 
 using namespace ns3;
@@ -18,10 +20,11 @@ TopologyBuilder<SwitchType>::TopologyBuilder (XMLNode* xmlRootNode, std::map<uin
                                               std::map<Ptr<NetDevice>, uint32_t>& terminalToLinkId,
                                               NodeContainer& allNodes, NodeContainer& terminalNodes,
                                               NodeContainer& switchNodes,
-                                              NetDeviceContainer& terminalDevices) :
+                                              NetDeviceContainer& terminalDevices,
+                                              bool storeNetDeviceLinkPairs) :
   m_xmlRootNode(xmlRootNode), m_switchMap(switchMap), m_terminalToLinkId(terminalToLinkId),
   m_allNodes(allNodes), m_terminalNodes(terminalNodes), m_switchNodes(switchNodes),
-  m_terminalDevices(terminalDevices)
+  m_terminalDevices(terminalDevices), m_storeNetDeviceLinkPairs(storeNetDeviceLinkPairs)
 {}
 
 template <class SwitchType>
@@ -126,24 +129,43 @@ TopologyBuilder<SwitchType>::SetSwitchRandomNumberGenerator(uint32_t seed, uint3
     }
 }
 
-template <class SwitchType>
+template <>
 void
-TopologyBuilder<SwitchType>::AssignIpToNodes(bool assignToTerminals, bool assignToSwitches)
+TopologyBuilder<PpfsSwitch>::AssignIpToNodes()
+{
+  NS_ABORT_MSG_IF((m_linkNetDeviceContainers.size() > 0 || m_storeNetDeviceLinkPairs),
+                  "When running a PPFS simulation, you *SHOULD* not store the net device link pairs"
+                  ". That feature is only available to OSPF simulations.");
+
+  InternetStackHelper internet;
+  Ipv4AddressHelper ipv4;
+  ipv4.SetBase ("0.0.0.0", "255.0.0.0");
+
+  internet.Install(m_terminalNodes); //Add internet stack to the terminals ONLY
+  ipv4.Assign(m_terminalDevices);
+}
+
+template <>
+void
+TopologyBuilder<OspfSwitch>::AssignIpToNodes()
 {
   InternetStackHelper internet;
   Ipv4AddressHelper ipv4;
-  ipv4.SetBase ("1.0.0.0", "255.0.0.0");
+  ipv4.SetBase("0.0.0.0", "255.255.255.252");
 
-  if (assignToTerminals == true)
+  //Add the internet stack to switches and terminals
+  internet.Install(m_terminalNodes);
+  internet.Install(m_switchNodes);
+
+  for (auto& netDeviceContainer: m_linkNetDeviceContainers)
     {
-      internet.Install(m_terminalNodes); //Add internet stack to the terminals ONLY
-      ipv4.Assign(m_terminalDevices);
+      ipv4.Assign(netDeviceContainer);
+      ipv4.NewNetwork();
     }
-  if (assignToSwitches == true)
-    {
-      internet.Install(m_switchNodes);
-      ipv4.Assign(m_switchDevices);
-    }
+
+  // Freeing the vector's memory as this will no longer be required.
+  m_linkNetDeviceContainers.clear();
+  std::vector<ns3::NetDeviceContainer>().swap(m_linkNetDeviceContainers);
 }
 
 template <class SwitchType>
@@ -207,6 +229,14 @@ TopologyBuilder<SwitchType>::InstallP2pLink (LinkInformation& linkA, LinkInforma
   Ptr<PointToPointChannel> channel = m_channelFactory.Create<PointToPointChannel> ();
   devA->Attach (channel);
   devB->Attach (channel);
+
+  if (m_storeNetDeviceLinkPairs) // Storing the link net device pairs
+    {
+      NetDeviceContainer netDeviceContainer;
+      netDeviceContainer.Add(devA);
+      netDeviceContainer.Add(devB);
+      m_linkNetDeviceContainers.push_back(netDeviceContainer);
+    }
 }
 
 template <class SwitchType>
@@ -258,4 +288,12 @@ TopologyBuilder<SwitchType>::InstallP2pLink (LinkInformation& link, uint32_t del
   Ptr<PointToPointChannel> channel = channelFactory.Create<PointToPointChannel> ();
   devA->Attach (channel);
   devB->Attach (channel);
+
+  if (m_storeNetDeviceLinkPairs) // Storing the link net device pairs
+    {
+      NetDeviceContainer netDeviceContainer;
+      netDeviceContainer.Add(devA);
+      netDeviceContainer.Add(devB);
+      m_linkNetDeviceContainers.push_back(netDeviceContainer);
+    }
 }

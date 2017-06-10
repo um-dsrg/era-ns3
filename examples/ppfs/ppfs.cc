@@ -101,12 +101,12 @@ main (int argc, char *argv[])
   std::map <Ptr<NetDevice>, LinkId_t> terminalToLinkId; /*!< Key -> Net Device, Value -> Link Id */
 
   TopologyBuilder<PpfsSwitch> topologyBuilder (rootNode, switchMap, terminalToLinkId, allNodes,
-                                               terminalNodes, switchNodes, terminalDevices);
+                                               terminalNodes, switchNodes, terminalDevices, false);
   topologyBuilder.CreateNodes ();
   topologyBuilder.ParseNodeConfiguration();
   topologyBuilder.BuildNetworkTopology (linkInformation);
   topologyBuilder.SetSwitchRandomNumberGenerator(seed, initRun);
-  topologyBuilder.AssignIpToNodes(true, false);
+  topologyBuilder.AssignIpToNodes();
 
   RoutingHelper<PpfsSwitch> routingHelper (switchMap);
   routingHelper.PopulateRoutingTables(linkInformation, allNodes, rootNode);
