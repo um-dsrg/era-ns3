@@ -99,11 +99,11 @@ main (int argc, char *argv[])
   std::map <Ptr<NetDevice>, LinkId_t> terminalToLinkId; /*!< Key -> Net Device, Value -> Link Id */
 
   TopologyBuilder<OspfSwitch> topologyBuilder (rootNode, switchMap, terminalToLinkId, allNodes,
-                                               terminalNodes, switchNodes, terminalDevices);
+                                               terminalNodes, switchNodes, terminalDevices, true);
   topologyBuilder.CreateNodes ();
   topologyBuilder.ParseNodeConfiguration();
   topologyBuilder.BuildNetworkTopology (linkInformation);
-  topologyBuilder.AssignIpToNodes(true, true);
+  topologyBuilder.AssignIpToNodes();
 
   RoutingHelper<OspfSwitch> routingHelper (switchMap);
   routingHelper.PopulateRoutingTables(allNodes, rootNode);
