@@ -128,9 +128,6 @@ main (int argc, char *argv[])
   Config::Set ("/NodeList/*/DeviceList/*/$ns3::PointToPointNetDevice/TxQueue/MaxPackets",
                UintegerValue (queuePacketSize));
 
-  // Set a TTL value to Max of 255
-  Config::Set ("/NodeList/*/$ns3::Ipv4L3Protocol/DefaultTtl", UintegerValue(255));
-
   // Building the routing table
   Ipv4GlobalRoutingHelper::PopulateRoutingTables();
 
