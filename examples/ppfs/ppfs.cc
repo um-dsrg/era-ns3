@@ -30,6 +30,7 @@
 #include "../../common-code/application-helper.h"
 #include "../../common-code/animation-helper.h"
 #include "../../common-code/result-manager.h"
+#include "../../common-code/random-generator-manager.h"
 
 #include "ppfs-switch.h"
 
@@ -79,6 +80,10 @@ main (int argc, char *argv[])
       LogComponentEnable ("ResultManager", LOG_LEVEL_INFO);
     }
 
+  // Setting the seed and run values
+  RandomGeneratorManager::SetSeed(seed);
+  RandomGeneratorManager::SetRun(initRun);
+
   // Parsing the XML file.
   XMLDocument xmlLogFile;
   XMLError error = xmlLogFile.LoadFile(xmlLogFilePath.c_str());
@@ -105,7 +110,7 @@ main (int argc, char *argv[])
   topologyBuilder.CreateNodes ();
   topologyBuilder.ParseNodeConfiguration();
   topologyBuilder.BuildNetworkTopology (linkInformation);
-  topologyBuilder.SetSwitchRandomNumberGenerator(seed, initRun);
+  topologyBuilder.SetSwitchRandomNumberGenerator();
   topologyBuilder.AssignIpToNodes();
 
   RoutingHelper<PpfsSwitch> routingHelper (switchMap);

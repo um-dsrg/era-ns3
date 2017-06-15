@@ -11,6 +11,8 @@
 #include "ns3/point-to-point-net-device.h"
 #include "ns3/queue.h"
 
+#include "../../common-code/random-generator-manager.h"
+
 #include "ppfs-switch.h"
 
 using namespace ns3;
@@ -105,18 +107,12 @@ PpfsSwitch::ForwardPacket(ns3::Ptr<const ns3::Packet> packet, uint16_t protocol,
 }
 
 void
-PpfsSwitch::SetRandomNumberGenerator (uint32_t seed, uint32_t run)
+PpfsSwitch::SetRandomNumberGenerator ()
 {
-  SeedManager::SetSeed (seed);
-  SeedManager::SetRun (run);
-
-  m_uniformRandomVariable = CreateObject<UniformRandomVariable>();
-
-  m_uniformRandomVariable->SetAttribute("Min", DoubleValue(0.0));
-  m_uniformRandomVariable->SetAttribute ("Max", DoubleValue (1.0));
-
-  m_seed = seed;
-  m_run = run;
+  m_uniformRandomVariable = RandomGeneratorManager::CreateUniformRandomVariable(0.0, 1.0);
+  m_seed = RandomGeneratorManager::GetSeed();
+  m_run = RandomGeneratorManager::GetRun();
+  RandomGeneratorManager::IncrementRun();
 }
 
 void

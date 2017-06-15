@@ -26,7 +26,7 @@ public:
   void SetPacketHandlingMechanism ();
   void ForwardPacket (ns3::Ptr<const ns3::Packet> packet, uint16_t protocol,
                       const ns3::Address &dst);
-  void SetRandomNumberGenerator (uint32_t seed, uint32_t run);
+  void SetRandomNumberGenerator ();
 
 private:
   void ReceiveFromDevice (ns3::Ptr<ns3::NetDevice> incomingPort, ns3::Ptr<const ns3::Packet> packet,

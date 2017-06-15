@@ -120,12 +120,11 @@ TopologyBuilder<SwitchType>::BuildNetworkTopology(std::map <LinkId_t,
 
 template <class SwitchType>
 void
-TopologyBuilder<SwitchType>::SetSwitchRandomNumberGenerator(uint32_t seed, uint32_t initRun)
+TopologyBuilder<SwitchType>::SetSwitchRandomNumberGenerator()
 {
   for (auto & switchNode : m_switchMap)
     {
-      switchNode.second.SetRandomNumberGenerator(seed, initRun);
-      initRun++;
+      switchNode.second.SetRandomNumberGenerator();
     }
 }
 

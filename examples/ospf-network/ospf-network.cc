@@ -30,6 +30,7 @@
 #include "../../common-code/application-helper.h"
 #include "../../common-code/animation-helper.h"
 #include "../../common-code/result-manager.h"
+#include "../../common-code/random-generator-manager.h"
 
 #include "ospf-switch.h"
 
@@ -48,11 +49,15 @@ main (int argc, char *argv[])
   std::string xmlResultFilePath ("");
   std::string xmlAnimationFile ("");
   uint32_t queuePacketSize (100);
+  uint32_t seed (1);
+  uint32_t initRun (1);
   bool enableHistograms (false);
   bool enableFlowProbes (false);
 
   CommandLine cmdLine;
   cmdLine.AddValue("verbose", "If true display log values", verbose);
+  cmdLine.AddValue("seed", "The seed used by the random number generator. Default of 1.", seed);
+  cmdLine.AddValue("run", "The initial run value. Default of 1.", initRun);
   cmdLine.AddValue("log", "The full path to the XML log file", xmlLogFilePath);
   cmdLine.AddValue("result", "The full path of the result file", xmlResultFilePath);
   cmdLine.AddValue("animation", "The full path where to store the animation xml file."
@@ -75,7 +80,9 @@ main (int argc, char *argv[])
       LogComponentEnable ("ResultManager", LOG_LEVEL_INFO);
     }
 
-  // TODO: verify that the result and log file parameters are passed correctly
+  // Setting the seed and run values
+  RandomGeneratorManager::SetSeed(seed);
+  RandomGeneratorManager::SetRun(initRun);
 
   // Parsing the XML file.
   XMLDocument xmlLogFile;
