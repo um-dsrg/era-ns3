@@ -109,10 +109,14 @@ PpfsSwitch::ForwardPacket(ns3::Ptr<const ns3::Packet> packet, uint16_t protocol,
 void
 PpfsSwitch::SetRandomNumberGenerator ()
 {
-  m_uniformRandomVariable = RandomGeneratorManager::CreateUniformRandomVariable(0.0, 1.0);
+  /*
+   * The Seed and run are stored before generating the random variable because the run variable will
+   * be automatically incremented once a UniformRandomVariable is created.
+   */
   m_seed = RandomGeneratorManager::GetSeed();
   m_run = RandomGeneratorManager::GetRun();
-  RandomGeneratorManager::IncrementRun();
+
+  m_uniformRandomVariable = RandomGeneratorManager::CreateUniformRandomVariable(0.0, 1.0);
 }
 
 void

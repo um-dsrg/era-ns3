@@ -4,6 +4,7 @@
 #include <tinyxml2.h>
 #include <cstdint>
 #include <map>
+#include <vector>
 
 #include "ns3/net-device-container.h"
 #include "ns3/node-container.h"
@@ -33,6 +34,7 @@ public:
   void AssignIpToNodes ();
 
 private:
+  void ShuffleLinkElements (std::vector<tinyxml2::XMLElement*>& linkElements);
   void InstallP2pLink (LinkInformation& linkA, LinkInformation& linkB, uint32_t delay);
   void InstallP2pLink (LinkInformation& link, uint32_t delay);
 

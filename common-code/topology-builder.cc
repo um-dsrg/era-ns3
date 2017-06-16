@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <vector>
 
 #include "ns3/abort.h"
 #include "ns3/object-factory.h"
@@ -7,6 +8,7 @@
 #include "ns3/point-to-point-net-device.h"
 #include "ns3/internet-module.h"
 
+#include "random-generator-manager.h"
 #include "../examples/ppfs/ppfs-switch.h"
 #include "../examples/ospf-network/ospf-switch.h"
 #include "topology-builder.h"
@@ -79,9 +81,22 @@ TopologyBuilder<SwitchType>::BuildNetworkTopology(std::map <LinkId_t,
   XMLElement* networkTopologyElement = m_xmlRootNode->FirstChildElement("NetworkTopology");
   NS_ABORT_MSG_IF(networkTopologyElement == nullptr, "NetworkTopology Element not found");
 
-  uint32_t linkDelay;
+  /*
+   * Looping through all the link Elements and storing them in a vector such that they can be
+   * shuffled
+   */
+  std::vector<XMLElement*> linkElements;
   XMLElement* linkElement = networkTopologyElement->FirstChildElement("Link");
-  while (linkElement != nullptr) // Looping through all the link Elements.
+  while (linkElement != nullptr)
+    {
+      linkElements.push_back(linkElement);
+      linkElement = linkElement->NextSiblingElement("Link");
+    }
+
+  ShuffleLinkElements(linkElements);
+
+  uint32_t linkDelay;
+  for (auto linkElement : linkElements)
     {
       linkElement->QueryAttribute("Delay", &linkDelay);
 
@@ -165,6 +180,25 @@ TopologyBuilder<OspfSwitch>::AssignIpToNodes()
   // Freeing the vector's memory as this will no longer be required.
   m_linkNetDeviceContainers.clear();
   std::vector<ns3::NetDeviceContainer>().swap(m_linkNetDeviceContainers);
+}
+
+template <class SwitchType>
+void
+TopologyBuilder<SwitchType>::ShuffleLinkElements (std::vector<XMLElement*>& linkElements)
+{
+  typedef typename std::iterator_traits<std::vector<XMLElement*>::iterator>::difference_type diff_t;
+
+  Ptr<UniformRandomVariable> randomGenerator   =
+    RandomGeneratorManager::CreateUniformRandomVariable(0, 0);
+
+  diff_t numOfLinkElements = linkElements.end() - linkElements.begin();
+
+  for (diff_t i = numOfLinkElements - 1; i > 0; --i)
+    {
+      // I think this is inclusive. Verify
+      uint32_t randValue = randomGenerator->GetInteger(0, i);
+      std::swap(linkElements[i], linkElements[randValue]);
+    }
 }
 
 template <class SwitchType>
