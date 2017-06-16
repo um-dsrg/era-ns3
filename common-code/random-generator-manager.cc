@@ -1,6 +1,3 @@
-#include "ns3/rng-seed-manager.h"
-#include "ns3/double.h"
-
 #include "random-generator-manager.h"
 
 uint32_t RandomGeneratorManager::m_seed = 1;
@@ -30,11 +27,6 @@ RandomGeneratorManager::SetRun(uint32_t run)
   m_run = run;
 }
 
-void RandomGeneratorManager::IncrementRun()
-{
-  m_run++;
-}
-
 ns3::Ptr<ns3::UniformRandomVariable>
 RandomGeneratorManager::CreateUniformRandomVariable(double min, double max)
 {
@@ -45,5 +37,6 @@ RandomGeneratorManager::CreateUniformRandomVariable(double min, double max)
   randVar->SetAttribute("Min", ns3::DoubleValue(min));
   randVar->SetAttribute("Max", ns3::DoubleValue(max));
 
+  m_run++;
   return randVar;
 }
