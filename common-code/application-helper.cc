@@ -35,6 +35,14 @@ ApplicationHelper::InstallApplicationOnTerminals(ns3::NodeContainer& allNodes,
       flowElement->QueryAttribute("DestinationNode", &dstNodeId);
       flowElement->QueryAttribute("PortNumber", &portNumber);
 
+      if (numOfPackets == 0 && dataRateInclHdr == 0)
+        {
+          // Do not install the application if the data rate and the number of
+          // packets are both equal to 0.
+          flowElement = flowElement->NextSiblingElement("Flow"); // Move to the next flow
+          continue;
+        }
+
       uint32_t pktSizeExclHdr (pktSizeInclHdr - CalculateHeaderSize(protocol));
       uint32_t maxBytes (numOfPackets * pktSizeExclHdr);
       double dataRateExclHdr ((pktSizeExclHdr * dataRateInclHdr)/pktSizeInclHdr);
