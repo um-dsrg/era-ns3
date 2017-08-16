@@ -64,18 +64,23 @@ struct Flow
   {
     /*
      * Used by the map to store the keys in order.
-     * In this case it is sorted by Source Ip Address, then Destination Ip Address, and
-     * finally Port Number.
+     * In this case it is sorted by Flow Id, Source Ip Address, then Destination Ip Address,
+     * and finally Port Number.
      */
-    if (srcIpAddr == other.srcIpAddr)
+    if (id == other.id)
       {
-        if (dstIpAddr == other.dstIpAddr)
-          return portNumber < other.portNumber;
+        if (srcIpAddr == other.srcIpAddr)
+          {
+            if (dstIpAddr == other.dstIpAddr)
+              return portNumber < other.portNumber;
+            else
+              return dstIpAddr < other.dstIpAddr;
+          }
         else
-          return dstIpAddr < other.dstIpAddr;
+          return srcIpAddr < other.srcIpAddr;
       }
     else
-      return srcIpAddr < other.srcIpAddr;
+      return id < other.id;
   }
 
   friend std::ostream& operator<< (std::ostream& output, Flow& value)
