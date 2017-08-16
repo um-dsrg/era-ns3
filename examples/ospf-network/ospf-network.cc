@@ -53,6 +53,7 @@ main (int argc, char *argv[])
   uint32_t initRun (1);
   bool enableHistograms (false);
   bool enableFlowProbes (false);
+  bool enableEcmp (false);
 
   CommandLine cmdLine;
   cmdLine.AddValue("verbose", "If true display log values", verbose);
@@ -68,6 +69,8 @@ main (int argc, char *argv[])
                    "By default they are disabled", enableHistograms);
   cmdLine.AddValue("enableFlowProbes", "If set enable FlowMonitor's flow probes."
                    "By default they are disabled", enableFlowProbes);
+  cmdLine.AddValue("enableEcmp", "If set ECMP multipath will be enabled."
+                   "By default this functionality is disabled", enableEcmp);
 
   cmdLine.Parse(argc, argv);
 
@@ -78,6 +81,12 @@ main (int argc, char *argv[])
       LogComponentEnable ("OnOffApplication", LOG_LEVEL_INFO);
       LogComponentEnable ("PacketSink", LOG_LEVEL_INFO);
       LogComponentEnable ("ResultManager", LOG_LEVEL_INFO);
+    }
+
+  if (enableEcmp)
+    {
+      // Enable ECMP multipath routing
+      Config::SetDefault ("ns3::Ipv4GlobalRouting::RandomEcmpRouting", BooleanValue (true));
     }
 
   // Setting the seed and run values
