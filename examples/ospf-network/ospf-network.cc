@@ -86,7 +86,7 @@ main (int argc, char *argv[])
   if (enableEcmp)
     {
       // Enable ECMP multipath routing
-      Config::SetDefault ("ns3::Ipv4GlobalRouting::RandomEcmpRouting", BooleanValue (true));
+      Config::SetDefault ("ns3::Ipv4GlobalRouting::FlowEcmpRouting", BooleanValue (true));
     }
 
   // Setting the seed and run values
