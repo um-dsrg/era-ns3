@@ -41,14 +41,14 @@ PopulateRoutingTables(NodeContainer& allNodes, XMLNode* rootNode)
       flowElement->QueryAttribute("DestinationNode", &destinationNodeId);
       protocol = *flowElement->Attribute("Protocol");
 
-      if (protocol == 'U')
+      if (protocol == 'T')
         {
-          flowElement->QueryAttribute("PortNumber", &portNumberXml);
+          flowElement->QueryAttribute("DstPortNumber", &portNumberXml);
           portNumber = (uint16_t) portNumberXml; // Required because tinyxml does not handle uint16_t
         }
       else
         {
-          flowElement->QueryAttribute("DstPortNumber", &portNumberXml);
+          flowElement->QueryAttribute("PortNumber", &portNumberXml);
           portNumber = (uint16_t) portNumberXml; // Required because tinyxml does not handle uint16_t
         }
 
@@ -97,14 +97,14 @@ PopulateRoutingTables(std::map <LinkId_t, LinkInformation>& linkInformation,
       flowElement->QueryAttribute("PortNumber", &portNumberXml);
       protocol = *flowElement->Attribute("Protocol");
 
-      if (protocol == 'U')
+      if (protocol == 'T')
         {
-          flowElement->QueryAttribute("PortNumber", &portNumberXml);
+          flowElement->QueryAttribute("DstPortNumber", &portNumberXml);
           portNumber = (uint16_t) portNumberXml; // Required because tinyxml does not handle uint16_t
         }
       else
         {
-          flowElement->QueryAttribute("DstPortNumber", &portNumberXml);
+          flowElement->QueryAttribute("PortNumber", &portNumberXml);
           portNumber = (uint16_t) portNumberXml; // Required because tinyxml does not handle uint16_t
         }
 

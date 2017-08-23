@@ -112,7 +112,7 @@ SwitchDevice::ParsePacket (Ptr<const Packet> packet, uint16_t protocol, bool all
           UdpHeader udpHeader;
           if (recvPacket->PeekHeader(udpHeader))
             {
-              flow.portNumber = udpHeader.GetDestinationPort();
+              flow.dstPortNumber = udpHeader.GetDestinationPort();
               flow.SetProtocol(Flow::Protocol::Udp);
             }
         }
@@ -121,7 +121,7 @@ SwitchDevice::ParsePacket (Ptr<const Packet> packet, uint16_t protocol, bool all
           TcpHeader tcpHeader;
           if (recvPacket->PeekHeader(tcpHeader))
             {
-              flow.portNumber = tcpHeader.GetDestinationPort();
+              flow.dstPortNumber = tcpHeader.GetDestinationPort();
               flow.SetProtocol(Flow::Protocol::Tcp);
             }
         }

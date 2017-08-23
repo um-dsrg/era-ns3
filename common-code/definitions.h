@@ -28,16 +28,16 @@ struct Flow
   FlowId_t id;
   uint32_t srcIpAddr;
   uint32_t dstIpAddr;
-  uint16_t portNumber; // Destination Port Number
+  uint16_t dstPortNumber; // Destination Port Number
   enum Protocol { Tcp = 'T', Udp = 'U', Icmp = 'I', Ack = 'A', Undefined = 'X' };
 
   // Default Constructor
   Flow () : id(0), srcIpAddr(0), dstIpAddr(0),
-            portNumber(0), protocol(Protocol::Undefined)
+            dstPortNumber(0), protocol(Protocol::Undefined)
   {}
   Flow (FlowId_t id, uint32_t srcIpAddr, uint32_t dstIpAddr,
         uint16_t port, char protocol) : id (id), srcIpAddr (srcIpAddr), dstIpAddr (dstIpAddr),
-                                        portNumber (port), protocol(Protocol::Undefined)
+                                        dstPortNumber (port), protocol(Protocol::Undefined)
   {
     SetProtocol(protocol);
   }
@@ -72,7 +72,7 @@ struct Flow
     if (srcIpAddr == other.srcIpAddr)
       {
         if (dstIpAddr == other.dstIpAddr)
-          return portNumber < other.portNumber;
+          return dstPortNumber < other.dstPortNumber;
         else
           return dstIpAddr < other.dstIpAddr;
       }
@@ -95,7 +95,7 @@ struct Flow
     address.Print(output);
     output << ")\n";
     // Port Number
-    output << "Port Number: " << value.portNumber << "\n";
+    output << "Destination Port Number: " << value.dstPortNumber << "\n";
     output << "Protocol: " << (char) value.protocol << "\n";
     output << "----------------------";
     return output;

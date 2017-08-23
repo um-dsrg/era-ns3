@@ -34,6 +34,9 @@ OspfSwitch::InsertEntryInRoutingTable(uint32_t srcIpAddr, uint32_t dstIpAddr, ui
 {
   Flow flow (flowId, srcIpAddr, dstIpAddr, portNumber, protocol);
 
+  NS_LOG_INFO("---------------------------------------------------------------");
+  NS_LOG_INFO("Inserting entry in Switch " << m_id << " routing table.\n" << flow);
+
   auto ret = m_routingTable.find (flow);
 
   NS_ABORT_MSG_IF (ret != m_routingTable.end (), "Trying to insert duplicate entry in OSPF switch");
@@ -62,8 +65,9 @@ OspfSwitch::LogPacketTransmission (std::string context, ns3::Ptr<const ns3::Pack
   Flow flow (ParsePacket (recvPacket, Ipv4L3Protocol::PROT_NUMBER,
                           true /*ICMP packets are supported in this simulation*/));
 
-  // Log only UDP and TCP packets
-  if (flow.GetProtocol() == Flow::Udp || flow.GetProtocol() == Flow::Tcp)
+  // Log only UDP, and TCP and their ACK packets
+  if (flow.GetProtocol() == Flow::Udp || flow.GetProtocol() == Flow::Tcp
+      || flow.GetProtocol() == Flow::Ack)
     {
       auto tableMatch = m_routingTable.find(flow);
       NS_ABORT_MSG_IF(tableMatch == m_routingTable.end(), "Routing Table Miss for flow\n" << flow);

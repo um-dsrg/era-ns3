@@ -91,12 +91,12 @@ ResultManager::UpdateFlowIds(XMLNode* logFileRootNode, NodeContainer& allNodes)
       if (flow.GetProtocol() == Flow::Protocol::Tcp)
         {
           flowElement->QueryAttribute("DstPortNumber", &portNumber);
-          flow.portNumber = (uint16_t) portNumber;
+          flow.dstPortNumber = (uint16_t) portNumber;
         }
       else 
         {
           flowElement->QueryAttribute("PortNumber", &portNumber);
-          flow.portNumber = (uint16_t) portNumber;
+          flow.dstPortNumber = (uint16_t) portNumber;
         }
       flowToIdMap.insert({flow, flowId});
 
@@ -119,7 +119,7 @@ ResultManager::UpdateFlowIds(XMLNode* logFileRootNode, NodeContainer& allNodes)
       Flow flowDetails;
       flowDetails.srcIpAddr = flowMonFlow.sourceAddress.Get();
       flowDetails.dstIpAddr = flowMonFlow.destinationAddress.Get();
-      flowDetails.portNumber = flowMonFlow.destinationPort; // Destination Port Number
+      flowDetails.dstPortNumber = flowMonFlow.destinationPort; // Destination Port Number
 
       // Protocol numbers taken from ipv4-flow-classifier.cc
       if (flowMonFlow.protocol == 6) flowDetails.SetProtocol(Flow::Protocol::Tcp);
