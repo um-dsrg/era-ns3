@@ -39,9 +39,18 @@ PopulateRoutingTables(NodeContainer& allNodes, XMLNode* rootNode)
       flowElement->QueryAttribute("Id", &flowId);
       flowElement->QueryAttribute("SourceNode", &sourceNodeId);
       flowElement->QueryAttribute("DestinationNode", &destinationNodeId);
-      flowElement->QueryAttribute("PortNumber", &portNumberXml);
-      portNumber = (uint16_t) portNumberXml; // Required because tinyxml does not handle uint16_t
       protocol = *flowElement->Attribute("Protocol");
+
+      if (protocol == 'U')
+        {
+          flowElement->QueryAttribute("PortNumber", &portNumberXml);
+          portNumber = (uint16_t) portNumberXml; // Required because tinyxml does not handle uint16_t
+        }
+      else
+        {
+          flowElement->QueryAttribute("DstPortNumber", &portNumberXml);
+          portNumber = (uint16_t) portNumberXml; // Required because tinyxml does not handle uint16_t
+        }
 
       uint32_t srcIp = GetIpAddress(sourceNodeId, allNodes);
       uint32_t dstIp = GetIpAddress(destinationNodeId, allNodes);
@@ -86,8 +95,18 @@ PopulateRoutingTables(std::map <LinkId_t, LinkInformation>& linkInformation,
       flowElement->QueryAttribute("SourceNode", &sourceNodeId);
       flowElement->QueryAttribute("DestinationNode", &destinationNodeId);
       flowElement->QueryAttribute("PortNumber", &portNumberXml);
-      portNumber = (uint16_t) portNumberXml; // Required because tinyxml does not handle uint16_t
       protocol = *flowElement->Attribute("Protocol");
+
+      if (protocol == 'U')
+        {
+          flowElement->QueryAttribute("PortNumber", &portNumberXml);
+          portNumber = (uint16_t) portNumberXml; // Required because tinyxml does not handle uint16_t
+        }
+      else
+        {
+          flowElement->QueryAttribute("DstPortNumber", &portNumberXml);
+          portNumber = (uint16_t) portNumberXml; // Required because tinyxml does not handle uint16_t
+        }
 
       uint32_t srcIp = GetIpAddress(sourceNodeId, allNodes);
       uint32_t dstIp = GetIpAddress(destinationNodeId, allNodes);

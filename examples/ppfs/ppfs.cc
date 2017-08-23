@@ -137,6 +137,12 @@ main (int argc, char *argv[])
   Config::Set ("/NodeList/*/DeviceList/*/$ns3::PointToPointNetDevice/TxQueue/MaxPackets",
                UintegerValue (queuePacketSize));
 
+  Config::SetDefault ("ns3::TcpSocket::SegmentSize", UintegerValue (1446));
+
+  // TODO: Add command line parameters to enable pcap tracing
+  PointToPointHelper myHelper;
+  myHelper.EnablePcapAll ("tcp-pcap", false);
+
   Simulator::Stop(Seconds(stopTime));
   Simulator::Run ();
 

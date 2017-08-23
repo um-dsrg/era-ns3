@@ -22,24 +22,36 @@ ApplicationHelper::InstallApplicationOnTerminals(ns3::NodeContainer& allNodes,
 
   while (flowElement != nullptr)
     {
+      double dataRateInclHdr (0);
+      char protocol (*flowElement->Attribute("Protocol"));
+      flowElement->QueryAttribute("DataRate", &dataRateInclHdr);
+
+      // Do not install the application if the data rate is equal to 0 or it is
+      // an acknowledgement flow.
+      if (dataRateInclHdr == 0 || protocol == 'A')
+        {
+          flowElement = flowElement->NextSiblingElement("Flow"); // Move to the next flow
+          continue;
+        }
+
       uint32_t pktSizeInclHdr (0);
       uint32_t numOfPackets (0);
       NodeId_t dstNodeId (0);
-      uint32_t portNumber (0);
-      double dataRateInclHdr (0);
+      uint32_t srcPortNumber (0);
+      uint32_t dstPortNumber (0);
 
-      char protocol (*flowElement->Attribute("Protocol"));
       flowElement->QueryAttribute("PacketSize", &pktSizeInclHdr);
-      flowElement->QueryAttribute("DataRate", &dataRateInclHdr);
       flowElement->QueryAttribute("NumOfPackets", &numOfPackets);
       flowElement->QueryAttribute("DestinationNode", &dstNodeId);
-      flowElement->QueryAttribute("PortNumber", &portNumber);
 
-      if (dataRateInclHdr == 0)
+      if (protocol == 'U')
         {
-          // Do not install the application if the data rate is equal to 0.
-          flowElement = flowElement->NextSiblingElement("Flow"); // Move to the next flow
-          continue;
+          flowElement->QueryAttribute("PortNumber", &dstPortNumber);
+        }
+      else
+        {
+          flowElement->QueryAttribute("SrcPortNumber", &srcPortNumber);
+          flowElement->QueryAttribute("DstPortNumber", &dstPortNumber);
         }
 
       uint32_t pktSizeExclHdr (pktSizeInclHdr - CalculateHeaderSize(protocol));
@@ -54,13 +66,14 @@ ApplicationHelper::InstallApplicationOnTerminals(ns3::NodeContainer& allNodes,
       else
         NS_ABORT_MSG("Unknown protocol");
 
-      InetSocketAddress destinationSocket (GetIpAddress(dstNodeId, allNodes), portNumber);
+      InetSocketAddress destinationSocket (GetIpAddress(dstNodeId, allNodes), dstPortNumber);
       OnOffHelper onOff (socketProtocol, destinationSocket);
       onOff.SetAttribute ("OnTime",  StringValue("ns3::ConstantRandomVariable[Constant=1]"));
       onOff.SetAttribute ("OffTime", StringValue("ns3::ConstantRandomVariable[Constant=0]"));
       onOff.SetAttribute ("PacketSize", UintegerValue(pktSizeExclHdr));
-      onOff.SetAttribute("DataRate", DataRateValue(dataRateExclHdr * 1000000)); // In bps
-      onOff.SetAttribute("MaxBytes", UintegerValue(maxBytes));
+      onOff.SetAttribute ("DataRate", DataRateValue(dataRateExclHdr * 1000000)); // In bps
+      onOff.SetAttribute ("MaxBytes", UintegerValue(maxBytes));
+      onOff.SetAttribute ("SourcePort", UintegerValue (srcPortNumber));
 
       NodeId_t srcNodeId (0);
       uint32_t startTime (0);
@@ -92,8 +105,8 @@ ApplicationHelper::CalculateHeaderSize (char protocol)
 {
   switch (protocol)
     {
-    case 'T': // TCP (TCP:20 + IP:20 + P2P:2)
-      return 42;
+    case 'T': // TCP (TCP:20 + 12 options + IP:20 + P2P:2)
+      return 54;
       break;
     case 'U': // UDP (UDP:8 + IP:20 + P2P:2)
       return 30;

@@ -84,11 +84,20 @@ ResultManager::UpdateFlowIds(XMLNode* logFileRootNode, NodeContainer& allNodes)
       Flow flow;
       flow.srcIpAddr = GetIpAddress(srcNodeId, allNodes);
       flow.dstIpAddr = GetIpAddress(dstNodeId, allNodes);
+      flow.SetProtocol(*flowElement->Attribute("Protocol"));
+
       // This conversion is needed because tinyxml2 does not handle uint16_t parameters
       uint32_t portNumber;
-      flowElement->QueryAttribute("PortNumber", &portNumber);
-      flow.portNumber = (uint16_t) portNumber;
-      flow.SetProtocol(*flowElement->Attribute("Protocol"));
+      if (flow.GetProtocol() == Flow::Protocol::Tcp)
+        {
+          flowElement->QueryAttribute("DstPortNumber", &portNumber);
+          flow.portNumber = (uint16_t) portNumber;
+        }
+      else 
+        {
+          flowElement->QueryAttribute("PortNumber", &portNumber);
+          flow.portNumber = (uint16_t) portNumber;
+        }
       flowToIdMap.insert({flow, flowId});
 
       flowElement = flowElement->NextSiblingElement("Flow");

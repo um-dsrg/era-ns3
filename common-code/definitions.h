@@ -29,7 +29,7 @@ struct Flow
   uint32_t srcIpAddr;
   uint32_t dstIpAddr;
   uint16_t portNumber; // Destination Port Number
-  enum Protocol { Tcp = 'T', Udp = 'U', Icmp = 'I', Undefined = 'X' };
+  enum Protocol { Tcp = 'T', Udp = 'U', Icmp = 'I', Ack = 'A', Undefined = 'X' };
 
   // Default Constructor
   Flow () : id(0), srcIpAddr(0), dstIpAddr(0),
@@ -53,6 +53,8 @@ struct Flow
       this->protocol = Protocol::Tcp;
     if (protocol == 'U')
       this->protocol = Protocol::Udp;
+    if (protocol == 'A')
+      this->protocol = Protocol::Ack;
   }
 
   Protocol GetProtocol()
