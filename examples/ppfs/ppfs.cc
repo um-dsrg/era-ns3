@@ -145,8 +145,8 @@ main (int argc, char *argv[])
                UintegerValue (queuePacketSize));
 
   // TODO: Add command line parameters to enable pcap tracing
-  PointToPointHelper myHelper;
-  myHelper.EnablePcapAll ("tcp-pcap", false);
+  //PointToPointHelper myHelper;
+  //myHelper.EnablePcapAll ("tcp-pcap", false);
 
   Simulator::Stop(Seconds(stopTime));
   Simulator::Run ();
