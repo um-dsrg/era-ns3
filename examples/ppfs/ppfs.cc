@@ -84,13 +84,6 @@ main (int argc, char *argv[])
   RandomGeneratorManager::SetSeed(seed);
   RandomGeneratorManager::SetRun(initRun);
 
-  // Setting the default TCP segment size and socket type
-  Config::SetDefault ("ns3::TcpSocket::SegmentSize", UintegerValue (1446));
-  Config::SetDefault ("ns3::TcpL4Protocol::SocketType", TypeIdValue (TcpNewReno::GetTypeId()));
-  // 15 MB of TCP Transmit and Receive buffer
-  Config::SetDefault ("ns3::TcpSocket::RcvBufSize", UintegerValue (15728640));
-  Config::SetDefault ("ns3::TcpSocket::SndBufSize", UintegerValue (15728640));
-
   // Parsing the XML file.
   XMLDocument xmlLogFile;
   XMLError error = xmlLogFile.LoadFile(xmlLogFilePath.c_str());
@@ -145,8 +138,8 @@ main (int argc, char *argv[])
                UintegerValue (queuePacketSize));
 
   // TODO: Add command line parameters to enable pcap tracing
-  //PointToPointHelper myHelper;
-  //myHelper.EnablePcapAll ("tcp-pcap", false);
+  PointToPointHelper myHelper;
+  myHelper.EnablePcapAll ("tcp-pcap", false);
 
   Simulator::Stop(Seconds(stopTime));
   Simulator::Run ();
