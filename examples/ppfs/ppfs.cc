@@ -53,6 +53,7 @@ main (int argc, char *argv[])
   uint32_t initRun (1);
   bool enableHistograms (false);
   bool enableFlowProbes (false);
+  bool enablePcapTracing (false);
 
   CommandLine cmdLine;
   cmdLine.AddValue("verbose", "If true display log values", verbose);
@@ -68,6 +69,8 @@ main (int argc, char *argv[])
                    "By default they are disabled", enableHistograms);
   cmdLine.AddValue("enableFlowProbes", "If set enable FlowMonitor's flow probes."
                    "By default they are disabled", enableFlowProbes);
+  cmdLine.AddValue("enablePcapTracing", "If set enable Pcap Tracing. By default this is disabled",
+                   enablePcapTracing);
 
   cmdLine.Parse(argc, argv);
 
@@ -137,9 +140,12 @@ main (int argc, char *argv[])
   Config::Set ("/NodeList/*/DeviceList/*/$ns3::PointToPointNetDevice/TxQueue/MaxPackets",
                UintegerValue (queuePacketSize));
 
-  // TODO: Add command line parameters to enable pcap tracing
-  PointToPointHelper myHelper;
-  myHelper.EnablePcapAll ("tcp-pcap", false);
+  // Enable PCAP tracing if the command line parameter was set
+  if (enablePcapTracing)
+    {
+      PointToPointHelper myHelper;
+      myHelper.EnablePcapAll ("ppfs-pcap", false);
+    }
 
   Simulator::Stop(Seconds(stopTime));
   Simulator::Run ();

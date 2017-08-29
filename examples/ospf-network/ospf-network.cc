@@ -54,6 +54,7 @@ main (int argc, char *argv[])
   bool enableHistograms (false);
   bool enableFlowProbes (false);
   bool enableEcmp (false);
+  bool enablePcapTracing (false);
 
   CommandLine cmdLine;
   cmdLine.AddValue("verbose", "If true display log values", verbose);
@@ -71,6 +72,8 @@ main (int argc, char *argv[])
                    "By default they are disabled", enableFlowProbes);
   cmdLine.AddValue("enableEcmp", "If set ECMP multipath will be enabled."
                    "By default this functionality is disabled", enableEcmp);
+  cmdLine.AddValue("enablePcapTracing", "If set enable Pcap Tracing. By default this is disabled",
+                   enablePcapTracing);
 
   cmdLine.Parse(argc, argv);
 
@@ -146,6 +149,13 @@ main (int argc, char *argv[])
 
   // Building the routing table
   Ipv4GlobalRoutingHelper::PopulateRoutingTables();
+
+  // Enable PCAP tracing if the command line parameter was set
+  if (enablePcapTracing)
+    {
+      PointToPointHelper myHelper;
+      myHelper.EnablePcapAll ("ospf-pcap", false);
+    }
 
   Simulator::Stop(Seconds(stopTime));
   Simulator::Run ();
