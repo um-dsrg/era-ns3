@@ -40,10 +40,50 @@ using namespace tinyxml2;
 
 NS_LOG_COMPONENT_DEFINE ("PPFS");
 
+struct FlowDetails
+{
+  FlowDetails() : startTime (0.0), nBytesReceived (0) {}
+
+  double startTime;
+  uint64_t nBytesReceived;
+  std::vector<double> throughput;
+};
+
+std::vector<FlowDetails> flows;
+uint32_t g_nTxPackets = 0;
+uint64_t g_nBytesSent = 0;
+
 void
 ReceivePacket (std::string context, Ptr< const Packet > packet, const Address &address)
 {
-  std::cout << "A packet was received. Flow Id: " << context << std::endl;
+  uint32_t flowId = std::stoi (context);
+  FlowDetails* flow = &flows[flowId];
+
+  // std::cout << "A packet was received. Flow Id: " << flowId << " Size: " << packet->GetSize() << std::endl; // TODO: Remove
+
+  if (flow->nBytesReceived == 0)
+    {
+      flow->startTime = Simulator::Now().GetSeconds();
+      flow->nBytesReceived += packet->GetSize();
+      return;
+    }
+
+  flow->nBytesReceived += packet->GetSize();
+
+  // Calculate throughput here
+  double currentTime = Simulator::Now().GetSeconds();
+  double duration = currentTime - flow->startTime;
+  double throughput = ((flow->nBytesReceived * 8) / duration) / 1000000; // Throughput in Mbps
+  flow->throughput.push_back (throughput);
+
+  // std::cout << "Throughput is: " << throughput << " Mbps" << std::endl; // TODO: REMOVE
+}
+
+void
+SentPacket (Ptr< const Packet > packet)
+{
+  g_nTxPackets++;
+  g_nBytesSent += packet->GetSize();
 }
 
 // void
@@ -103,6 +143,10 @@ main (int argc, char *argv[])
   RandomGeneratorManager::SetSeed (seed);
   RandomGeneratorManager::SetRun (initRun);
 
+  Config::SetDefault ("ns3::TcpSocket::DataRetries", UintegerValue (100));
+  Config::SetDefault ("ns3::TcpSocket::SndBufSize", UintegerValue (1000000000));
+  Config::SetDefault ("ns3::TcpSocket::RcvBufSize", UintegerValue (1000000000));
+
   // Parsing the XML file.
   XMLDocument xmlLogFile;
   XMLError error = xmlLogFile.LoadFile (xmlLogFilePath.c_str());
@@ -158,6 +202,7 @@ main (int argc, char *argv[])
                UintegerValue (queuePacketSize));
 
   // Enable PCAP tracing if the command line parameter was set
+  //enablePcapTracing = true;
   if (enablePcapTracing)
     {
       PointToPointHelper myHelper;
@@ -182,14 +227,58 @@ main (int argc, char *argv[])
           if (pktSinkApp != 0)
             {
               pktSinkApp->TraceConnect ("Rx", std::to_string (flowId), MakeCallback (&ReceivePacket));
+              flows.push_back (FlowDetails()); // Create a flow details object for each flow
               flowId++;
             }
+          Ptr<ns3::OnOffApplication> onOffApp = (*node)->GetApplication (appId)->GetObject<ns3::OnOffApplication>();
+          if (onOffApp != 0)
+          {
+            onOffApp->TraceConnectWithoutContext("Tx", MakeCallback(&SentPacket));
+          }
         }
     }
   // Mods - END
 
-  //Simulator::Stop(Seconds(stopTime));
+  //Simulator::Stop(Seconds(100000000));
   Simulator::Run ();
+
+  // Mods - BEGIN
+  std::cout << "Number of packets sent: " << g_nTxPackets << std::endl;
+  std::cout << "Number of bytes sent: " << g_nBytesSent << std::endl;
+  std::cout << "number of received bytes: " << flows[0].nBytesReceived << std::endl;
+  std::cout << "number of received packets: " << flows[0].throughput.size() << std::endl;
+  std::cout << "Saving results to XML file" << std::endl;
+  {
+    using namespace tinyxml2;
+    std::unique_ptr<XMLDocument> xmlResultFile (new XMLDocument);
+    XMLNode * pRoot = xmlResultFile->NewElement("Results");
+    xmlResultFile->InsertFirstChild(pRoot);
+
+    for (uint32_t flowId = 0; flowId < flows.size(); ++flowId)
+      {
+        FlowDetails* flow = &flows[flowId];
+
+        XMLElement* flowElement = xmlResultFile->NewElement("Flow");
+        flowElement->SetAttribute("Id", flowId);
+        
+        // Create element for each number of packets
+        for (uint32_t packetNumber = 0; packetNumber < flow->throughput.size(); ++packetNumber)
+        {
+          XMLElement* packetElement = xmlResultFile->NewElement("Packet");
+          packetElement->SetAttribute("Number", packetNumber+1);
+          packetElement->SetAttribute("Throughput", flow->throughput[packetNumber]);
+          flowElement->InsertEndChild(packetElement);
+        }
+
+        pRoot->InsertEndChild(flowElement);
+        flow++;
+      }
+
+      XMLError eResult = xmlResultFile->SaveFile(xmlResultFilePath.c_str());
+      if (eResult != XML_SUCCESS) NS_LOG_ERROR("Error saving XML result file");
+  }
+
+  // Mods - END
 
   // TOOD: We need to write the results into an XML file after the simulation has finished.
 
