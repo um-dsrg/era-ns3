@@ -46,7 +46,7 @@ struct FlowDetails
 
   double startTime; // The time the first packet of the flow is received
   uint64_t nBytesReceived; // The number of bytes received by the flow
-  std::vector<double> throughput; // The throughput calculated once each packet is received
+  std::vector<double> goodput; // The goodput calculated once each packet is received
 };
 
 std::vector<FlowDetails> flows;
@@ -68,11 +68,11 @@ ReceivePacket (std::string context, Ptr< const Packet > packet, const Address &a
 
   flow->nBytesReceived += packet->GetSize();
 
-  // Calculate throughput here
+  // Calculate goodput here
   double currentTime = Simulator::Now().GetSeconds();
   double duration = currentTime - flow->startTime;
-  double throughput = ((flow->nBytesReceived * 8) / duration) / 1000000; // Throughput in Mbps
-  flow->throughput.push_back (throughput);
+  double goodput = ((flow->nBytesReceived * 8) / duration) / 1000000; // goodput in Mbps
+  flow->goodput.push_back (goodput);
 }
 
 // void
@@ -258,11 +258,11 @@ main (int argc, char *argv[])
         flowElement->SetAttribute("Id", flowId);
         
         // Create element for each number of packets
-        for (uint32_t packetNumber = 0; packetNumber < flow->throughput.size(); ++packetNumber)
+        for (uint32_t packetNumber = 0; packetNumber < flow->goodput.size(); ++packetNumber)
         {
           XMLElement* packetElement = xmlResultFile->NewElement("Packet");
           packetElement->SetAttribute("Number", packetNumber+1);
-          packetElement->SetAttribute("Throughput", flow->throughput[packetNumber]);
+          packetElement->SetAttribute("Goodput", flow->goodput[packetNumber]);
           flowElement->InsertEndChild(packetElement);
         }
 
