@@ -13,6 +13,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+#include <sstream>
 #include <tinyxml2.h>
 #include <map>
 
@@ -39,6 +40,21 @@ using namespace tinyxml2;
 
 NS_LOG_COMPONENT_DEFINE ("PPFS");
 
+void
+ReceivePacket (std::string context, Ptr< const Packet > packet, const Address &address)
+{
+  std::cout << "A packet was received. Flow Id: " << context << std::endl;
+}
+
+// void
+// ReceivePacketP2P (ns3::Ptr<const ns3::Packet> packet)
+// {
+//   // i need to extract the source ip, destination ip, source port and destination port number.
+//   // They need to be made as a key of a map. The map will contain a vector that will store the throughput
+//   // of that flow. This is too complex and will not be needed at the goodput phase.
+//   std::cout << "A packet was received" << std::endl;
+// }
+
 int
 main (int argc, char *argv[])
 {
@@ -56,23 +72,23 @@ main (int argc, char *argv[])
   bool enablePcapTracing (false);
 
   CommandLine cmdLine;
-  cmdLine.AddValue("verbose", "If true display log values", verbose);
-  cmdLine.AddValue("seed", "The seed used by the random number generator. Default of 1.", seed);
-  cmdLine.AddValue("run", "The initial run value. Default of 1.", initRun);
-  cmdLine.AddValue("log", "The full path to the XML log file", xmlLogFilePath);
-  cmdLine.AddValue("result", "The full path of the result file", xmlResultFilePath);
-  cmdLine.AddValue("animation", "The full path where to store the animation xml file."
-                   "If left blank animation will be disabled.", xmlAnimationFile);
-  cmdLine.AddValue("queuePacketSize", "The maximum number of packets a queue can store."
-                   "The value is 100", queuePacketSize);
-  cmdLine.AddValue("enableHistograms", "If set enable FlowMonitor's delay and jitter histograms."
-                   "By default they are disabled", enableHistograms);
-  cmdLine.AddValue("enableFlowProbes", "If set enable FlowMonitor's flow probes."
-                   "By default they are disabled", enableFlowProbes);
-  cmdLine.AddValue("enablePcapTracing", "If set enable Pcap Tracing. By default this is disabled",
-                   enablePcapTracing);
+  cmdLine.AddValue ("verbose", "If true display log values", verbose);
+  cmdLine.AddValue ("seed", "The seed used by the random number generator. Default of 1.", seed);
+  cmdLine.AddValue ("run", "The initial run value. Default of 1.", initRun);
+  cmdLine.AddValue ("log", "The full path to the XML log file", xmlLogFilePath);
+  cmdLine.AddValue ("result", "The full path of the result file", xmlResultFilePath);
+  cmdLine.AddValue ("animation", "The full path where to store the animation xml file."
+                    "If left blank animation will be disabled.", xmlAnimationFile);
+  cmdLine.AddValue ("queuePacketSize", "The maximum number of packets a queue can store."
+                    "The value is 100", queuePacketSize);
+  cmdLine.AddValue ("enableHistograms", "If set enable FlowMonitor's delay and jitter histograms."
+                    "By default they are disabled", enableHistograms);
+  cmdLine.AddValue ("enableFlowProbes", "If set enable FlowMonitor's flow probes."
+                    "By default they are disabled", enableFlowProbes);
+  cmdLine.AddValue ("enablePcapTracing", "If set enable Pcap Tracing. By default this is disabled",
+                    enablePcapTracing);
 
-  cmdLine.Parse(argc, argv);
+  cmdLine.Parse (argc, argv);
 
   if (verbose)
     {
@@ -84,15 +100,15 @@ main (int argc, char *argv[])
     }
 
   // Setting the seed and run values
-  RandomGeneratorManager::SetSeed(seed);
-  RandomGeneratorManager::SetRun(initRun);
+  RandomGeneratorManager::SetSeed (seed);
+  RandomGeneratorManager::SetRun (initRun);
 
   // Parsing the XML file.
   XMLDocument xmlLogFile;
-  XMLError error = xmlLogFile.LoadFile(xmlLogFilePath.c_str());
-  NS_ABORT_MSG_IF(error != XML_SUCCESS, "Could not load LOG FILE");
+  XMLError error = xmlLogFile.LoadFile (xmlLogFilePath.c_str());
+  NS_ABORT_MSG_IF (error != XML_SUCCESS, "Could not load LOG FILE");
   XMLNode* rootNode = xmlLogFile.LastChild();
-  NS_ABORT_MSG_IF(rootNode == nullptr, "No root node node found");
+  NS_ABORT_MSG_IF (rootNode == nullptr, "No root node node found");
 
   NodeContainer allNodes; /*!< Node container storing all the nodes */
   NodeContainer terminalNodes; /*!< Node container storing a reference to the terminal nodes */
@@ -109,7 +125,7 @@ main (int argc, char *argv[])
   std::map <Ptr<NetDevice>, LinkId_t> terminalToLinkId; /*!< Key -> Net Device, Value -> Link Id */
 
   TopologyBuilder<PpfsSwitch> topologyBuilder (rootNode, switchMap, terminalToLinkId, allNodes,
-                                               terminalNodes, switchNodes, terminalDevices, false);
+      terminalNodes, switchNodes, terminalDevices, false);
   topologyBuilder.CreateNodes ();
   topologyBuilder.ParseNodeConfiguration();
   topologyBuilder.BuildNetworkTopology (linkInformation);
@@ -117,7 +133,7 @@ main (int argc, char *argv[])
   topologyBuilder.AssignIpToNodes();
 
   RoutingHelper<PpfsSwitch> routingHelper (switchMap);
-  routingHelper.PopulateRoutingTables(linkInformation, allNodes, rootNode);
+  routingHelper.PopulateRoutingTables (linkInformation, allNodes, rootNode);
   routingHelper.SetSwitchesPacketHandler();
 
   std::unique_ptr<AnimationHelper> animHelper;
@@ -125,17 +141,18 @@ main (int argc, char *argv[])
   if (!xmlAnimationFile.empty())
     {
       animHelper = std::unique_ptr<AnimationHelper> (new AnimationHelper());
-      animHelper->SetNodeMobilityAndCoordinates(rootNode, allNodes);
-      animHelper->SetupAnimation(xmlAnimationFile, terminalNodes, switchNodes);
+      animHelper->SetNodeMobilityAndCoordinates (rootNode, allNodes);
+      animHelper->SetupAnimation (xmlAnimationFile, terminalNodes, switchNodes);
     }
 
 
   ApplicationHelper applicationHelper;
-  uint32_t stopTime = applicationHelper.InstallApplicationOnTerminals(allNodes, rootNode);
+  uint32_t stopTime = applicationHelper.InstallApplicationOnTerminals (allNodes, rootNode);
+  stopTime++; // TODO: This is redundant and is there only to remove the warning.
 
-  ResultManager resultManager;
-  resultManager.SetupFlowMonitor(allNodes, stopTime);
-  resultManager.TraceTerminalTransmissions(terminalDevices, terminalToLinkId);
+  // ResultManager resultManager;
+  // resultManager.SetupFlowMonitor(allNodes, stopTime);
+  // resultManager.TraceTerminalTransmissions(terminalDevices, terminalToLinkId);
 
   Config::Set ("/NodeList/*/DeviceList/*/$ns3::PointToPointNetDevice/TxQueue/MaxPackets",
                UintegerValue (queuePacketSize));
@@ -147,15 +164,41 @@ main (int argc, char *argv[])
       myHelper.EnablePcapAll ("ppfs-pcap", false);
     }
 
-  Simulator::Stop(Seconds(stopTime));
+  // Mods - BEGIN
+  // TODO: This needs to be updated to monitor only on the receiving flows that are NOT ACK flows
+  // and needs to be separated by "flow". This needs to be done when calculating good put as well.
+  // Config::ConnectWithoutContext ("/NodeList/*/DeviceList/*/$ns3::PointToPointNetDevice/PhyRxEnd",
+  //                                MakeCallback (&ReceivePacketP2P));
+
+  /* Setup phase */
+  // Loop through all the terminal nodes
+  uint32_t flowId = 0;
+  for (NodeContainer::Iterator node = terminalNodes.Begin (); node != terminalNodes.End (); ++node)
+    {
+      uint32_t nApplications = (*node)->GetNApplications();
+      for (uint32_t appId = 0; appId < nApplications; ++appId) // Loop through all the applications
+        {
+          Ptr<ns3::PacketSink> pktSinkApp = (*node)->GetApplication (appId)->GetObject<ns3::PacketSink>();
+          if (pktSinkApp != 0)
+            {
+              pktSinkApp->TraceConnect ("Rx", std::to_string (flowId), MakeCallback (&ReceivePacket));
+              flowId++;
+            }
+        }
+    }
+  // Mods - END
+
+  //Simulator::Stop(Seconds(stopTime));
   Simulator::Run ();
 
-  resultManager.GenerateFlowMonitorXmlLog(enableHistograms, enableFlowProbes);
-  resultManager.UpdateFlowIds(rootNode, allNodes);
-  resultManager.AddQueueStatistics(switchMap);
-  resultManager.AddLinkStatistics(switchMap);
-  resultManager.AddSwitchDetails(switchMap);
-  resultManager.SaveXmlResultFile(xmlResultFilePath.c_str());
+  // TOOD: We need to write the results into an XML file after the simulation has finished.
+
+  // resultManager.GenerateFlowMonitorXmlLog(enableHistograms, enableFlowProbes);
+  // resultManager.UpdateFlowIds(rootNode, allNodes);
+  // resultManager.AddQueueStatistics(switchMap);
+  // resultManager.AddLinkStatistics(switchMap);
+  // resultManager.AddSwitchDetails(switchMap);
+  // resultManager.SaveXmlResultFile(xmlResultFilePath.c_str());
 
   Simulator::Destroy ();
 
