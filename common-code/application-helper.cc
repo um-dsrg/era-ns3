@@ -85,13 +85,13 @@ ApplicationHelper::InstallApplicationOnTerminals(ns3::NodeContainer& allNodes,
       // Configuring the transmitter
       ApplicationContainer sourceApplication = onOff.Install(allNodes.Get(srcNodeId));
       sourceApplication.Start(Seconds(startTime));
-      sourceApplication.Stop(Seconds(endTime));
+      // sourceApplication.Stop(Seconds(endTime));
 
       // Configuring the receiver
       PacketSinkHelper sinkHelper (socketProtocol, destinationSocket);
       ApplicationContainer destinationApplication = sinkHelper.Install(allNodes.Get(dstNodeId));
       destinationApplication.Start(Seconds(startTime));
-      destinationApplication.Stop(Seconds(endTime));
+      // destinationApplication.Stop(Seconds(endTime));
 
       if (endTime > maxEndTime) maxEndTime = endTime;
 
