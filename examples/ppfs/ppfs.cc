@@ -44,22 +44,20 @@ struct FlowDetails
 {
   FlowDetails() : startTime (0.0), nBytesReceived (0) {}
 
-  double startTime;
-  uint64_t nBytesReceived;
-  std::vector<double> throughput;
+  double startTime; // The time the first packet of the flow is received
+  uint64_t nBytesReceived; // The number of bytes received by the flow
+  std::vector<double> throughput; // The throughput calculated once each packet is received
 };
 
 std::vector<FlowDetails> flows;
-uint32_t g_nTxPackets = 0;
-uint64_t g_nBytesSent = 0;
+// uint32_t g_nTxPackets = 0;
+// uint64_t g_nBytesSent = 0;
 
 void
 ReceivePacket (std::string context, Ptr< const Packet > packet, const Address &address)
 {
   uint32_t flowId = std::stoi (context);
   FlowDetails* flow = &flows[flowId];
-
-  // std::cout << "A packet was received. Flow Id: " << flowId << " Size: " << packet->GetSize() << std::endl; // TODO: Remove
 
   if (flow->nBytesReceived == 0)
     {
@@ -75,16 +73,14 @@ ReceivePacket (std::string context, Ptr< const Packet > packet, const Address &a
   double duration = currentTime - flow->startTime;
   double throughput = ((flow->nBytesReceived * 8) / duration) / 1000000; // Throughput in Mbps
   flow->throughput.push_back (throughput);
-
-  // std::cout << "Throughput is: " << throughput << " Mbps" << std::endl; // TODO: REMOVE
 }
 
-void
-SentPacket (Ptr< const Packet > packet)
-{
-  g_nTxPackets++;
-  g_nBytesSent += packet->GetSize();
-}
+// void
+// SentPacket (Ptr< const Packet > packet)
+// {
+//   g_nTxPackets++;
+//   g_nBytesSent += packet->GetSize();
+// }
 
 // void
 // ReceivePacketP2P (ns3::Ptr<const ns3::Packet> packet)
@@ -192,7 +188,7 @@ main (int argc, char *argv[])
 
   ApplicationHelper applicationHelper;
   uint32_t stopTime = applicationHelper.InstallApplicationOnTerminals (allNodes, rootNode);
-  stopTime++; // TODO: This is redundant and is there only to remove the warning.
+  stopTime++; // NOTE: This is redundant and is there only to remove the warning.
 
   // ResultManager resultManager;
   // resultManager.SetupFlowMonitor(allNodes, stopTime);
@@ -230,11 +226,11 @@ main (int argc, char *argv[])
               flows.push_back (FlowDetails()); // Create a flow details object for each flow
               flowId++;
             }
-          Ptr<ns3::OnOffApplication> onOffApp = (*node)->GetApplication (appId)->GetObject<ns3::OnOffApplication>();
-          if (onOffApp != 0)
-          {
-            onOffApp->TraceConnectWithoutContext("Tx", MakeCallback(&SentPacket));
-          }
+          // Ptr<ns3::OnOffApplication> onOffApp = (*node)->GetApplication (appId)->GetObject<ns3::OnOffApplication>();
+          // if (onOffApp != 0)
+          // {
+          //   onOffApp->TraceConnectWithoutContext("Tx", MakeCallback(&SentPacket));
+          // }
         }
     }
   // Mods - END
@@ -243,11 +239,11 @@ main (int argc, char *argv[])
   Simulator::Run ();
 
   // Mods - BEGIN
-  std::cout << "Number of packets sent: " << g_nTxPackets << std::endl;
-  std::cout << "Number of bytes sent: " << g_nBytesSent << std::endl;
-  std::cout << "number of received bytes: " << flows[0].nBytesReceived << std::endl;
-  std::cout << "number of received packets: " << flows[0].throughput.size() << std::endl;
-  std::cout << "Saving results to XML file" << std::endl;
+  // std::cout << "Number of packets sent: " << g_nTxPackets << std::endl;
+  // std::cout << "Number of bytes sent: " << g_nBytesSent << std::endl;
+  // std::cout << "number of received bytes: " << flows[0].nBytesReceived << std::endl;
+  // std::cout << "number of received packets: " << flows[0].throughput.size() << std::endl;
+  // std::cout << "Saving results to XML file" << std::endl;
   {
     using namespace tinyxml2;
     std::unique_ptr<XMLDocument> xmlResultFile (new XMLDocument);
