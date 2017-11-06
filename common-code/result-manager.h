@@ -19,7 +19,7 @@ class ResultManager
 public:
   ResultManager ();
 
-  void SetupFlowMonitor (ns3::NodeContainer& allNodes, uint32_t stopTime);
+  void SetupFlowMonitor (ns3::NodeContainer& allNodes);
   void TraceTerminalTransmissions (ns3::NetDeviceContainer& terminalDevices,
                                    std::map <ns3::Ptr<ns3::NetDevice>, LinkId_t>& terminalToLinkId);
   void GenerateFlowMonitorXmlLog (bool enableHistograms, bool enableFlowProbes);

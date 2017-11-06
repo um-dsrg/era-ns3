@@ -19,10 +19,11 @@ ResultManager::ResultManager() : m_xmlResultFile(new XMLDocument)
 {}
 
 void
-ResultManager::SetupFlowMonitor(NodeContainer& allNodes, uint32_t stopTime)
+ResultManager::SetupFlowMonitor(NodeContainer& allNodes)
 {
-  m_flowMonitor = m_flowMonHelper.Install(allNodes); // Enable flow monitor on all the nodes
-  m_flowMonitor->SetAttribute("MaxPerHopDelay", TimeValue(Seconds(stopTime)));
+  // Enable flow monitor on all the nodes
+  m_flowMonitor = m_flowMonHelper.Install(allNodes);
+  m_flowMonitor->SetAttribute("MaxPerHopDelay", TimeValue(NanoSeconds(9223372036854775807.0)));
 }
 
 void
