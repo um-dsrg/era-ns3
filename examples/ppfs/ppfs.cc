@@ -50,6 +50,7 @@ struct FlowDetails
 };
 
 std::vector<FlowDetails> flows;
+uint32_t g_nPackets = 0;
 // uint32_t g_nTxPackets = 0;
 // uint64_t g_nBytesSent = 0;
 
@@ -73,6 +74,10 @@ ReceivePacket (std::string context, Ptr< const Packet > packet, const Address &a
   double duration = currentTime - flow->startTime;
   double goodput = ((flow->nBytesReceived * 8) / duration) / 1000000; // goodput in Mbps
   flow->goodput.push_back (goodput);
+
+  g_nPackets++;
+  std::cout << g_nPackets << std::endl;
+  if (g_nPackets >= 10) Simulator::Stop();
 }
 
 // void
@@ -190,9 +195,9 @@ main (int argc, char *argv[])
   uint32_t stopTime = applicationHelper.InstallApplicationOnTerminals (allNodes, rootNode);
   stopTime++; // NOTE: This is redundant and is there only to remove the warning.
 
-  // ResultManager resultManager;
-  // resultManager.SetupFlowMonitor(allNodes, stopTime);
-  // resultManager.TraceTerminalTransmissions(terminalDevices, terminalToLinkId);
+  ResultManager resultManager;
+  resultManager.SetupFlowMonitor(allNodes, stopTime);
+  resultManager.TraceTerminalTransmissions(terminalDevices, terminalToLinkId);
 
   Config::Set ("/NodeList/*/DeviceList/*/$ns3::PointToPointNetDevice/TxQueue/MaxPackets",
                UintegerValue (queuePacketSize));
@@ -278,12 +283,12 @@ main (int argc, char *argv[])
 
   // TOOD: We need to write the results into an XML file after the simulation has finished.
 
-  // resultManager.GenerateFlowMonitorXmlLog(enableHistograms, enableFlowProbes);
-  // resultManager.UpdateFlowIds(rootNode, allNodes);
-  // resultManager.AddQueueStatistics(switchMap);
-  // resultManager.AddLinkStatistics(switchMap);
-  // resultManager.AddSwitchDetails(switchMap);
-  // resultManager.SaveXmlResultFile(xmlResultFilePath.c_str());
+  resultManager.GenerateFlowMonitorXmlLog(enableHistograms, enableFlowProbes);
+  resultManager.UpdateFlowIds(rootNode, allNodes);
+  resultManager.AddQueueStatistics(switchMap);
+  resultManager.AddLinkStatistics(switchMap);
+  resultManager.AddSwitchDetails(switchMap);
+  resultManager.SaveXmlResultFile(xmlResultFilePath.c_str());
 
   Simulator::Destroy ();
 
