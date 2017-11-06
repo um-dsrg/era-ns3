@@ -53,7 +53,6 @@ ApplicationHelper::InstallApplicationOnTerminals (ApplicationMonitor& applicatio
         }
 
       uint32_t pktSizeExclHdr (pktSizeInclHdr - CalculateHeaderSize (protocol));
-      uint32_t maxBytes (numOfPackets * pktSizeExclHdr);
       double dataRateExclHdr ((pktSizeExclHdr * dataRateInclHdr) / pktSizeInclHdr);
 
       std::string socketProtocol ("");
@@ -70,7 +69,6 @@ ApplicationHelper::InstallApplicationOnTerminals (ApplicationMonitor& applicatio
       onOff.SetAttribute ("OffTime", StringValue ("ns3::ConstantRandomVariable[Constant=0]"));
       onOff.SetAttribute ("PacketSize", UintegerValue (pktSizeExclHdr));
       onOff.SetAttribute ("DataRate", DataRateValue (dataRateExclHdr * 1000000)); // In bps
-      onOff.SetAttribute ("MaxBytes", UintegerValue (maxBytes));
       onOff.SetAttribute ("SourcePort", UintegerValue (srcPortNumber));
 
       NodeId_t srcNodeId (0);
@@ -91,8 +89,9 @@ ApplicationHelper::InstallApplicationOnTerminals (ApplicationMonitor& applicatio
 
       // Monitor the PacketSink application
       FlowId_t flowId (0);
-      flowElement->QueryAttribute("Id", &flowId);
-      applicationMonitor.MonitorApplication(flowId, destinationApplication.Get(0));
+      flowElement->QueryAttribute ("Id", &flowId);
+      applicationMonitor.MonitorApplication (flowId, dataRateExclHdr,
+                                             destinationApplication.Get (0));
 
       flowElement = flowElement->NextSiblingElement ("Flow");
     }
