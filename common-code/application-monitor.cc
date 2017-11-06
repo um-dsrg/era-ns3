@@ -7,7 +7,8 @@ using namespace ns3;
 NS_LOG_COMPONENT_DEFINE ("ApplicationMonitor");
 
 
-ApplicationMonitor::ApplicationMonitor() : nFlows (0)
+ApplicationMonitor::ApplicationMonitor (uint64_t nBytesQuota) :
+  m_nFlows (0), m_nBytesQuota (nBytesQuota)
 {}
 
 ApplicationMonitor::~ApplicationMonitor()
@@ -15,14 +16,15 @@ ApplicationMonitor::~ApplicationMonitor()
 
 void
 ApplicationMonitor::MonitorApplication (FlowId_t flowId,
+                                        double requestedGoodput,
                                         ns3::Ptr<ns3::Application> application)
 {
   // Call the function ReceivePacket whenever a packet is received
   application->TraceConnect ("Rx", std::to_string (flowId),
                              MakeCallback (&ApplicationMonitor::ReceivePacket, this));
 
-  // Create the necessary flow structure and insert it in the flows dictionary
-  FlowDetails flow (flowId);
+  // Create the necessary flow structure and insert it in the flows map
+  FlowDetails flow (requestedGoodput);
   auto ret = m_flows.insert ({flowId, flow});
 
   if (ret.second == false)
@@ -31,12 +33,59 @@ ApplicationMonitor::MonitorApplication (FlowId_t flowId,
     NS_LOG_INFO ("Monitoring Flow " << flowId);
 
   // Increment the number of flows being monitored
-  nFlows++;
+  m_nFlows++;
 }
 
 void
 ApplicationMonitor::ReceivePacket (std::string context, ns3::Ptr<const ns3::Packet> packet,
                                    const ns3::Address &address)
 {
-  std::cout << "Packet received by flow " << context << std::endl;
+  NS_LOG_INFO ("Flow " << context << " received a packet at " << Simulator::Now());
+
+  FlowId_t flowId (std::stoi (context));
+
+  try
+    {
+      FlowDetails& flow = m_flows.at (flowId);
+
+      if (flow.nBytesReceived == 0) // The first packet is received
+        {
+          flow.firstRxPacket = Simulator::Now();
+          flow.lastRxPacket = Simulator::Now();
+        }
+      else
+        flow.lastRxPacket = Simulator::Now();
+
+      flow.nBytesReceived += packet->GetSize();
+      flow.nPacketsReceived++;
+
+      // The flow has met the quota
+      if (flow.nBytesReceived >= m_nBytesQuota)
+        {
+          // Calculate Goodput in Mbps
+          double duration = flow.lastRxPacket.GetSeconds() - flow.firstRxPacket.GetSeconds();
+          flow.goodputAtQuota = ((flow.nBytesReceived * 8) / duration) / 1000000;
+
+          /**
+           * Insert the flow id into the set.
+           * Note: The set does not allow duplicates which is why this data structure is
+           * being used.
+           */
+          m_flowsThatMetQuota.insert (flowId);
+        }
+
+      NS_LOG_INFO (flow);
+
+      // Stop the simulation if all flows have met the quota
+      if (m_flowsThatMetQuota.size() == m_nFlows)
+        {
+          NS_LOG_INFO ("Quota of " << m_nBytesQuota << "bytes met by all the flows.\n"
+                       "Simulation Stopped.");
+          Simulator::Stop();
+        }
+    }
+  catch (std::out_of_range)
+    {
+      NS_ABORT_MSG ("Flow with Id " << flowId << " not found in the ApplicationMonitor map");
+    }
 }
