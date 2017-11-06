@@ -29,6 +29,7 @@
 #include "../../common-code/topology-builder.h"
 #include "../../common-code/routing-helper.h"
 #include "../../common-code/application-helper.h"
+#include "../../common-code/application-monitor.h"
 #include "../../common-code/animation-helper.h"
 #include "../../common-code/result-manager.h"
 #include "../../common-code/random-generator-manager.h"
@@ -39,62 +40,6 @@ using namespace ns3;
 using namespace tinyxml2;
 
 NS_LOG_COMPONENT_DEFINE ("PPFS");
-
-struct FlowDetails
-{
-  FlowDetails() : startTime (0.0), nBytesReceived (0) {}
-
-  double startTime; // The time the first packet of the flow is received
-  uint64_t nBytesReceived; // The number of bytes received by the flow
-  std::vector<double> goodput; // The goodput calculated once each packet is received
-};
-
-std::vector<FlowDetails> flows;
-uint32_t g_nPackets = 0;
-// uint32_t g_nTxPackets = 0;
-// uint64_t g_nBytesSent = 0;
-
-void
-ReceivePacket (std::string context, Ptr< const Packet > packet, const Address &address)
-{
-  uint32_t flowId = std::stoi (context);
-  FlowDetails* flow = &flows[flowId];
-
-  if (flow->nBytesReceived == 0)
-    {
-      flow->startTime = Simulator::Now().GetSeconds();
-      flow->nBytesReceived += packet->GetSize();
-      return;
-    }
-
-  flow->nBytesReceived += packet->GetSize();
-
-  // Calculate goodput here
-  double currentTime = Simulator::Now().GetSeconds();
-  double duration = currentTime - flow->startTime;
-  double goodput = ((flow->nBytesReceived * 8) / duration) / 1000000; // goodput in Mbps
-  flow->goodput.push_back (goodput);
-
-  g_nPackets++;
-  std::cout << g_nPackets << std::endl;
-  if (g_nPackets >= 10) Simulator::Stop();
-}
-
-// void
-// SentPacket (Ptr< const Packet > packet)
-// {
-//   g_nTxPackets++;
-//   g_nBytesSent += packet->GetSize();
-// }
-
-// void
-// ReceivePacketP2P (ns3::Ptr<const ns3::Packet> packet)
-// {
-//   // i need to extract the source ip, destination ip, source port and destination port number.
-//   // They need to be made as a key of a map. The map will contain a vector that will store the throughput
-//   // of that flow. This is too complex and will not be needed at the goodput phase.
-//   std::cout << "A packet was received" << std::endl;
-// }
 
 int
 main (int argc, char *argv[])
@@ -190,13 +135,12 @@ main (int argc, char *argv[])
       animHelper->SetupAnimation (xmlAnimationFile, terminalNodes, switchNodes);
     }
 
-
+  ApplicationMonitor applicationMonitor;
   ApplicationHelper applicationHelper;
-  uint32_t stopTime = applicationHelper.InstallApplicationOnTerminals (allNodes, rootNode);
-  stopTime++; // NOTE: This is redundant and is there only to remove the warning.
+  applicationHelper.InstallApplicationOnTerminals (applicationMonitor, allNodes, rootNode);
 
   ResultManager resultManager;
-  resultManager.SetupFlowMonitor(allNodes, stopTime);
+  resultManager.SetupFlowMonitor(allNodes);
   resultManager.TraceTerminalTransmissions(terminalDevices, terminalToLinkId);
 
   Config::Set ("/NodeList/*/DeviceList/*/$ns3::PointToPointNetDevice/TxQueue/MaxPackets",
@@ -210,78 +154,7 @@ main (int argc, char *argv[])
       myHelper.EnablePcapAll ("ppfs-pcap", false);
     }
 
-  // Mods - BEGIN
-  // TODO: This needs to be updated to monitor only on the receiving flows that are NOT ACK flows
-  // and needs to be separated by "flow". This needs to be done when calculating good put as well.
-  // Config::ConnectWithoutContext ("/NodeList/*/DeviceList/*/$ns3::PointToPointNetDevice/PhyRxEnd",
-  //                                MakeCallback (&ReceivePacketP2P));
-
-  /* Setup phase */
-  // Loop through all the terminal nodes
-  uint32_t flowId = 0;
-  for (NodeContainer::Iterator node = terminalNodes.Begin (); node != terminalNodes.End (); ++node)
-    {
-      uint32_t nApplications = (*node)->GetNApplications();
-      for (uint32_t appId = 0; appId < nApplications; ++appId) // Loop through all the applications
-        {
-          Ptr<ns3::PacketSink> pktSinkApp = (*node)->GetApplication (appId)->GetObject<ns3::PacketSink>();
-          if (pktSinkApp != 0)
-            {
-              pktSinkApp->TraceConnect ("Rx", std::to_string (flowId), MakeCallback (&ReceivePacket));
-              flows.push_back (FlowDetails()); // Create a flow details object for each flow
-              flowId++;
-            }
-          // Ptr<ns3::OnOffApplication> onOffApp = (*node)->GetApplication (appId)->GetObject<ns3::OnOffApplication>();
-          // if (onOffApp != 0)
-          // {
-          //   onOffApp->TraceConnectWithoutContext("Tx", MakeCallback(&SentPacket));
-          // }
-        }
-    }
-  // Mods - END
-
-  //Simulator::Stop(Seconds(100000000));
   Simulator::Run ();
-
-  // Mods - BEGIN
-  // std::cout << "Number of packets sent: " << g_nTxPackets << std::endl;
-  // std::cout << "Number of bytes sent: " << g_nBytesSent << std::endl;
-  // std::cout << "number of received bytes: " << flows[0].nBytesReceived << std::endl;
-  // std::cout << "number of received packets: " << flows[0].throughput.size() << std::endl;
-  // std::cout << "Saving results to XML file" << std::endl;
-  {
-    using namespace tinyxml2;
-    std::unique_ptr<XMLDocument> xmlResultFile (new XMLDocument);
-    XMLNode * pRoot = xmlResultFile->NewElement("Results");
-    xmlResultFile->InsertFirstChild(pRoot);
-
-    for (uint32_t flowId = 0; flowId < flows.size(); ++flowId)
-      {
-        FlowDetails* flow = &flows[flowId];
-
-        XMLElement* flowElement = xmlResultFile->NewElement("Flow");
-        flowElement->SetAttribute("Id", flowId);
-        
-        // Create element for each number of packets
-        for (uint32_t packetNumber = 0; packetNumber < flow->goodput.size(); ++packetNumber)
-        {
-          XMLElement* packetElement = xmlResultFile->NewElement("Packet");
-          packetElement->SetAttribute("Number", packetNumber+1);
-          packetElement->SetAttribute("Goodput", flow->goodput[packetNumber]);
-          flowElement->InsertEndChild(packetElement);
-        }
-
-        pRoot->InsertEndChild(flowElement);
-        flow++;
-      }
-
-      XMLError eResult = xmlResultFile->SaveFile(xmlResultFilePath.c_str());
-      if (eResult != XML_SUCCESS) NS_LOG_ERROR("Error saving XML result file");
-  }
-
-  // Mods - END
-
-  // TOOD: We need to write the results into an XML file after the simulation has finished.
 
   resultManager.GenerateFlowMonitorXmlLog(enableHistograms, enableFlowProbes);
   resultManager.UpdateFlowIds(rootNode, allNodes);

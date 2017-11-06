@@ -9,6 +9,7 @@ def build(bld):
     obj.source = ['ppfs.cc',
                   '../../common-code/switch-device.cc',
                   '../../common-code/application-helper.cc',
+                  '../../common-code/application-monitor.cc',
                   '../../common-code/animation-helper.cc',
                   '../../common-code/result-manager.cc',
                   '../../common-code/random-generator-manager.cc',

@@ -28,6 +28,7 @@
 #include "../../common-code/topology-builder.h"
 #include "../../common-code/routing-helper.h"
 #include "../../common-code/application-helper.h"
+#include "../../common-code/application-monitor.h"
 #include "../../common-code/animation-helper.h"
 #include "../../common-code/result-manager.h"
 #include "../../common-code/random-generator-manager.h"
@@ -57,25 +58,25 @@ main (int argc, char *argv[])
   bool enablePcapTracing (false);
 
   CommandLine cmdLine;
-  cmdLine.AddValue("verbose", "If true display log values", verbose);
-  cmdLine.AddValue("seed", "The seed used by the random number generator. Default of 1.", seed);
-  cmdLine.AddValue("run", "The initial run value. Default of 1.", initRun);
-  cmdLine.AddValue("log", "The full path to the XML log file", xmlLogFilePath);
-  cmdLine.AddValue("result", "The full path of the result file", xmlResultFilePath);
-  cmdLine.AddValue("animation", "The full path where to store the animation xml file."
-                   "If left blank animation will be disabled.", xmlAnimationFile);
-  cmdLine.AddValue("queuePacketSize", "The maximum number of packets a queue can store."
-                   "The value is 100", queuePacketSize);
-  cmdLine.AddValue("enableHistograms", "If set enable FlowMonitor's delay and jitter histograms."
-                   "By default they are disabled", enableHistograms);
-  cmdLine.AddValue("enableFlowProbes", "If set enable FlowMonitor's flow probes."
-                   "By default they are disabled", enableFlowProbes);
-  cmdLine.AddValue("enableEcmp", "If set ECMP multipath will be enabled."
-                   "By default this functionality is disabled", enableEcmp);
-  cmdLine.AddValue("enablePcapTracing", "If set enable Pcap Tracing. By default this is disabled",
-                   enablePcapTracing);
+  cmdLine.AddValue ("verbose", "If true display log values", verbose);
+  cmdLine.AddValue ("seed", "The seed used by the random number generator. Default of 1.", seed);
+  cmdLine.AddValue ("run", "The initial run value. Default of 1.", initRun);
+  cmdLine.AddValue ("log", "The full path to the XML log file", xmlLogFilePath);
+  cmdLine.AddValue ("result", "The full path of the result file", xmlResultFilePath);
+  cmdLine.AddValue ("animation", "The full path where to store the animation xml file."
+                    "If left blank animation will be disabled.", xmlAnimationFile);
+  cmdLine.AddValue ("queuePacketSize", "The maximum number of packets a queue can store."
+                    "The value is 100", queuePacketSize);
+  cmdLine.AddValue ("enableHistograms", "If set enable FlowMonitor's delay and jitter histograms."
+                    "By default they are disabled", enableHistograms);
+  cmdLine.AddValue ("enableFlowProbes", "If set enable FlowMonitor's flow probes."
+                    "By default they are disabled", enableFlowProbes);
+  cmdLine.AddValue ("enableEcmp", "If set ECMP multipath will be enabled."
+                    "By default this functionality is disabled", enableEcmp);
+  cmdLine.AddValue ("enablePcapTracing", "If set enable Pcap Tracing. By default this is disabled",
+                    enablePcapTracing);
 
-  cmdLine.Parse(argc, argv);
+  cmdLine.Parse (argc, argv);
 
   if (verbose)
     {
@@ -93,15 +94,15 @@ main (int argc, char *argv[])
     }
 
   // Setting the seed and run values
-  RandomGeneratorManager::SetSeed(seed);
-  RandomGeneratorManager::SetRun(initRun);
+  RandomGeneratorManager::SetSeed (seed);
+  RandomGeneratorManager::SetRun (initRun);
 
   // Parsing the XML file.
   XMLDocument xmlLogFile;
-  XMLError error = xmlLogFile.LoadFile(xmlLogFilePath.c_str());
-  NS_ABORT_MSG_IF(error != XML_SUCCESS, "Could not load LOG FILE");
+  XMLError error = xmlLogFile.LoadFile (xmlLogFilePath.c_str());
+  NS_ABORT_MSG_IF (error != XML_SUCCESS, "Could not load LOG FILE");
   XMLNode* rootNode = xmlLogFile.LastChild();
-  NS_ABORT_MSG_IF(rootNode == nullptr, "No root node node found");
+  NS_ABORT_MSG_IF (rootNode == nullptr, "No root node node found");
 
   NodeContainer allNodes; /*!< Node container storing all the nodes */
   NodeContainer terminalNodes; /*!< Node container storing a reference to the terminal nodes */
@@ -118,14 +119,14 @@ main (int argc, char *argv[])
   std::map <Ptr<NetDevice>, LinkId_t> terminalToLinkId; /*!< Key -> Net Device, Value -> Link Id */
 
   TopologyBuilder<OspfSwitch> topologyBuilder (rootNode, switchMap, terminalToLinkId, allNodes,
-                                               terminalNodes, switchNodes, terminalDevices, true);
+      terminalNodes, switchNodes, terminalDevices, true);
   topologyBuilder.CreateNodes ();
   topologyBuilder.ParseNodeConfiguration();
   topologyBuilder.BuildNetworkTopology (linkInformation);
   topologyBuilder.AssignIpToNodes();
 
   RoutingHelper<OspfSwitch> routingHelper (switchMap);
-  routingHelper.PopulateRoutingTables(allNodes, rootNode);
+  routingHelper.PopulateRoutingTables (allNodes, rootNode);
   routingHelper.SetSwitchesPacketHandler();
 
   std::unique_ptr<AnimationHelper> animHelper;
@@ -133,16 +134,17 @@ main (int argc, char *argv[])
   if (!xmlAnimationFile.empty())
     {
       animHelper = std::unique_ptr<AnimationHelper> (new AnimationHelper());
-      animHelper->SetNodeMobilityAndCoordinates(rootNode, allNodes);
-      animHelper->SetupAnimation(xmlAnimationFile, terminalNodes, switchNodes);
+      animHelper->SetNodeMobilityAndCoordinates (rootNode, allNodes);
+      animHelper->SetupAnimation (xmlAnimationFile, terminalNodes, switchNodes);
     }
 
+  ApplicationMonitor applicationMonitor;
   ApplicationHelper applicationHelper;
-  uint32_t stopTime = applicationHelper.InstallApplicationOnTerminals(allNodes, rootNode);
+  applicationHelper.InstallApplicationOnTerminals (applicationMonitor, allNodes, rootNode);
 
   ResultManager resultManager;
-  resultManager.SetupFlowMonitor(allNodes, stopTime);
-  resultManager.TraceTerminalTransmissions(terminalDevices, terminalToLinkId);
+  resultManager.SetupFlowMonitor (allNodes);
+  resultManager.TraceTerminalTransmissions (terminalDevices, terminalToLinkId);
 
   Config::Set ("/NodeList/*/DeviceList/*/$ns3::PointToPointNetDevice/TxQueue/MaxPackets",
                UintegerValue (queuePacketSize));
@@ -157,14 +159,13 @@ main (int argc, char *argv[])
       myHelper.EnablePcapAll ("ospf-pcap", false);
     }
 
-  Simulator::Stop(Seconds(stopTime));
   Simulator::Run ();
 
-  resultManager.GenerateFlowMonitorXmlLog(enableHistograms, enableFlowProbes);
-  resultManager.UpdateFlowIds(rootNode, allNodes);
-  resultManager.AddQueueStatistics(switchMap);
-  resultManager.AddLinkStatistics(switchMap);
-  resultManager.SaveXmlResultFile(xmlResultFilePath.c_str());
+  resultManager.GenerateFlowMonitorXmlLog (enableHistograms, enableFlowProbes);
+  resultManager.UpdateFlowIds (rootNode, allNodes);
+  resultManager.AddQueueStatistics (switchMap);
+  resultManager.AddLinkStatistics (switchMap);
+  resultManager.SaveXmlResultFile (xmlResultFilePath.c_str());
 
   Simulator::Destroy ();
 
