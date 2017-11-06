@@ -138,7 +138,7 @@ main (int argc, char *argv[])
       animHelper->SetupAnimation (xmlAnimationFile, terminalNodes, switchNodes);
     }
 
-  ApplicationMonitor applicationMonitor;
+  ApplicationMonitor applicationMonitor (100);
   ApplicationHelper applicationHelper;
   applicationHelper.InstallApplicationOnTerminals (applicationMonitor, allNodes, rootNode);
 

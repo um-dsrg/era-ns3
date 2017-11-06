@@ -76,10 +76,14 @@ main (int argc, char *argv[])
 
   cmdLine.Parse (argc, argv);
 
+  // TODO: Remove this once testing is complete
+  LogComponentEnable ("ApplicationMonitor", LOG_LEVEL_INFO);
+
   if (verbose)
     {
       LogComponentEnable ("PpfsSwitch", LOG_LEVEL_INFO);
       LogComponentEnable ("SwitchDevice", LOG_LEVEL_INFO);
+      LogComponentEnable ("ApplicationMonitor", LOG_LEVEL_INFO);
       LogComponentEnable ("OnOffApplication", LOG_LEVEL_INFO);
       LogComponentEnable ("PacketSink", LOG_LEVEL_INFO);
       LogComponentEnable ("ResultManager", LOG_LEVEL_INFO);
@@ -135,13 +139,13 @@ main (int argc, char *argv[])
       animHelper->SetupAnimation (xmlAnimationFile, terminalNodes, switchNodes);
     }
 
-  ApplicationMonitor applicationMonitor;
+  ApplicationMonitor applicationMonitor (1000000);
   ApplicationHelper applicationHelper;
   applicationHelper.InstallApplicationOnTerminals (applicationMonitor, allNodes, rootNode);
 
   ResultManager resultManager;
-  resultManager.SetupFlowMonitor(allNodes);
-  resultManager.TraceTerminalTransmissions(terminalDevices, terminalToLinkId);
+  resultManager.SetupFlowMonitor (allNodes);
+  resultManager.TraceTerminalTransmissions (terminalDevices, terminalToLinkId);
 
   Config::Set ("/NodeList/*/DeviceList/*/$ns3::PointToPointNetDevice/TxQueue/MaxPackets",
                UintegerValue (queuePacketSize));
@@ -156,12 +160,12 @@ main (int argc, char *argv[])
 
   Simulator::Run ();
 
-  resultManager.GenerateFlowMonitorXmlLog(enableHistograms, enableFlowProbes);
-  resultManager.UpdateFlowIds(rootNode, allNodes);
-  resultManager.AddQueueStatistics(switchMap);
-  resultManager.AddLinkStatistics(switchMap);
-  resultManager.AddSwitchDetails(switchMap);
-  resultManager.SaveXmlResultFile(xmlResultFilePath.c_str());
+  resultManager.GenerateFlowMonitorXmlLog (enableHistograms, enableFlowProbes);
+  resultManager.UpdateFlowIds (rootNode, allNodes);
+  resultManager.AddQueueStatistics (switchMap);
+  resultManager.AddLinkStatistics (switchMap);
+  resultManager.AddSwitchDetails (switchMap);
+  resultManager.SaveXmlResultFile (xmlResultFilePath.c_str());
 
   Simulator::Destroy ();
 
