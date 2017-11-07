@@ -9,14 +9,20 @@
 using namespace ns3;
 using namespace tinyxml2;
 
-ApplicationHelper::ApplicationHelper (bool useUpdatedDataRates) :
-  m_useUpdatedDataRates (useUpdatedDataRates)
+ApplicationHelper::ApplicationHelper (bool ignoreOptimalDataRates) :
+  m_ignoreOptimalDataRates (ignoreOptimalDataRates)
 {}
 
 void
 ApplicationHelper::InstallApplicationOnTerminals (ApplicationMonitor& applicationMonitor,
     ns3::NodeContainer& allNodes, tinyxml2::XMLNode* rootNode)
 {
+  // If the optimal data rates are to be ignored then we need to parse the
+  // FlowDataRateModifications element from the XML Log output by the optimal
+  // solution.
+  if (m_ignoreOptimalDataRates)
+    ParseDataRateModifications (rootNode);
+
   XMLElement* optimalSolutionElement = rootNode->FirstChildElement ("OptimalSolution");
   NS_ABORT_MSG_IF (optimalSolutionElement == nullptr, "OptimalSolution element not found");
 
@@ -133,20 +139,20 @@ ApplicationHelper::ParseDataRateModifications (XMLNode* rootNode)
 }
 
 double
-ApplicationHelper::GetFlowDataRate (FlowId_t flowId, double originalDataRate)
+ApplicationHelper::GetFlowDataRate (FlowId_t flowId, double optimalFlowDr)
 {
   try
     {
-      FlowDataRate& flowDataRate = m_updatedFlows.at (flowId);
-
-      if (m_useUpdatedDataRates)
-        return flowDataRate.receivedDataRate;
+      if (m_ignoreOptimalDataRates)
+        return m_updatedFlows.at (flowId).requestedDataRate;
       else
-        return flowDataRate.requestedDataRate;
+        return optimalFlowDr;
     }
-  catch (std::out_of_range) // Flow not found. Return the original requested data rate.
+  catch (std::out_of_range)
     {
-      return originalDataRate;
+      // The Flow in question does not have any data rate modifications.
+      // Return the optimal flow data rate.
+      return optimalFlowDr;
     }
 }
 
