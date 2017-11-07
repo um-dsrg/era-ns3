@@ -9,6 +9,10 @@
 using namespace ns3;
 using namespace tinyxml2;
 
+ApplicationHelper::ApplicationHelper (bool useUpdatedDataRates) :
+  m_useUpdatedDataRates (useUpdatedDataRates)
+{}
+
 void
 ApplicationHelper::InstallApplicationOnTerminals (ApplicationMonitor& applicationMonitor,
     ns3::NodeContainer& allNodes, tinyxml2::XMLNode* rootNode)
@@ -20,9 +24,14 @@ ApplicationHelper::InstallApplicationOnTerminals (ApplicationMonitor& applicatio
 
   while (flowElement != nullptr)
     {
+      FlowId_t flowId (0);
       double dataRateInclHdr (0);
       char protocol (*flowElement->Attribute ("Protocol"));
+
+      flowElement->QueryAttribute ("Id", &flowId);
       flowElement->QueryAttribute ("DataRate", &dataRateInclHdr);
+
+      dataRateInclHdr = GetFlowDataRate (flowId, dataRateInclHdr);
 
       // Do not install the application if the data rate is equal to 0 or it is
       // an acknowledgement flow.
@@ -43,9 +52,7 @@ ApplicationHelper::InstallApplicationOnTerminals (ApplicationMonitor& applicatio
       flowElement->QueryAttribute ("DestinationNode", &dstNodeId);
 
       if (protocol == 'U')
-        {
-          flowElement->QueryAttribute ("PortNumber", &dstPortNumber);
-        }
+        flowElement->QueryAttribute ("PortNumber", &dstPortNumber);
       else
         {
           flowElement->QueryAttribute ("SrcPortNumber", &srcPortNumber);
@@ -88,12 +95,58 @@ ApplicationHelper::InstallApplicationOnTerminals (ApplicationMonitor& applicatio
       destinationApplication.Start (Seconds (startTime));
 
       // Monitor the PacketSink application
-      FlowId_t flowId (0);
-      flowElement->QueryAttribute ("Id", &flowId);
       applicationMonitor.MonitorApplication (flowId, dataRateExclHdr,
                                              destinationApplication.Get (0));
 
       flowElement = flowElement->NextSiblingElement ("Flow");
+    }
+}
+
+void
+ApplicationHelper::ParseDataRateModifications (XMLNode* rootNode)
+{
+  XMLElement* dataRateModsElement = rootNode->FirstChildElement ("FlowDataRateModifications");
+
+  // This element does not exist in the XML. This means that all flows can transmit the
+  // requested data without any modifications.
+  if (dataRateModsElement == nullptr) return;
+
+  XMLElement* flowElement = dataRateModsElement->FirstChildElement ("Flow");
+
+  while (flowElement != nullptr)
+    {
+      FlowId_t flowId (0);
+      FlowDataRate flowDataRate;
+
+      flowElement->QueryAttribute ("Id", &flowId);
+      flowElement->QueryAttribute ("RequestedDataRate", &flowDataRate.requestedDataRate);
+      flowElement->QueryAttribute ("ReceivedDataRate", &flowDataRate.receivedDataRate);
+
+      auto ret = m_updatedFlows.insert ({flowId, flowDataRate});
+
+      if (ret.second == false)
+        NS_ABORT_MSG ("Duplicate Flow ID(" << flowId <<
+                      ") in the FlowDataRateModifications section found.");
+
+      flowElement = flowElement->NextSiblingElement ("Flow");
+    }
+}
+
+double
+ApplicationHelper::GetFlowDataRate (FlowId_t flowId, double originalDataRate)
+{
+  try
+    {
+      FlowDataRate& flowDataRate = m_updatedFlows.at (flowId);
+
+      if (m_useUpdatedDataRates)
+        return flowDataRate.receivedDataRate;
+      else
+        return flowDataRate.requestedDataRate;
+    }
+  catch (std::out_of_range) // Flow not found. Return the original requested data rate.
+    {
+      return originalDataRate;
     }
 }
 

@@ -137,7 +137,7 @@ main (int argc, char *argv[])
     }
 
   ApplicationMonitor applicationMonitor (1000000);
-  ApplicationHelper applicationHelper;
+  ApplicationHelper applicationHelper (false);
   applicationHelper.InstallApplicationOnTerminals (applicationMonitor, allNodes, rootNode);
 
   ResultManager resultManager;
