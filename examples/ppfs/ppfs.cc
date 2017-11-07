@@ -76,9 +76,6 @@ main (int argc, char *argv[])
 
   cmdLine.Parse (argc, argv);
 
-  // TODO: Remove this once testing is complete
-  LogComponentEnable ("ApplicationMonitor", LOG_LEVEL_INFO);
-
   if (verbose)
     {
       LogComponentEnable ("PpfsSwitch", LOG_LEVEL_INFO);
@@ -161,6 +158,7 @@ main (int argc, char *argv[])
   Simulator::Run ();
 
   resultManager.GenerateFlowMonitorXmlLog (enableHistograms, enableFlowProbes);
+  resultManager.AddApplicationMonitorResults (applicationMonitor);
   resultManager.UpdateFlowIds (rootNode, allNodes);
   resultManager.AddQueueStatistics (switchMap);
   resultManager.AddLinkStatistics (switchMap);

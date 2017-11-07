@@ -19,15 +19,9 @@ public:
   ApplicationMonitor (uint64_t nBytesQuota);
   ~ApplicationMonitor();
 
-  void MonitorApplication (FlowId_t flowId, double requestedGoodput,
-                           ns3::Ptr<ns3::Application> application);
-
-private:
-
-  void ReceivePacket (std::string context,
-                      ns3::Ptr<const ns3::Packet> packet,
-                      const ns3::Address &address);
-
+  /**
+   * @brief      Container that stores all the Flow related information.
+   */
   struct FlowDetails
   {
     FlowDetails (double requestedGoodput) : nBytesReceived (0),
@@ -53,6 +47,17 @@ private:
     ns3::Time firstRxPacket; //!< The time the first packet was received
     ns3::Time lastRxPacket; //!< The time the last packet was received
   };
+
+  const std::map<FlowId_t, FlowDetails>& GetFlowMap () const { return m_flows; }
+
+  void MonitorApplication (FlowId_t flowId, double requestedGoodput,
+                           ns3::Ptr<ns3::Application> application);
+
+private:
+
+  void ReceivePacket (std::string context,
+                      ns3::Ptr<const ns3::Packet> packet,
+                      const ns3::Address &address);
 
   /**
    * A map containing all the flow details.
