@@ -56,10 +56,13 @@ main (int argc, char *argv[])
   bool enableHistograms (false);
   bool enableFlowProbes (false);
   bool enablePcapTracing (false);
+  uint64_t appBytesQuota (0);
+  bool ignoreOptimalDataRates (false);
 
   CommandLine cmdLine;
   cmdLine.AddValue ("verbose", "If true display log values", verbose);
-  cmdLine.AddValue ("seed", "The seed used by the random number generator. Default of 1.", seed);
+  cmdLine.AddValue ("seed", "The seed used by the random number generator. Default of 1.",
+                    seed);
   cmdLine.AddValue ("run", "The initial run value. Default of 1.", initRun);
   cmdLine.AddValue ("log", "The full path to the XML log file", xmlLogFilePath);
   cmdLine.AddValue ("result", "The full path of the result file", xmlResultFilePath);
@@ -67,12 +70,17 @@ main (int argc, char *argv[])
                     "If left blank animation will be disabled.", xmlAnimationFile);
   cmdLine.AddValue ("queuePacketSize", "The maximum number of packets a queue can store."
                     "The value is 100", queuePacketSize);
-  cmdLine.AddValue ("enableHistograms", "If set enable FlowMonitor's delay and jitter histograms."
-                    "By default they are disabled", enableHistograms);
+  cmdLine.AddValue ("enableHistograms", "If set enable FlowMonitor's delay and jitter"
+                    " histograms. By default they are disabled", enableHistograms);
   cmdLine.AddValue ("enableFlowProbes", "If set enable FlowMonitor's flow probes."
                     "By default they are disabled", enableFlowProbes);
-  cmdLine.AddValue ("enablePcapTracing", "If set enable Pcap Tracing. By default this is disabled",
-                    enablePcapTracing);
+  cmdLine.AddValue ("enablePcapTracing", "If set enable Pcap Tracing."
+                    " By default this is disabled", enablePcapTracing);
+  cmdLine.AddValue ("appBytesQuota", "The number of bytes each application must receive"
+                    "before simulation can terminate. Default of 0.", appBytesQuota);
+  cmdLine.AddValue ("ignoreOptimalDataRates", "When set will ignore the optimal data rates"
+                    "and every flow will transmit at its original requested data rate."
+                    "Default false.", ignoreOptimalDataRates);
 
   cmdLine.Parse (argc, argv);
 
@@ -136,8 +144,8 @@ main (int argc, char *argv[])
       animHelper->SetupAnimation (xmlAnimationFile, terminalNodes, switchNodes);
     }
 
-  ApplicationMonitor applicationMonitor (1000000);
-  ApplicationHelper applicationHelper (false);
+  ApplicationMonitor applicationMonitor (appBytesQuota);
+  ApplicationHelper applicationHelper (ignoreOptimalDataRates);
   applicationHelper.InstallApplicationOnTerminals (applicationMonitor, allNodes, rootNode);
 
   ResultManager resultManager;
