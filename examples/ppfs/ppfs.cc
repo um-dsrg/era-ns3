@@ -58,6 +58,7 @@ main (int argc, char *argv[])
   bool enablePcapTracing (false);
   uint64_t appBytesQuota (0);
   bool ignoreOptimalDataRates (false);
+  bool logGoodputEveryPacket (false);
 
   CommandLine cmdLine;
   cmdLine.AddValue ("verbose", "If true display log values", verbose);
@@ -78,9 +79,12 @@ main (int argc, char *argv[])
                     " By default this is disabled", enablePcapTracing);
   cmdLine.AddValue ("appBytesQuota", "The number of bytes each application must receive"
                     "before simulation can terminate. Default of 0.", appBytesQuota);
-  cmdLine.AddValue ("ignoreOptimalDataRates", "When set will ignore the optimal data rates"
+  cmdLine.AddValue ("ignoreOptimalDataRates", "When set, will ignore the optimal data rates"
                     "and every flow will transmit at its original requested data rate."
                     "Default false.", ignoreOptimalDataRates);
+  cmdLine.AddValue ("logGoodputEveryPacket", "When set, log the goodput for each packet an"
+                    "application receives and store it an an XML file. Default false.",
+                    logGoodputEveryPacket);
 
   cmdLine.Parse (argc, argv);
 
@@ -145,7 +149,7 @@ main (int argc, char *argv[])
       animHelper->SetupAnimation (xmlAnimationFile, terminalNodes, switchNodes);
     }
 
-  ApplicationMonitor applicationMonitor (appBytesQuota, false);
+  ApplicationMonitor applicationMonitor (appBytesQuota, logGoodputEveryPacket);
   ApplicationHelper applicationHelper (ignoreOptimalDataRates);
   applicationHelper.InstallApplicationOnTerminals (applicationMonitor, allNodes, rootNode);
 

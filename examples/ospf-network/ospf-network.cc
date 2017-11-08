@@ -58,7 +58,7 @@ main (int argc, char *argv[])
   bool enablePcapTracing (false);
   uint64_t appBytesQuota (0);
   bool ignoreOptimalDataRates (false);
-
+  bool logGoodputEveryPacket (false);
 
   CommandLine cmdLine;
   cmdLine.AddValue ("verbose", "If true display log values", verbose);
@@ -83,6 +83,9 @@ main (int argc, char *argv[])
   cmdLine.AddValue ("ignoreOptimalDataRates", "When set will ignore the optimal data rates"
                     "and every flow will transmit at its original requested data rate."
                     "Default false.", ignoreOptimalDataRates);
+  cmdLine.AddValue ("logGoodputEveryPacket", "When set, log the goodput for each packet an"
+                    "application receives and store it an an XML file. Default false.",
+                    logGoodputEveryPacket);
 
   cmdLine.Parse (argc, argv);
 
@@ -148,7 +151,7 @@ main (int argc, char *argv[])
       animHelper->SetupAnimation (xmlAnimationFile, terminalNodes, switchNodes);
     }
 
-  ApplicationMonitor applicationMonitor (appBytesQuota, false);
+  ApplicationMonitor applicationMonitor (appBytesQuota, logGoodputEveryPacket);
   ApplicationHelper applicationHelper (ignoreOptimalDataRates);
   applicationHelper.InstallApplicationOnTerminals (applicationMonitor, allNodes, rootNode);
 
@@ -176,6 +179,8 @@ main (int argc, char *argv[])
   resultManager.AddQueueStatistics (switchMap);
   resultManager.AddLinkStatistics (switchMap);
   resultManager.SaveXmlResultFile (xmlResultFilePath.c_str());
+  // Storing the goodput for each flor per packet if this feature was enabled.
+  resultManager.SavePerPacketGoodPutResults (xmlResultFilePath, applicationMonitor);
 
   Simulator::Destroy ();
 
