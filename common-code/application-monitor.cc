@@ -7,8 +7,8 @@ using namespace ns3;
 NS_LOG_COMPONENT_DEFINE ("ApplicationMonitor");
 
 
-ApplicationMonitor::ApplicationMonitor (uint64_t nBytesQuota) :
-  m_nFlows (0), m_nBytesQuota (nBytesQuota)
+ApplicationMonitor::ApplicationMonitor (uint64_t nBytesQuota, bool logGoodputEveryPacket) :
+  m_nFlows (0), m_nBytesQuota (nBytesQuota), m_logGoodputEveryPacket (logGoodputEveryPacket)
 {}
 
 ApplicationMonitor::~ApplicationMonitor()
@@ -49,29 +49,21 @@ ApplicationMonitor::ReceivePacket (std::string context, ns3::Ptr<const ns3::Pack
       FlowDetails& flow = m_flows.at (flowId);
 
       if (flow.nBytesReceived == 0) // The first packet is received
-        {
-          flow.firstRxPacket = Simulator::Now();
-          flow.lastRxPacket = Simulator::Now();
-        }
-      else
-        flow.lastRxPacket = Simulator::Now();
+        flow.firstRxPacket = Simulator::Now();
 
+      flow.lastRxPacket = Simulator::Now();
       flow.nBytesReceived += packet->GetSize();
       flow.nPacketsReceived++;
 
-      // The flow has met the quota
-      if (flow.nBytesReceived >= m_nBytesQuota)
-        {
-          // Calculate Goodput in Mbps
-          double duration = flow.lastRxPacket.GetSeconds() - flow.firstRxPacket.GetSeconds();
-          flow.goodputAtQuota = ((flow.nBytesReceived * 8) / duration) / 1000000;
+      if (m_logGoodputEveryPacket) // Log the flow's goodput for every packet recieved
+        flow.goodputPerPacket.push_back (flow.CalculateGoodput());
 
-          /**
-           * Insert the flow id into the set.
-           * Note: The set does not allow duplicates which is why this data structure is
-           * being used.
-           */
+      if (flow.nBytesReceived >= m_nBytesQuota) // The flow has met the quota
+        {
+          // Insert the flow id into the set. Note: The set does not allow duplicates
+          // which is why this data structure is being used.
           m_flowsThatMetQuota.insert (flowId);
+          flow.goodputAtQuota = flow.CalculateGoodput();
         }
 
       NS_LOG_INFO (flow);

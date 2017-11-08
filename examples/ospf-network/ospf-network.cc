@@ -148,7 +148,7 @@ main (int argc, char *argv[])
       animHelper->SetupAnimation (xmlAnimationFile, terminalNodes, switchNodes);
     }
 
-  ApplicationMonitor applicationMonitor (appBytesQuota);
+  ApplicationMonitor applicationMonitor (appBytesQuota, false);
   ApplicationHelper applicationHelper (ignoreOptimalDataRates);
   applicationHelper.InstallApplicationOnTerminals (applicationMonitor, allNodes, rootNode);
 
