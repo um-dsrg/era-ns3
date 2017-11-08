@@ -90,6 +90,8 @@ main (int argc, char *argv[])
     {
       LogComponentEnable ("OspfSwitch", LOG_LEVEL_INFO);
       LogComponentEnable ("SwitchDevice", LOG_LEVEL_INFO);
+      LogComponentEnable ("ApplicationMonitor", LOG_LEVEL_INFO);
+      LogComponentEnable ("ApplicationHelper", LOG_LEVEL_INFO);
       LogComponentEnable ("OnOffApplication", LOG_LEVEL_INFO);
       LogComponentEnable ("PacketSink", LOG_LEVEL_INFO);
       LogComponentEnable ("ResultManager", LOG_LEVEL_INFO);

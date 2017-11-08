@@ -1,13 +1,16 @@
-#include "ns3/inet-socket-address.h"
-#include "ns3/on-off-helper.h"
-#include "ns3/uinteger.h"
-#include "ns3/string.h"
-#include "ns3/packet-sink-helper.h"
+#include <ns3/core-module.h>
+#include <ns3/inet-socket-address.h>
+#include <ns3/on-off-helper.h>
+#include <ns3/uinteger.h>
+#include <ns3/string.h>
+#include <ns3/packet-sink-helper.h>
 
 #include "application-helper.h"
 
 using namespace ns3;
 using namespace tinyxml2;
+
+NS_LOG_COMPONENT_DEFINE ("ApplicationHelper");
 
 ApplicationHelper::ApplicationHelper (bool ignoreOptimalDataRates) :
   m_ignoreOptimalDataRates (ignoreOptimalDataRates)
@@ -86,10 +89,9 @@ ApplicationHelper::InstallApplicationOnTerminals (ApplicationMonitor& applicatio
 
       NodeId_t srcNodeId (0);
       uint32_t startTime (0);
-      uint32_t endTime (0);
+
       flowElement->QueryAttribute ("SourceNode", &srcNodeId);
       flowElement->QueryAttribute ("StartTime", &startTime);
-      flowElement->QueryAttribute ("EndTime", &endTime);
 
       // Configuring the transmitter
       ApplicationContainer sourceApplication = onOff.Install (allNodes.Get (srcNodeId));
@@ -100,6 +102,21 @@ ApplicationHelper::InstallApplicationOnTerminals (ApplicationMonitor& applicatio
       ApplicationContainer destinationApplication = sinkHelper.Install (allNodes.Get (dstNodeId));
       destinationApplication.Start (Seconds (startTime));
 
+      // Log Flow Details
+      NS_LOG_INFO ("Flow Entry" << "\n" <<
+                   "  Id: " << flowId << "\n" <<
+                   "  Source: " << srcNodeId << "\n" <<
+                   "  Destination: " << dstNodeId << "\n" <<
+                   "  Src Port: " << srcPortNumber << "\n" <<
+                   "  Dst Port: " << dstPortNumber << "\n" <<
+                   "  Protocol: " << protocol << "\n" <<
+                   "  Num Packets: " << numOfPackets << "\n" <<
+                   "  Packet Size Incl Hdr (bytes): " << pktSizeInclHdr << "\n" <<
+                   "  Packet Size Excl Hdr (bytes): " << pktSizeExclHdr << "\n" <<
+                   "  Data Rate Incl Hdr (Mbps): " << dataRateInclHdr << "\n" <<
+                   "  Data Rate Excl Hdr (Mbps): " << dataRateExclHdr);
+
+      NS_LOG_INFO ("");
       // Monitor the PacketSink application
       applicationMonitor.MonitorApplication (flowId, dataRateExclHdr,
                                              destinationApplication.Get (0));

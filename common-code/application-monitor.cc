@@ -76,11 +76,12 @@ ApplicationMonitor::ReceivePacket (std::string context, ns3::Ptr<const ns3::Pack
 
       NS_LOG_INFO (flow);
 
-      // Stop the simulation if all flows have met the quota
+      // Stop the simulation if all of the applications have received a sufficient amount
+      // of bytes.
       if (m_flowsThatMetQuota.size() == m_nFlows)
         {
-          NS_LOG_INFO ("Quota of " << m_nBytesQuota << "bytes met by all the flows.\n"
-                       "Simulation Stopped.");
+          NS_LOG_INFO ("Simulation STOPPED. "
+                       "Quota of " << m_nBytesQuota << "bytes met by all the applications.");
           Simulator::Stop();
         }
     }
