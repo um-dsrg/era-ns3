@@ -171,6 +171,8 @@ main (int argc, char *argv[])
   resultManager.AddLinkStatistics (switchMap);
   resultManager.AddSwitchDetails (switchMap);
   resultManager.SaveXmlResultFile (xmlResultFilePath.c_str());
+  // Storing the goodput for each flor per packet if this feature was enabled.
+  resultManager.SavePerPacketGoodPutResults (xmlResultFilePath, applicationMonitor);
 
   Simulator::Destroy ();
 

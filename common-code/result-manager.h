@@ -28,7 +28,9 @@ public:
 
   void AddApplicationMonitorResults (const ApplicationMonitor& applicationMonitor);
   void AddSwitchDetails (std::map<NodeId_t, PpfsSwitch>& switchMap);
+
   void SaveXmlResultFile (const char* resultPath);
+  void SavePerPacketGoodPutResults (std::string resultPath, const ApplicationMonitor& applicationMonitor);
 
   template <typename SwitchType>
   void AddLinkStatistics (std::map<NodeId_t, SwitchType>& switchMap);

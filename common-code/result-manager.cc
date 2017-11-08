@@ -227,6 +227,48 @@ ResultManager::SaveXmlResultFile (const char* resultPath)
 }
 
 void
+ResultManager::SavePerPacketGoodPutResults (std::string resultPath, const ApplicationMonitor& applicationMonitor)
+{
+  if (!applicationMonitor.GetLogGoodputEveryPacket())
+    return; // This option is turned off. No need to store the results.
+
+  std::unique_ptr<XMLDocument> xmlResultFile (new XMLDocument);
+  XMLNode * pRoot = xmlResultFile->NewElement ("Results");
+  xmlResultFile->InsertFirstChild (pRoot);
+
+  for (auto const& flow : applicationMonitor.GetFlowMap()) // Loop through the map
+    {
+      XMLElement* flowElement = xmlResultFile->NewElement ("Flow");
+      flowElement->SetAttribute ("Id", flow.first);
+
+      auto& goodputPerPacket = flow.second.goodputPerPacket;
+      // Create element for each number of packets
+      for (uint32_t packetNumber = 0;
+           packetNumber < goodputPerPacket.size();
+           ++packetNumber)
+        {
+          XMLElement* packetElement = xmlResultFile->NewElement ("Packet");
+          packetElement->SetAttribute ("Number", packetNumber + 1);
+          packetElement->SetAttribute ("Goodput", goodputPerPacket[packetNumber]);
+          flowElement->InsertEndChild (packetElement);
+        }
+
+      pRoot->InsertEndChild (flowElement);
+    }
+
+  // Remove the .xml extension from the result path
+  std::string fileExtension = ".xml";
+  std::string::size_type i = resultPath.find (fileExtension);
+
+  if (i != std::string::npos)
+    resultPath.erase (i, fileExtension.length());
+
+  resultPath += "_flowResults.xml";
+  XMLError eResult = xmlResultFile->SaveFile (resultPath.c_str());
+  if (eResult != XML_SUCCESS) NS_LOG_ERROR ("Error saving XML result file");
+}
+
+void
 ResultManager::TerminalPacketTransmission (std::string context, ns3::Ptr<const ns3::Packet> packet)
 {
   LinkId_t linkId (std::stoul (context));
