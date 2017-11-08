@@ -156,9 +156,7 @@ main (int argc, char *argv[])
   Config::Set ("/NodeList/*/DeviceList/*/$ns3::PointToPointNetDevice/TxQueue/MaxPackets",
                UintegerValue (queuePacketSize));
 
-  // Enable PCAP tracing if the command line parameter was set
-  //enablePcapTracing = true;
-  if (enablePcapTracing)
+  if (enablePcapTracing) // Enable PCAP tracing if the command line parameter was set
     {
       PointToPointHelper myHelper;
       myHelper.EnablePcapAll ("ppfs-pcap", false);
