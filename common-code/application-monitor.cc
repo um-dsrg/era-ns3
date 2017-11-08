@@ -56,7 +56,7 @@ ApplicationMonitor::ReceivePacket (std::string context, ns3::Ptr<const ns3::Pack
       flow.nPacketsReceived++;
 
       if (m_logGoodputEveryPacket) // Log the flow's goodput for every packet recieved
-        flow.goodputPerPacket.push_back (flow.CalculateGoodput());
+        flow.goodputPerPacket.push_back (std::make_pair (flow.nBytesReceived, flow.CalculateGoodput()));
 
       if (flow.nBytesReceived >= m_nBytesQuota) // The flow has met the quota
         {

@@ -249,7 +249,9 @@ ResultManager::SavePerPacketGoodPutResults (std::string resultPath, const Applic
         {
           XMLElement* packetElement = xmlResultFile->NewElement ("Packet");
           packetElement->SetAttribute ("Number", packetNumber + 1);
-          packetElement->SetAttribute ("Goodput", goodputPerPacket[packetNumber]);
+          packetElement->SetAttribute ("BytesReceived",
+                                       static_cast<unsigned int> (goodputPerPacket[packetNumber].first));
+          packetElement->SetAttribute ("Goodput", goodputPerPacket[packetNumber].second);
           flowElement->InsertEndChild (packetElement);
         }
 

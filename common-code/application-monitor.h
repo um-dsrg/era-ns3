@@ -61,7 +61,12 @@ public:
     double    goodputAtQuota; //!< The goodput when the flow has received enough bytes to meet the quota
     ns3::Time firstRxPacket; //!< The time the first packet was received
     ns3::Time lastRxPacket; //!< The time the last packet was received
-    std::vector<double> goodputPerPacket; //!< Stores the goodput for every packet received
+    /**
+     * Stores the goodput and total bytes received up to that packet
+     * for every packet received.
+     * Pair <bytesReceived, goodput>
+     */
+    std::vector<std::pair<uint64_t, double>> goodputPerPacket;
   };
 
   const std::map<FlowId_t, FlowDetails>& GetFlowMap () const { return m_flows; }
