@@ -62,8 +62,15 @@ ApplicationMonitor::ReceivePacket (std::string context, ns3::Ptr<const ns3::Pack
         {
           // Insert the flow id into the set. Note: The set does not allow duplicates
           // which is why this data structure is being used.
-          m_flowsThatMetQuota.insert (flowId);
-          flow.goodputAtQuota = flow.CalculateGoodput();
+          auto ret = m_flowsThatMetQuota.insert (flowId);
+          if (ret.second == true) // A new element is inserted
+            {
+              flow.goodputAtQuota = flow.CalculateGoodput();
+              std::cout << "Flow " << flowId << " has met the quota of " << m_nBytesQuota
+                        << "bytes at " << Simulator::Now().GetSeconds()
+                        << "s. Remaining flows: " << (m_nFlows - m_flowsThatMetQuota.size())
+                        << std::endl;
+            }
         }
 
       NS_LOG_INFO (flow);
