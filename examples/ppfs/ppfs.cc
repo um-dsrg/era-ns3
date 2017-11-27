@@ -103,10 +103,6 @@ main (int argc, char *argv[])
   RandomGeneratorManager::SetSeed (seed);
   RandomGeneratorManager::SetRun (initRun);
 
-  Config::SetDefault ("ns3::TcpSocket::DataRetries", UintegerValue (100));
-  Config::SetDefault ("ns3::TcpSocket::SndBufSize", UintegerValue (1000000000));
-  Config::SetDefault ("ns3::TcpSocket::RcvBufSize", UintegerValue (1000000000));
-
   // Parsing the XML file.
   XMLDocument xmlLogFile;
   XMLError error = xmlLogFile.LoadFile (xmlLogFilePath.c_str());
