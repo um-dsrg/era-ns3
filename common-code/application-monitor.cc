@@ -19,6 +19,9 @@ ApplicationMonitor::MonitorApplication (FlowId_t flowId,
                                         double requestedGoodput,
                                         ns3::Ptr<ns3::Application> application)
 {
+  if (m_nBytesQuota == 0) // We do not need to do any monitoring if the quota is 0.
+    return;
+  
   // Call the function ReceivePacket whenever a packet is received
   application->TraceConnect ("Rx", std::to_string (flowId),
                              MakeCallback (&ApplicationMonitor::ReceivePacket, this));
