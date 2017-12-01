@@ -59,6 +59,7 @@ main (int argc, char *argv[])
   uint64_t appBytesQuota (0);
   bool ignoreOptimalDataRates (false);
   bool logGoodputEveryPacket (false);
+  std::string stopTime ("");
 
   CommandLine cmdLine;
   cmdLine.AddValue ("verbose", "If true display log values", verbose);
@@ -86,6 +87,9 @@ main (int argc, char *argv[])
   cmdLine.AddValue ("logGoodputEveryPacket", "When set, log the goodput for each packet an"
                     "application receives and store it an an XML file. Default false.",
                     logGoodputEveryPacket);
+  cmdLine.AddValue ("stopTime", "When set, the value in this string will represent the time"
+                    "at which the simulation will stop. Time can be in the format of "
+                    "XXh/min/s/ms/...", stopTime);
 
   cmdLine.Parse (argc, argv);
 
@@ -172,6 +176,12 @@ main (int argc, char *argv[])
       myHelper.EnablePcapAll ("ospf-pcap", false);
     }
 
+  if (!stopTime.empty())
+  {
+    NS_LOG_UNCOND ("Simulation to stop at " << stopTime);
+    Simulator::Stop(Time(stopTime));
+  }
+  
   Simulator::Run ();
 
   resultManager.GenerateFlowMonitorXmlLog (enableHistograms, enableFlowProbes);
@@ -179,7 +189,7 @@ main (int argc, char *argv[])
   resultManager.AddQueueStatistics (switchMap);
   resultManager.AddLinkStatistics (switchMap);
   resultManager.SaveXmlResultFile (xmlResultFilePath.c_str());
-  // Storing the goodput for each flor per packet if this feature was enabled.
+  // Storing the goodput for each flow per packet (only if this feature is enabled)
   resultManager.SavePerPacketGoodPutResults (xmlResultFilePath, applicationMonitor);
 
   Simulator::Destroy ();
