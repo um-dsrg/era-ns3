@@ -23,7 +23,7 @@ ResultManager::SetupFlowMonitor (NodeContainer& allNodes)
 {
   // Enable flow monitor on all the nodes
   m_flowMonitor = m_flowMonHelper.Install (allNodes);
-  m_flowMonitor->SetAttribute ("MaxPerHopDelay", TimeValue (NanoSeconds (9223372036854775807.0)));
+  m_flowMonitor->SetAttribute ("MaxPerHopDelay", TimeValue (Hours(2500000.0)));
 }
 
 void
