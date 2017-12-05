@@ -18,7 +18,7 @@ ApplicationHelper::ApplicationHelper (bool ignoreOptimalDataRates) :
 
 void
 ApplicationHelper::InstallApplicationOnTerminals (ApplicationMonitor& applicationMonitor,
-    ns3::NodeContainer& allNodes, tinyxml2::XMLNode* rootNode)
+    ns3::NodeContainer& allNodes, uint32_t nPacketsPerFlow, tinyxml2::XMLNode* rootNode)
 {
   // If the optimal data rates are to be ignored then we need to parse the
   // FlowDataRateModifications element from the XML Log output by the optimal
@@ -51,13 +51,11 @@ ApplicationHelper::InstallApplicationOnTerminals (ApplicationMonitor& applicatio
         }
 
       uint32_t pktSizeInclHdr (0);
-      uint32_t numOfPackets (0);
       NodeId_t dstNodeId (0);
       uint32_t srcPortNumber (0);
       uint32_t dstPortNumber (0);
 
       flowElement->QueryAttribute ("PacketSize", &pktSizeInclHdr);
-      flowElement->QueryAttribute ("NumOfPackets", &numOfPackets);
       flowElement->QueryAttribute ("DestinationNode", &dstNodeId);
 
       if (protocol == 'U')
@@ -86,7 +84,11 @@ ApplicationHelper::InstallApplicationOnTerminals (ApplicationMonitor& applicatio
       onOff.SetAttribute ("PacketSize", UintegerValue (pktSizeExclHdr));
       onOff.SetAttribute ("DataRate", DataRateValue (dataRateExclHdr * 1000000)); // In bps
       onOff.SetAttribute ("SourcePort", UintegerValue (srcPortNumber));
-
+      if (nPacketsPerFlow > 0)
+        {
+          uint32_t maxBytes (nPacketsPerFlow * pktSizeExclHdr);
+          onOff.SetAttribute ("MaxBytes", UintegerValue (maxBytes));
+        }
       NodeId_t srcNodeId (0);
       uint32_t startTime (0);
 
@@ -110,7 +112,6 @@ ApplicationHelper::InstallApplicationOnTerminals (ApplicationMonitor& applicatio
                    "  Src Port: " << srcPortNumber << "\n" <<
                    "  Dst Port: " << dstPortNumber << "\n" <<
                    "  Protocol: " << protocol << "\n" <<
-                   "  Num Packets: " << numOfPackets << "\n" <<
                    "  Packet Size Incl Hdr (bytes): " << pktSizeInclHdr << "\n" <<
                    "  Packet Size Excl Hdr (bytes): " << pktSizeExclHdr << "\n" <<
                    "  Data Rate Incl Hdr (Mbps): " << dataRateInclHdr << "\n" <<

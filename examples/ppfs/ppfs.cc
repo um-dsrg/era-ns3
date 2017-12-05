@@ -60,6 +60,7 @@ main (int argc, char *argv[])
   bool ignoreOptimalDataRates (false);
   bool logGoodputEveryPacket (false);
   std::string stopTime ("");
+  uint32_t nPacketsPerFlow (0);
 
   CommandLine cmdLine;
   cmdLine.AddValue ("verbose", "If true display log values", verbose);
@@ -89,6 +90,8 @@ main (int argc, char *argv[])
   cmdLine.AddValue ("stopTime", "When set, the value in this string will represent the time"
                     "at which the simulation will stop. Time can be in the format of "
                     "XXh/min/s/ms/...", stopTime);
+  cmdLine.AddValue("nPacketsPerFlow", "The number of packets each flow will transmit."
+                   "Default 0.", nPacketsPerFlow);
 
   cmdLine.Parse (argc, argv);
 
@@ -151,7 +154,7 @@ main (int argc, char *argv[])
 
   ApplicationMonitor applicationMonitor (appBytesQuota, logGoodputEveryPacket);
   ApplicationHelper applicationHelper (ignoreOptimalDataRates);
-  applicationHelper.InstallApplicationOnTerminals (applicationMonitor, allNodes, rootNode);
+  applicationHelper.InstallApplicationOnTerminals (applicationMonitor, allNodes, nPacketsPerFlow, rootNode);
 
   ResultManager resultManager;
   resultManager.SetupFlowMonitor (allNodes);
@@ -173,6 +176,7 @@ main (int argc, char *argv[])
   }
 
   Simulator::Run ();
+  Simulator::Stop ();
 
   resultManager.GenerateFlowMonitorXmlLog (enableHistograms, enableFlowProbes);
   resultManager.AddApplicationMonitorResults (applicationMonitor);

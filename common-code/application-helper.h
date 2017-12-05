@@ -17,6 +17,7 @@ public:
 
   void InstallApplicationOnTerminals (ApplicationMonitor& applicationMonitor,
                                       ns3::NodeContainer& allNodes,
+                                      uint32_t nPacketsPerFlow,
                                       tinyxml2::XMLNode* rootNode);
 private:
   /**
