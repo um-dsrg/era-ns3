@@ -1,0 +1,19 @@
+## -*- Mode: python; py-indent-offset: 4; indent-tabs-mode: nil; coding: utf-8; -*-
+def build(bld):
+    def set_properties(obj):
+        obj.use = obj.ns3_module_dependencies
+        obj.install_path = None
+
+    all_modules = [mod[len("ns3-"):] for mod in bld.env['NS3_ENABLED_MODULES']]
+    obj = bld.create_ns3_program('ospf-network', all_modules)
+    obj.source = ['ospf-network.cc',
+                  '../../common-code/switch-device.cc',
+                  '../../common-code/application-helper.cc',
+                  '../../common-code/application-monitor.cc',
+                  '../../common-code/animation-helper.cc',
+                  '../../common-code/result-manager.cc',
+                  '../../common-code/random-generator-manager.cc',
+                  '../ppfs/ppfs-switch.cc',
+                  'ospf-switch.cc']
+    obj.env.append_value('LIB', ['tinyxml2'])  # Adding the tinyxml2 library
+    set_properties(obj)
