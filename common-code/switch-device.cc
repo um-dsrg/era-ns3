@@ -29,7 +29,7 @@ SwitchDevice::InsertNetDevice(LinkId_t linkId, Ptr<NetDevice> device)
   m_switchQueueResults.insert({linkId, QueueResults()}); // Pre-populating the map with empty values
 }
 
-Ptr<Queue>
+Ptr<Queue<Packet>>
 SwitchDevice::GetQueueFromLinkId(LinkId_t linkId) const
 {
   auto ret = m_linkNetDeviceTable.find(linkId);
@@ -131,22 +131,22 @@ SwitchDevice::ParsePacket (Ptr<const Packet> packet, uint16_t protocol, bool all
           if (recvPacket->PeekHeader(icmpHeader))
             {
               flow.SetProtocol(Flow::Protocol::Icmp);
-              switch (icmpHeader.GetType())
+              switch (icmpHeader.GetType ())
                 {
-                case Icmpv4Header::ECHO:
-                  NS_LOG_INFO("ICMP Echo message received at Switch " << m_id);
+                case Icmpv4Header::Type_e::ICMPV4_ECHO:
+                  NS_LOG_INFO ("ICMP Echo message received at Switch " << m_id);
                   break;
-                case Icmpv4Header::ECHO_REPLY:
-                  NS_LOG_INFO("ICMP Echo reply message received at Switch " << m_id);
+                case Icmpv4Header::Type_e::ICMPV4_ECHO_REPLY:
+                  NS_LOG_INFO ("ICMP Echo reply message received at Switch " << m_id);
                   break;
-                case Icmpv4Header::DEST_UNREACH:
-                  NS_LOG_INFO("ICMP Destination Unreachable message received at Switch " << m_id);
+                case Icmpv4Header::Type_e::ICMPV4_DEST_UNREACH:
+                  NS_LOG_INFO ("ICMP Destination Unreachable message received at Switch " << m_id);
                   break;
-                case Icmpv4Header::TIME_EXCEEDED:
-                  NS_LOG_INFO("ICMP Time exceeded message received at Switch " << m_id);
+                case Icmpv4Header::Type_e::ICMPV4_TIME_EXCEEDED:
+                  NS_LOG_INFO ("ICMP Time exceeded message received at Switch " << m_id);
                   break;
                 default:
-                  NS_ABORT_MSG("ICMP unidentified message received at Switch " << m_id);
+                  NS_ABORT_MSG ("ICMP unidentified message received at Switch " << m_id);
                   break;
                 }
             }
@@ -164,7 +164,7 @@ void
 SwitchDevice::LogQueueEntries (Ptr<NetDevice> port)
 {
   Ptr<PointToPointNetDevice> p2pDevice = port->GetObject<PointToPointNetDevice>();
-  Ptr<Queue> queue = p2pDevice->GetQueue();
+  Ptr<Queue<Packet>> queue = p2pDevice->GetQueue();
 
   uint32_t numOfPackets (queue->GetNPackets());
   uint32_t numOfBytes (queue->GetNBytes());

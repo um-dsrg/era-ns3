@@ -219,9 +219,9 @@ TopologyBuilder<SwitchType>::InstallP2pLink (LinkInformation& linkA, LinkInforma
   Ptr<PointToPointNetDevice> devA = m_deviceFactory.Create<PointToPointNetDevice> ();
   devA->SetAddress (Mac48Address::Allocate ());
   nodeA->AddDevice(devA);
-  Ptr<Queue> queueA = m_queueFactory.Create<Queue> ();
+  Ptr<Queue<Packet>> queueA = m_queueFactory.Create<Queue<Packet>> ();
   devA->SetQueue (queueA);
-  /*j
+  /*
    * Inserting a reference to the net device in the switch. This information will be
    * used when building the routing table.
    */
@@ -242,7 +242,7 @@ TopologyBuilder<SwitchType>::InstallP2pLink (LinkInformation& linkA, LinkInforma
   Ptr<PointToPointNetDevice> devB = m_deviceFactory.Create<PointToPointNetDevice> ();
   devB->SetAddress (Mac48Address::Allocate ());
   nodeB->AddDevice (devB);
-  Ptr<Queue> queueB = m_queueFactory.Create<Queue> ();
+  Ptr<Queue<Packet>> queueB = m_queueFactory.Create<Queue<Packet>> ();
   devB->SetQueue (queueB);
   /*
    * Inserting a reference to the net device in the switch. This information will be
@@ -289,7 +289,7 @@ TopologyBuilder<SwitchType>::InstallP2pLink (LinkInformation& link, uint32_t del
   Ptr<PointToPointNetDevice> devA = deviceFactory.Create<PointToPointNetDevice> ();
   devA->SetAddress (Mac48Address::Allocate ());
   nodeA->AddDevice(devA);
-  Ptr<Queue> queueA = queueFactory.Create<Queue> ();
+  Ptr<Queue<Packet>> queueA = queueFactory.Create<Queue<Packet>> ();
   devA->SetQueue (queueA);
   // Inserting a reference to the net device in the switch. This information will be
   // used when building the routing table.
@@ -309,8 +309,8 @@ TopologyBuilder<SwitchType>::InstallP2pLink (LinkInformation& link, uint32_t del
   Ptr<PointToPointNetDevice> devB = deviceFactory.Create<PointToPointNetDevice> ();
   devB->SetAddress (Mac48Address::Allocate ());
   nodeB->AddDevice (devB);
-  Ptr<Queue> queueB = queueFactory.Create<Queue> ();
-  queueB->SetMaxPackets(0); /*!< Sanity check to make sure no packets are sent from this device */
+  Ptr<Queue<Packet>> queueB = queueFactory.Create<Queue<Packet>> ();
+  queueB->SetMaxSize (QueueSize (QueueSizeUnit::PACKETS, 0)); /**< Sanity check to make sure no packets are sent from this device */
   devB->SetQueue (queueB);
 
   if (link.dstNodeType == 'S')

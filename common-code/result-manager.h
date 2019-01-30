@@ -166,9 +166,14 @@ ResultManager::AddQueueStatistics (std::map<NodeId_t, SwitchType>& switchMap)
           linkElement->SetAttribute ("PeakNumOfBytes", queueResult.second.peakNumOfBytes);
 
           // Given the link id I need to access the queue and retreive it's details.
-          Ptr<Queue> queue = switchNode.second.GetQueueFromLinkId (linkId);
-          linkElement->SetAttribute ("QueueMaxNumPackets", queue->GetMaxPackets());
-          linkElement->SetAttribute ("QueueMaxBytes", queue->GetMaxBytes());
+          Ptr<Queue<Packet>> queue = switchNode.second.GetQueueFromLinkId (linkId);
+
+          QueueSize queueSize {queue->GetMaxSize()};
+          if (queueSize.GetUnit () == QueueSizeUnit::PACKETS)
+            linkElement->SetAttribute ("QueueMaxNumPackets", queue->GetMaxSize ().GetValue ());
+          else if (queueSize.GetUnit () == QueueSizeUnit::BYTES)
+            linkElement->SetAttribute ("QueueMaxBytes", queue->GetMaxSize ().GetValue ());
+
           linkElement->SetAttribute ("TotalDroppedPackets", queue->GetTotalDroppedPackets());
           linkElement->SetAttribute ("TotalDroppedBytes", queue->GetTotalDroppedBytes());
 
