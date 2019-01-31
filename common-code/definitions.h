@@ -4,9 +4,13 @@
 #include <cstdint>
 
 // Variable definitions ///////////////////////////////////////////////////////
+typedef uint32_t id_t;
 typedef uint32_t LinkId_t;
 typedef uint32_t NodeId_t;
 typedef uint32_t FlowId_t;
+
+// Enum definitions /////////////////////////////////////////////////////////
+enum class NodeType : char { Switch = 'S', Terminal = 'T' };
 
 // Structure definitions /////////////////////////////////////////////////////////
 
