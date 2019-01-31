@@ -170,10 +170,11 @@ main (int argc, char *argv[])
     }
 
   if (!stopTime.empty())
-  {
-    NS_LOG_UNCOND ("Simulation to stop at " << stopTime);
-    Simulator::Stop(Time(stopTime));
-  }
+    {
+      NS_LOG_UNCOND("This is my message");
+      NS_LOG_UNCOND ("Simulation to stop at " << stopTime);
+      Simulator::Stop(Time(stopTime));
+    }
 
   Simulator::Run ();
   Simulator::Stop ();
