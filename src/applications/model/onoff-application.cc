@@ -67,6 +67,10 @@ OnOffApplication::GetTypeId (void)
                    AddressValue (),
                    MakeAddressAccessor (&OnOffApplication::m_peer),
                    MakeAddressChecker ())
+    .AddAttribute ("SourcePort", "The source port to use when transmitting the packets",
+                   UintegerValue (0),
+                   MakeUintegerAccessor (&OnOffApplication::m_srcPort),
+                   MakeUintegerChecker<uint16_t> ())
     .AddAttribute ("OnTime", "A RandomVariableStream used to pick the duration of the 'On' state.",
                    StringValue ("ns3::ConstantRandomVariable[Constant=1.0]"),
                    MakePointerAccessor (&OnOffApplication::m_onTime),
@@ -75,7 +79,7 @@ OnOffApplication::GetTypeId (void)
                    StringValue ("ns3::ConstantRandomVariable[Constant=1.0]"),
                    MakePointerAccessor (&OnOffApplication::m_offTime),
                    MakePointerChecker <RandomVariableStream>())
-    .AddAttribute ("MaxBytes", 
+    .AddAttribute ("MaxBytes",
                    "The total number of bytes to send. Once these bytes are sent, "
                    "no packet is sent again, even in on state. The value zero means "
                    "that there is no limit.",
@@ -114,7 +118,7 @@ OnOffApplication::~OnOffApplication()
   NS_LOG_FUNCTION (this);
 }
 
-void 
+void
 OnOffApplication::SetMaxBytes (uint64_t maxBytes)
 {
   NS_LOG_FUNCTION (this << maxBytes);
@@ -128,7 +132,7 @@ OnOffApplication::GetSocket (void) const
   return m_socket;
 }
 
-int64_t 
+int64_t
 OnOffApplication::AssignStreams (int64_t stream)
 {
   NS_LOG_FUNCTION (this << stream);
@@ -166,9 +170,20 @@ void OnOffApplication::StartApplication () // Called at time specified by Start
       else if (InetSocketAddress::IsMatchingType (m_peer) ||
                PacketSocketAddress::IsMatchingType (m_peer))
         {
-          if (m_socket->Bind () == -1)
+          if (m_srcPort == 0) // No custom source port defined
             {
-              NS_FATAL_ERROR ("Failed to bind socket");
+              if (m_socket->Bind () == -1)
+                {
+                  NS_FATAL_ERROR ("Failed to bind socket");
+                }
+            }
+          else
+            {
+              InetSocketAddress srcSocket = InetSocketAddress (Ipv4Address::GetAny (), m_srcPort);
+              if (m_socket->Bind (srcSocket) == -1)
+                {
+                  NS_FATAL_ERROR ("Failed to bind socket");
+                }
             }
         }
       m_socket->Connect (m_peer);
