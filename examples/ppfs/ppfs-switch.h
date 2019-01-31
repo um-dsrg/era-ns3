@@ -11,7 +11,7 @@
 
 #include "../common-code/switch-device.h"
 
-class PpfsSwitch: public SwitchDevice
+class PpfsSwitch : public SwitchDevice
 {
 public:
   PpfsSwitch ();
@@ -38,11 +38,13 @@ private:
     ns3::Ptr<ns3::NetDevice> port;
     double splitRatio;
 
-    ForwardingAction (ns3::Ptr<ns3::NetDevice> port, double splitRatio) : port (port),
-                                                                          splitRatio (splitRatio)
-    {}
+    ForwardingAction (ns3::Ptr<ns3::NetDevice> port, double splitRatio)
+        : port (port), splitRatio (splitRatio)
+    {
+    }
 
-    friend std::ostream& operator<< (std::ostream& output, ForwardingAction& value)
+    friend std::ostream &
+    operator<< (std::ostream &output, ForwardingAction &value)
     {
       output << "Split Ratio " << value.splitRatio << "\n";
       output << "----------------------";
@@ -50,7 +52,7 @@ private:
     }
   };
 
-  ns3::Ptr<ns3::NetDevice> GetPort (const std::vector<ForwardingAction>& forwardActions);
+  ns3::Ptr<ns3::NetDevice> GetPort (const std::vector<ForwardingAction> &forwardActions);
   double GenerateRandomNumber ();
 
   /*
@@ -60,7 +62,7 @@ private:
    * This map stores the routing table which is used to map a flow to
    * a set of forwarding actions.
    */
-  std::map <Flow, std::vector<ForwardingAction>> m_routingTable;
+  std::map<Flow, std::vector<ForwardingAction>> m_routingTable;
   ns3::Ptr<ns3::UniformRandomVariable> m_uniformRandomVariable; /*!< Used for flow splitting */
 
   uint32_t m_seed;

@@ -32,22 +32,27 @@ struct Flow
   enum Protocol { Tcp = 'T', Udp = 'U', Icmp = 'I', Ack = 'A', Undefined = 'X' };
 
   // Default Constructor
-  Flow () : id(0), srcIpAddr(0), dstIpAddr(0),
-            dstPortNumber(0), protocol(Protocol::Undefined)
-  {}
-  Flow (FlowId_t id, uint32_t srcIpAddr, uint32_t dstIpAddr,
-        uint16_t port, char protocol) : id (id), srcIpAddr (srcIpAddr), dstIpAddr (dstIpAddr),
-                                        dstPortNumber (port), protocol(Protocol::Undefined)
+  Flow () : id (0), srcIpAddr (0), dstIpAddr (0), dstPortNumber (0), protocol (Protocol::Undefined)
   {
-    SetProtocol(protocol);
+  }
+  Flow (FlowId_t id, uint32_t srcIpAddr, uint32_t dstIpAddr, uint16_t port, char protocol)
+      : id (id),
+        srcIpAddr (srcIpAddr),
+        dstIpAddr (dstIpAddr),
+        dstPortNumber (port),
+        protocol (Protocol::Undefined)
+  {
+    SetProtocol (protocol);
   }
 
-  void SetProtocol (Protocol& protocol)
+  void
+  SetProtocol (Protocol &protocol)
   {
     this->protocol = protocol;
   }
 
-  void SetProtocol (const char& protocol)
+  void
+  SetProtocol (const char &protocol)
   {
     if (protocol == 'T')
       this->protocol = Protocol::Tcp;
@@ -57,12 +62,14 @@ struct Flow
       this->protocol = Protocol::Ack;
   }
 
-  Protocol GetProtocol()
+  Protocol
+  GetProtocol ()
   {
     return protocol;
   }
 
-  bool operator<(const Flow &other) const
+  bool
+  operator< (const Flow &other) const
   {
     /*
      * Used by the map to store the keys in order.
@@ -80,19 +87,20 @@ struct Flow
       return srcIpAddr < other.srcIpAddr;
   }
 
-  friend std::ostream& operator<< (std::ostream& output, Flow& value)
+  friend std::ostream &
+  operator<< (std::ostream &output, Flow &value)
   {
     ns3::Ipv4Address address;
     output << "Flow ID: " << value.id << "\n";
     // Source Ip Address
     output << "Source IP Addr: " << value.srcIpAddr << " (";
-    address.Set(value.srcIpAddr);
-    address.Print(output);
+    address.Set (value.srcIpAddr);
+    address.Print (output);
     output << ")\n";
     // Destination Ip Address
     output << "Destination IP Addr: " << value.dstIpAddr << " (";
-    address.Set(value.dstIpAddr);
-    address.Print(output);
+    address.Set (value.dstIpAddr);
+    address.Print (output);
     output << ")\n";
     // Port Number
     output << "Destination Port Number: " << value.dstPortNumber << "\n";
@@ -114,7 +122,8 @@ struct LinkStatistic /*!< Stores the link statistics */
   uint32_t bytesTransmitted;
 
   LinkStatistic () : timeFirstTx (0), timeLastTx (0), packetsTransmitted (0), bytesTransmitted (0)
-  {}
+  {
+  }
 };
 
 #endif /* DEFINITIONS_H */

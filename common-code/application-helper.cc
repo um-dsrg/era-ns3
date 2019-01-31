@@ -12,13 +12,16 @@ using namespace tinyxml2;
 
 NS_LOG_COMPONENT_DEFINE ("ApplicationHelper");
 
-ApplicationHelper::ApplicationHelper (bool ignoreOptimalDataRates) :
-  m_ignoreOptimalDataRates (ignoreOptimalDataRates)
-{}
+ApplicationHelper::ApplicationHelper (bool ignoreOptimalDataRates)
+    : m_ignoreOptimalDataRates (ignoreOptimalDataRates)
+{
+}
 
 void
-ApplicationHelper::InstallApplicationOnTerminals (ApplicationMonitor& applicationMonitor,
-    ns3::NodeContainer& allNodes, uint32_t nPacketsPerFlow, tinyxml2::XMLNode* rootNode)
+ApplicationHelper::InstallApplicationOnTerminals (ApplicationMonitor &applicationMonitor,
+                                                  ns3::NodeContainer &allNodes,
+                                                  uint32_t nPacketsPerFlow,
+                                                  tinyxml2::XMLNode *rootNode)
 {
   // If the optimal data rates are to be ignored then we need to parse the
   // FlowDataRateModifications element from the XML Log output by the optimal
@@ -26,10 +29,10 @@ ApplicationHelper::InstallApplicationOnTerminals (ApplicationMonitor& applicatio
   if (m_ignoreOptimalDataRates)
     ParseDataRateModifications (rootNode);
 
-  XMLElement* optimalSolutionElement = rootNode->FirstChildElement ("OptimalSolution");
+  XMLElement *optimalSolutionElement = rootNode->FirstChildElement ("OptimalSolution");
   NS_ABORT_MSG_IF (optimalSolutionElement == nullptr, "OptimalSolution element not found");
 
-  XMLElement* flowElement = optimalSolutionElement->FirstChildElement ("Flow");
+  XMLElement *flowElement = optimalSolutionElement->FirstChildElement ("Flow");
 
   while (flowElement != nullptr)
     {
@@ -79,7 +82,7 @@ ApplicationHelper::InstallApplicationOnTerminals (ApplicationMonitor& applicatio
 
       InetSocketAddress destinationSocket (GetIpAddress (dstNodeId, allNodes), dstPortNumber);
       OnOffHelper onOff (socketProtocol, destinationSocket);
-      onOff.SetAttribute ("OnTime",  StringValue ("ns3::ConstantRandomVariable[Constant=1]"));
+      onOff.SetAttribute ("OnTime", StringValue ("ns3::ConstantRandomVariable[Constant=1]"));
       onOff.SetAttribute ("OffTime", StringValue ("ns3::ConstantRandomVariable[Constant=0]"));
       onOff.SetAttribute ("PacketSize", UintegerValue (pktSizeExclHdr));
       onOff.SetAttribute ("DataRate", DataRateValue (dataRateExclHdr * 1000000)); // In bps
@@ -105,17 +108,18 @@ ApplicationHelper::InstallApplicationOnTerminals (ApplicationMonitor& applicatio
       destinationApplication.Start (Seconds (startTime));
 
       // Log Flow Details
-      NS_LOG_INFO ("Flow Entry" << "\n" <<
-                   "  Id: " << flowId << "\n" <<
-                   "  Source: " << srcNodeId << "\n" <<
-                   "  Destination: " << dstNodeId << "\n" <<
-                   "  Src Port: " << srcPortNumber << "\n" <<
-                   "  Dst Port: " << dstPortNumber << "\n" <<
-                   "  Protocol: " << protocol << "\n" <<
-                   "  Packet Size Incl Hdr (bytes): " << pktSizeInclHdr << "\n" <<
-                   "  Packet Size Excl Hdr (bytes): " << pktSizeExclHdr << "\n" <<
-                   "  Data Rate Incl Hdr (Mbps): " << dataRateInclHdr << "\n" <<
-                   "  Data Rate Excl Hdr (Mbps): " << dataRateExclHdr);
+      NS_LOG_INFO ("Flow Entry"
+                   << "\n"
+                   << "  Id: " << flowId << "\n"
+                   << "  Source: " << srcNodeId << "\n"
+                   << "  Destination: " << dstNodeId << "\n"
+                   << "  Src Port: " << srcPortNumber << "\n"
+                   << "  Dst Port: " << dstPortNumber << "\n"
+                   << "  Protocol: " << protocol << "\n"
+                   << "  Packet Size Incl Hdr (bytes): " << pktSizeInclHdr << "\n"
+                   << "  Packet Size Excl Hdr (bytes): " << pktSizeExclHdr << "\n"
+                   << "  Data Rate Incl Hdr (Mbps): " << dataRateInclHdr << "\n"
+                   << "  Data Rate Excl Hdr (Mbps): " << dataRateExclHdr);
 
       NS_LOG_INFO ("");
       // Monitor the PacketSink application
@@ -127,15 +131,16 @@ ApplicationHelper::InstallApplicationOnTerminals (ApplicationMonitor& applicatio
 }
 
 void
-ApplicationHelper::ParseDataRateModifications (XMLNode* rootNode)
+ApplicationHelper::ParseDataRateModifications (XMLNode *rootNode)
 {
-  XMLElement* dataRateModsElement = rootNode->FirstChildElement ("FlowDataRateModifications");
+  XMLElement *dataRateModsElement = rootNode->FirstChildElement ("FlowDataRateModifications");
 
   // This element does not exist in the XML. This means that all flows can transmit the
   // requested data without any modifications.
-  if (dataRateModsElement == nullptr) return;
+  if (dataRateModsElement == nullptr)
+    return;
 
-  XMLElement* flowElement = dataRateModsElement->FirstChildElement ("Flow");
+  XMLElement *flowElement = dataRateModsElement->FirstChildElement ("Flow");
 
   while (flowElement != nullptr)
     {
@@ -149,8 +154,8 @@ ApplicationHelper::ParseDataRateModifications (XMLNode* rootNode)
       auto ret = m_updatedFlows.insert ({flowId, flowDataRate});
 
       if (ret.second == false)
-        NS_ABORT_MSG ("Duplicate Flow ID(" << flowId <<
-                      ") in the FlowDataRateModifications section found.");
+        NS_ABORT_MSG ("Duplicate Flow ID(" << flowId
+                                           << ") in the FlowDataRateModifications section found.");
 
       flowElement = flowElement->NextSiblingElement ("Flow");
     }
@@ -165,13 +170,12 @@ ApplicationHelper::GetFlowDataRate (FlowId_t flowId, double optimalFlowDr)
         return m_updatedFlows.at (flowId).requestedDataRate;
       else
         return optimalFlowDr;
-    }
-  catch (std::out_of_range)
+  } catch (std::out_of_range)
     {
       // The Flow in question does not have any data rate modifications.
       // Return the optimal flow data rate.
       return optimalFlowDr;
-    }
+  }
 }
 
 uint32_t
@@ -191,7 +195,7 @@ ApplicationHelper::CalculateHeaderSize (char protocol)
 }
 
 Ipv4Address
-ApplicationHelper::GetIpAddress (NodeId_t nodeId, ns3::NodeContainer& nodes)
+ApplicationHelper::GetIpAddress (NodeId_t nodeId, ns3::NodeContainer &nodes)
 {
-  return nodes.Get (nodeId)->GetObject<Ipv4>()->GetAddress (1, 0).GetLocal();
+  return nodes.Get (nodeId)->GetObject<Ipv4> ()->GetAddress (1, 0).GetLocal ();
 }

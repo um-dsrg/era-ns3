@@ -105,8 +105,8 @@ protected:
    */
   std::map<ns3::Ptr<ns3::NetDevice>, LinkId_t> m_netDeviceLinkTable;
 
-  NodeId_t m_id; /*!< The id associated with this device */
-  ns3::Ptr<ns3::Node> m_node; /*!< Pointer to the ns3 node associated with this device */
+  NodeId_t m_id; //!< The id associated with this device
+  ns3::Ptr<ns3::Node> m_node; //!< Pointer to the ns3 node associated with this device
 };
 
 #endif /* SWITCH_DEVICE_H */

@@ -7,26 +7,26 @@ using namespace ns3;
 using namespace tinyxml2;
 
 void
-AnimationHelper::SetNodeMobilityAndCoordinates(XMLNode* rootNode, NodeContainer& allNodes)
+AnimationHelper::SetNodeMobilityAndCoordinates (XMLNode *rootNode, NodeContainer &allNodes)
 {
   // Installing the constant mobility model on all the nodes.
   MobilityHelper mobilityHelper;
-  mobilityHelper.SetMobilityModel("ns3::ConstantPositionMobilityModel");
-  mobilityHelper.Install(allNodes);
+  mobilityHelper.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
+  mobilityHelper.Install (allNodes);
 
   // Configuring the node co-ordinates
-  XMLElement* nodeConfiguration = rootNode->FirstChildElement("NodeConfiguration");
-  NS_ABORT_MSG_IF(nodeConfiguration == nullptr, "NodeConfiguration element not found");
+  XMLElement *nodeConfiguration = rootNode->FirstChildElement ("NodeConfiguration");
+  NS_ABORT_MSG_IF (nodeConfiguration == nullptr, "NodeConfiguration element not found");
 
-  XMLElement* nodeElement = nodeConfiguration->FirstChildElement("Node");
+  XMLElement *nodeElement = nodeConfiguration->FirstChildElement ("Node");
 
   while (nodeElement != nullptr)
     {
       int x (0);
       int y (0);
 
-      nodeElement->QueryAttribute("X", &x);
-      nodeElement->QueryAttribute("Y", &y);
+      nodeElement->QueryAttribute ("X", &x);
+      nodeElement->QueryAttribute ("Y", &y);
 
       /*
        * Inverting the y-axis because NetAnim has an inverted y-axis starts
@@ -35,23 +35,23 @@ AnimationHelper::SetNodeMobilityAndCoordinates(XMLNode* rootNode, NodeContainer&
       y = -y;
 
       uint32_t nodeId (0);
-      nodeElement->QueryAttribute("Id", &nodeId);
-      AnimationInterface::SetConstantPosition(allNodes.Get(nodeId), x, y);
+      nodeElement->QueryAttribute ("Id", &nodeId);
+      AnimationInterface::SetConstantPosition (allNodes.Get (nodeId), x, y);
 
-      nodeElement = nodeElement->NextSiblingElement("Node");
+      nodeElement = nodeElement->NextSiblingElement ("Node");
     }
 }
 
 void
-AnimationHelper::SetupAnimation(const std::string &animPath, NodeContainer& terminalNodes,
-                                NodeContainer& switchNodes)
+AnimationHelper::SetupAnimation (const std::string &animPath, NodeContainer &terminalNodes,
+                                 NodeContainer &switchNodes)
 {
-  m_animation = std::unique_ptr <AnimationInterface> (new AnimationInterface (animPath));
+  m_animation = std::unique_ptr<AnimationInterface> (new AnimationInterface (animPath));
   m_animation->EnablePacketMetadata ();
 
-  for (auto terminal = terminalNodes.Begin(); terminal != terminalNodes.End(); ++terminal)
-    m_animation->UpdateNodeColor((*terminal), 255, 0, 0); // Terminals are red
+  for (auto terminal = terminalNodes.Begin (); terminal != terminalNodes.End (); ++terminal)
+    m_animation->UpdateNodeColor ((*terminal), 255, 0, 0); // Terminals are red
 
-  for (auto switchNode = switchNodes.Begin(); switchNode != switchNodes.End(); ++switchNode)
-    m_animation->UpdateNodeColor((*switchNode), 0, 0, 255); // Switches are blue
+  for (auto switchNode = switchNodes.Begin (); switchNode != switchNodes.End (); ++switchNode)
+    m_animation->UpdateNodeColor ((*switchNode), 0, 0, 255); // Switches are blue
 }

@@ -15,7 +15,8 @@ public:
   static void SetSeed (uint32_t seed);
   static void SetRun (uint32_t run);
 
-  static ns3::Ptr<ns3::UniformRandomVariable> CreateUniformRandomVariable(double min, double max);
+  static ns3::Ptr<ns3::UniformRandomVariable> CreateUniformRandomVariable (double min, double max);
+
 private:
   // Private constructor as this is a static class and cannot be instantiated
   RandomGeneratorManager ();

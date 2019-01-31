@@ -11,9 +11,9 @@
 class AnimationHelper
 {
 public:
-  void SetNodeMobilityAndCoordinates (tinyxml2::XMLNode* rootNode, ns3::NodeContainer& allNodes);
-  void SetupAnimation (const std::string& animPath, ns3::NodeContainer& terminalNodes,
-                       ns3::NodeContainer& switchNodes);
+  void SetNodeMobilityAndCoordinates (tinyxml2::XMLNode *rootNode, ns3::NodeContainer &allNodes);
+  void SetupAnimation (const std::string &animPath, ns3::NodeContainer &terminalNodes,
+                       ns3::NodeContainer &switchNodes);
 
 private:
   std::unique_ptr<ns3::AnimationInterface> m_animation;

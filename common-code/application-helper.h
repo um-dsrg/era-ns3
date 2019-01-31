@@ -15,10 +15,10 @@ class ApplicationHelper
 public:
   ApplicationHelper (bool ignoreOptimalDataRates);
 
-  void InstallApplicationOnTerminals (ApplicationMonitor& applicationMonitor,
-                                      ns3::NodeContainer& allNodes,
-                                      uint32_t nPacketsPerFlow,
-                                      tinyxml2::XMLNode* rootNode);
+  void InstallApplicationOnTerminals (ApplicationMonitor &applicationMonitor,
+                                      ns3::NodeContainer &allNodes, uint32_t nPacketsPerFlow,
+                                      tinyxml2::XMLNode *rootNode);
+
 private:
   /**
    * @brief      Parses the FlowDataRateModifications section in the XML result file
@@ -28,7 +28,7 @@ private:
    *
    * @param      rootNode  The root node of the XML Result file
    */
-  void ParseDataRateModifications (tinyxml2::XMLNode* rootNode);
+  void ParseDataRateModifications (tinyxml2::XMLNode *rootNode);
   /**
    * @brief      Depending on how m_ignoreUpdatedDataRates is set, returns
    *             the flow's data rate.
@@ -41,7 +41,7 @@ private:
   double GetFlowDataRate (FlowId_t flowId, double optimalFlowDr);
 
   inline uint32_t CalculateHeaderSize (char protocol);
-  inline ns3::Ipv4Address GetIpAddress (NodeId_t nodeId, ns3::NodeContainer& nodes);
+  inline ns3::Ipv4Address GetIpAddress (NodeId_t nodeId, ns3::NodeContainer &nodes);
 
   /**
    * @brief      Stores the requested and received data rate of a particular flow
@@ -49,7 +49,8 @@ private:
   struct FlowDataRate
   {
     FlowDataRate () : requestedDataRate (0.0), receivedDataRate (0.0)
-    {}
+    {
+    }
 
     double requestedDataRate; //!< The Data Rate the flow requested
     double receivedDataRate; //!< The Data Rate the optimal solution allocated this flow
