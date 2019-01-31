@@ -83,9 +83,9 @@ PpfsSwitch::SetPacketHandlingMechanism ()
   NS_ASSERT (numOfDevices > 0);
   for (uint32_t currentDevice = 0; currentDevice < numOfDevices; ++currentDevice)
     {
-      m_node->RegisterProtocolHandler (MakeCallback (&PpfsSwitch::ReceiveFromDevice, this), 0,
-                                       m_node->GetDevice (currentDevice), false);
-      // False flag means that promiscuous mode is disabled
+      m_node->RegisterProtocolHandler (MakeCallback (&PpfsSwitch::ReceiveFromDevice, this),
+                                       /*all protocols*/ 0, m_node->GetDevice (currentDevice),
+                                       /*disable promiscuous mode*/ false);
     }
 }
 

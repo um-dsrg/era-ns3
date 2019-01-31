@@ -63,7 +63,7 @@ private:
    * a set of forwarding actions.
    */
   std::map<Flow, std::vector<ForwardingAction>> m_routingTable;
-  ns3::Ptr<ns3::UniformRandomVariable> m_uniformRandomVariable; /*!< Used for flow splitting */
+  ns3::Ptr<ns3::UniformRandomVariable> m_uniformRandomVariable; //!< Used for flow splitting
 
   uint32_t m_seed;
   uint32_t m_run;
