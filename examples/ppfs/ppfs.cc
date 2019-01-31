@@ -39,12 +39,10 @@
 using namespace ns3;
 using namespace tinyxml2;
 
-NS_LOG_COMPONENT_DEFINE ("PPFS");
-
 int
 main (int argc, char *argv[])
 {
-  NS_LOG_UNCOND ("Per Packet Flow Splitting Simulator");
+  bool verbose{false};
 
   bool verbose (false);
   std::string xmlLogFilePath ("");
