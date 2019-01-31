@@ -143,79 +143,79 @@ main (int argc, char *argv[])
   XMLNode *rootNode = xmlLogFile.LastChild ();
   NS_ABORT_MSG_IF (rootNode == nullptr, "No root node node found");
 
-  NodeContainer allNodes; /*!< Node container storing all the nodes */
-  NodeContainer terminalNodes; /*!< Node container storing a reference to the terminal nodes */
-  NodeContainer switchNodes; /*!< Node container storing a reference to the switch nodes */
-  NetDeviceContainer terminalDevices; /*!< Container storing all the terminal's net devices */
+  // NodeContainer allNodes; /*!< Node container storing all the nodes */
+  // NodeContainer terminalNodes; /*!< Node container storing a reference to the terminal nodes */
+  // NodeContainer switchNodes; /*!< Node container storing a reference to the switch nodes */
+  // NetDeviceContainer terminalDevices; /*!< Container storing all the terminal's net devices */
 
-  std::map<NodeId_t, OspfSwitch> switchMap; /*!< Key -> Node ID. Value -> Switch object */
-  std::map<LinkId_t, LinkInformation> linkInformation; /*!< Key -> Link ID, Value -> Link Info */
-  /*
-   * This map will be used for statistics purposes when we need to store the link id that a
-   * terminal's net device is connected to. This will be used when the simulation is running
-   * to calculate the link statistics.
-   */
-  std::map<Ptr<NetDevice>, LinkId_t> terminalToLinkId; /*!< Key -> Net Device, Value -> Link Id */
+  // std::map<NodeId_t, OspfSwitch> switchMap; /*!< Key -> Node ID. Value -> Switch object */
+  // std::map<LinkId_t, LinkInformation> linkInformation; /*!< Key -> Link ID, Value -> Link Info */
+  // /*
+  //  * This map will be used for statistics purposes when we need to store the link id that a
+  //  * terminal's net device is connected to. This will be used when the simulation is running
+  //  * to calculate the link statistics.
+  //  */
+  // std::map<Ptr<NetDevice>, LinkId_t> terminalToLinkId; /*!< Key -> Net Device, Value -> Link Id */
 
-  TopologyBuilder<OspfSwitch> topologyBuilder (rootNode, switchMap, terminalToLinkId, allNodes,
-                                               terminalNodes, switchNodes, terminalDevices, true);
-  topologyBuilder.CreateNodes ();
-  topologyBuilder.ParseNodeConfiguration ();
-  topologyBuilder.BuildNetworkTopology (linkInformation);
-  topologyBuilder.AssignIpToNodes ();
+  // TopologyBuilder<OspfSwitch> topologyBuilder (rootNode, switchMap, terminalToLinkId, allNodes,
+  //                                              terminalNodes, switchNodes, terminalDevices, true);
+  // topologyBuilder.CreateNodes ();
+  // topologyBuilder.ParseNodeConfiguration ();
+  // topologyBuilder.BuildNetworkTopology (linkInformation);
+  // topologyBuilder.AssignIpToNodes ();
 
-  RoutingHelper<OspfSwitch> routingHelper (switchMap);
-  routingHelper.PopulateRoutingTables (allNodes, rootNode);
-  routingHelper.SetSwitchesPacketHandler ();
+  // RoutingHelper<OspfSwitch> routingHelper (switchMap);
+  // routingHelper.PopulateRoutingTables (allNodes, rootNode);
+  // routingHelper.SetSwitchesPacketHandler ();
 
-  std::unique_ptr<AnimationHelper> animHelper;
+  // std::unique_ptr<AnimationHelper> animHelper;
 
-  if (!xmlAnimationFile.empty ())
-    {
-      animHelper = std::unique_ptr<AnimationHelper> (new AnimationHelper ());
-      animHelper->SetNodeMobilityAndCoordinates (rootNode, allNodes);
-      animHelper->SetupAnimation (xmlAnimationFile, terminalNodes, switchNodes);
-    }
+  // if (!xmlAnimationFile.empty ())
+  //   {
+  //     animHelper = std::unique_ptr<AnimationHelper> (new AnimationHelper ());
+  //     animHelper->SetNodeMobilityAndCoordinates (rootNode, allNodes);
+  //     animHelper->SetupAnimation (xmlAnimationFile, terminalNodes, switchNodes);
+  //   }
 
-  ApplicationMonitor applicationMonitor (appBytesQuota, logGoodputEveryPacket);
-  ApplicationHelper applicationHelper (ignoreOptimalDataRates);
-  applicationHelper.InstallApplicationOnTerminals (applicationMonitor, allNodes, nPacketsPerFlow,
-                                                   rootNode);
+  // ApplicationMonitor applicationMonitor (appBytesQuota, logGoodputEveryPacket);
+  // ApplicationHelper applicationHelper (ignoreOptimalDataRates);
+  // applicationHelper.InstallApplicationOnTerminals (applicationMonitor, allNodes, nPacketsPerFlow,
+  //                                                  rootNode);
 
-  ResultManager resultManager;
-  resultManager.SetupFlowMonitor (allNodes);
-  resultManager.TraceTerminalTransmissions (terminalDevices, terminalToLinkId);
+  // ResultManager resultManager;
+  // resultManager.SetupFlowMonitor (allNodes);
+  // resultManager.TraceTerminalTransmissions (terminalDevices, terminalToLinkId);
 
-  Config::Set ("/NodeList/*/DeviceList/*/$ns3::PointToPointNetDevice/TxQueue/MaxPackets",
-               UintegerValue (queuePacketSize));
+  // Config::Set ("/NodeList/*/DeviceList/*/$ns3::PointToPointNetDevice/TxQueue/MaxPackets",
+  //              UintegerValue (queuePacketSize));
 
-  // Building the routing table
-  Ipv4GlobalRoutingHelper::PopulateRoutingTables ();
+  // // Building the routing table
+  // Ipv4GlobalRoutingHelper::PopulateRoutingTables ();
 
-  // Enable PCAP tracing if the command line parameter was set
-  if (enablePcapTracing)
-    {
-      PointToPointHelper myHelper;
-      myHelper.EnablePcapAll ("ospf-pcap", false);
-    }
+  // // Enable PCAP tracing if the command line parameter was set
+  // if (enablePcapTracing)
+  //   {
+  //     PointToPointHelper myHelper;
+  //     myHelper.EnablePcapAll ("ospf-pcap", false);
+  //   }
 
-  if (!stopTime.empty ())
-    {
-      NS_LOG_UNCOND ("Simulation to stop at " << stopTime);
-      Simulator::Stop (Time (stopTime));
-    }
+  // if (!stopTime.empty ())
+  //   {
+  //     NS_LOG_UNCOND ("Simulation to stop at " << stopTime);
+  //     Simulator::Stop (Time (stopTime));
+  //   }
 
-  Simulator::Run ();
+  // Simulator::Run ();
 
-  resultManager.GenerateFlowMonitorXmlLog (enableHistograms, enableFlowProbes);
-  resultManager.UpdateFlowIds (rootNode, allNodes);
-  resultManager.AddQueueStatistics (switchMap);
-  resultManager.AddLinkStatistics (switchMap);
-  resultManager.SaveXmlResultFile (xmlResultFilePath.c_str ());
-  // Storing the goodput for each flow per packet (only if this feature is enabled)
-  resultManager.SavePerPacketGoodPutResults (xmlResultFilePath, applicationMonitor);
+  // resultManager.GenerateFlowMonitorXmlLog (enableHistograms, enableFlowProbes);
+  // resultManager.UpdateFlowIds (rootNode, allNodes);
+  // resultManager.AddQueueStatistics (switchMap);
+  // resultManager.AddLinkStatistics (switchMap);
+  // resultManager.SaveXmlResultFile (xmlResultFilePath.c_str ());
+  // // Storing the goodput for each flow per packet (only if this feature is enabled)
+  // resultManager.SavePerPacketGoodPutResults (xmlResultFilePath, applicationMonitor);
 
-  Simulator::Destroy ();
+  // Simulator::Destroy ();
 
   return 0;
 }

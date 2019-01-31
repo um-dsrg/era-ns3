@@ -43,22 +43,20 @@ int
 main (int argc, char *argv[])
 {
   bool verbose{false};
-
-  bool verbose (false);
-  std::string xmlLogFilePath ("");
-  std::string xmlResultFilePath ("");
-  std::string xmlAnimationFile ("");
-  uint32_t queuePacketSize (100);
-  uint32_t seed (1);
-  uint32_t initRun (1);
-  bool enableHistograms (false);
-  bool enableFlowProbes (false);
-  bool enablePcapTracing (false);
-  uint64_t appBytesQuota (0);
-  bool ignoreOptimalDataRates (false);
-  bool logGoodputEveryPacket (false);
-  std::string stopTime ("");
-  uint32_t nPacketsPerFlow (0);
+  std::string xmlLogFilePath{""};
+  std::string xmlResultFilePath{""};
+  std::string xmlAnimationFile{""};
+  uint32_t queuePacketSize{100};
+  uint32_t seed{1};
+  uint32_t initRun{1};
+  bool enableHistograms{false};
+  bool enableFlowProbes{false};
+  bool enablePcapTracing{false};
+  uint64_t appBytesQuota{0};
+  bool ignoreOptimalDataRates{false};
+  bool logGoodputEveryPacket{false};
+  std::string stopTime{""};
+  uint32_t nPacketsPerFlow{0};
 
   CommandLine cmdLine;
   cmdLine.AddValue ("verbose", "If true display log values", verbose);
@@ -113,6 +111,7 @@ main (int argc, char *argv[])
 
   if (verbose)
     {
+      LogComponentEnable ("TopologyBuilder", LOG_LEVEL_INFO);
       LogComponentEnable ("PpfsSwitch", LOG_LEVEL_INFO);
       LogComponentEnable ("SwitchDevice", LOG_LEVEL_INFO);
       LogComponentEnable ("ApplicationMonitor", LOG_LEVEL_INFO);
@@ -133,79 +132,82 @@ main (int argc, char *argv[])
   XMLNode *rootNode = xmlLogFile.LastChild ();
   NS_ABORT_MSG_IF (rootNode == nullptr, "No root node node found");
 
-  NodeContainer allNodes; /*!< Node container storing all the nodes */
-  NodeContainer terminalNodes; /*!< Node container storing a reference to the terminal nodes */
-  NodeContainer switchNodes; /*!< Node container storing a reference to the switch nodes */
-  NetDeviceContainer terminalDevices; /*!< Container storing all the terminal's net devices */
+  TopologyBuilder<PpfsSwitch> topologyBuilder;
+  topologyBuilder.CreateNodes (rootNode);
 
-  std::map<NodeId_t, PpfsSwitch> switchMap; /*!< Key -> Node ID. Value -> Switch object */
-  std::map<LinkId_t, LinkInformation> linkInformation; /*!< Key -> Link ID, Value -> Link Info */
-  /*
-   * This map will be used for statistics purposes when we need to store the link id that a
-   * terminal's net device is connected to. This will be used when the simulation is running
-   * to calculate the link statistics.
-   */
-  std::map<Ptr<NetDevice>, LinkId_t> terminalToLinkId; /*!< Key -> Net Device, Value -> Link Id */
+  // NodeContainer allNodes; /*!< Node container storing all the nodes */
+  // NodeContainer terminalNodes; /*!< Node container storing a reference to the terminal nodes */
+  // NodeContainer switchNodes; /*!< Node container storing a reference to the switch nodes */
+  // NetDeviceContainer terminalDevices; /*!< Container storing all the terminal's net devices */
 
-  TopologyBuilder<PpfsSwitch> topologyBuilder (rootNode, switchMap, terminalToLinkId, allNodes,
-                                               terminalNodes, switchNodes, terminalDevices, false);
-  topologyBuilder.CreateNodes ();
-  topologyBuilder.ParseNodeConfiguration ();
-  topologyBuilder.BuildNetworkTopology (linkInformation);
-  topologyBuilder.SetSwitchRandomNumberGenerator ();
-  topologyBuilder.AssignIpToNodes ();
+  // std::map<NodeId_t, PpfsSwitch> switchMap; /*!< Key -> Node ID. Value -> Switch object */
+  // std::map<LinkId_t, LinkInformation> linkInformation; /*!< Key -> Link ID, Value -> Link Info */
+  // /*
+  //  * This map will be used for statistics purposes when we need to store the link id that a
+  //  * terminal's net device is connected to. This will be used when the simulation is running
+  //  * to calculate the link statistics.
+  //  */
+  // std::map<Ptr<NetDevice>, LinkId_t> terminalToLinkId; /*!< Key -> Net Device, Value -> Link Id */
 
-  RoutingHelper<PpfsSwitch> routingHelper (switchMap);
-  routingHelper.PopulateRoutingTables (linkInformation, allNodes, rootNode);
-  routingHelper.SetSwitchesPacketHandler ();
+  // TopologyBuilder<PpfsSwitch> topologyBuilder (rootNode, switchMap, terminalToLinkId, allNodes,
+  //                                              terminalNodes, switchNodes, terminalDevices, false);
+  // topologyBuilder.CreateNodes ();
+  // topologyBuilder.ParseNodeConfiguration ();
+  // topologyBuilder.BuildNetworkTopology (linkInformation);
+  // topologyBuilder.SetSwitchRandomNumberGenerator ();
+  // topologyBuilder.AssignIpToNodes ();
 
-  std::unique_ptr<AnimationHelper> animHelper;
+  // RoutingHelper<PpfsSwitch> routingHelper (switchMap);
+  // routingHelper.PopulateRoutingTables (linkInformation, allNodes, rootNode);
+  // routingHelper.SetSwitchesPacketHandler ();
 
-  if (!xmlAnimationFile.empty ())
-    {
-      animHelper = std::unique_ptr<AnimationHelper> (new AnimationHelper ());
-      animHelper->SetNodeMobilityAndCoordinates (rootNode, allNodes);
-      animHelper->SetupAnimation (xmlAnimationFile, terminalNodes, switchNodes);
-    }
+  // std::unique_ptr<AnimationHelper> animHelper;
 
-  ApplicationMonitor applicationMonitor (appBytesQuota, logGoodputEveryPacket);
-  ApplicationHelper applicationHelper (ignoreOptimalDataRates);
-  applicationHelper.InstallApplicationOnTerminals (applicationMonitor, allNodes, nPacketsPerFlow,
-                                                   rootNode);
+  // if (!xmlAnimationFile.empty ())
+  //   {
+  //     animHelper = std::unique_ptr<AnimationHelper> (new AnimationHelper ());
+  //     animHelper->SetNodeMobilityAndCoordinates (rootNode, allNodes);
+  //     animHelper->SetupAnimation (xmlAnimationFile, terminalNodes, switchNodes);
+  //   }
 
-  ResultManager resultManager;
-  resultManager.SetupFlowMonitor (allNodes);
-  resultManager.TraceTerminalTransmissions (terminalDevices, terminalToLinkId);
+  // ApplicationMonitor applicationMonitor (appBytesQuota, logGoodputEveryPacket);
+  // ApplicationHelper applicationHelper (ignoreOptimalDataRates);
+  // applicationHelper.InstallApplicationOnTerminals (applicationMonitor, allNodes, nPacketsPerFlow,
+  //                                                  rootNode);
 
-  Config::Set ("/NodeList/*/DeviceList/*/$ns3::PointToPointNetDevice/TxQueue/MaxSize",
-               QueueSizeValue (QueueSize (QueueSizeUnit::PACKETS, queuePacketSize)));
+  // ResultManager resultManager;
+  // resultManager.SetupFlowMonitor (allNodes);
+  // resultManager.TraceTerminalTransmissions (terminalDevices, terminalToLinkId);
 
-  if (enablePcapTracing) // Enable PCAP tracing if the command line parameter was set
-    {
-      PointToPointHelper myHelper;
-      myHelper.EnablePcapAll ("ppfs-pcap", false);
-    }
+  // Config::Set ("/NodeList/*/DeviceList/*/$ns3::PointToPointNetDevice/TxQueue/MaxSize",
+  //              QueueSizeValue (QueueSize (QueueSizeUnit::PACKETS, queuePacketSize)));
 
-  if (!stopTime.empty ())
-    {
-      NS_LOG_UNCOND ("Simulation to stop at " << stopTime);
-      Simulator::Stop (Time (stopTime));
-    }
+  // if (enablePcapTracing) // Enable PCAP tracing if the command line parameter was set
+  //   {
+  //     PointToPointHelper myHelper;
+  //     myHelper.EnablePcapAll ("ppfs-pcap", false);
+  //   }
 
-  Simulator::Run ();
-  Simulator::Stop ();
+  // if (!stopTime.empty ())
+  //   {
+  //     NS_LOG_UNCOND ("Simulation to stop at " << stopTime);
+  //     Simulator::Stop (Time (stopTime));
+  //   }
 
-  resultManager.GenerateFlowMonitorXmlLog (enableHistograms, enableFlowProbes);
-  resultManager.AddApplicationMonitorResults (applicationMonitor);
-  resultManager.UpdateFlowIds (rootNode, allNodes);
-  resultManager.AddQueueStatistics (switchMap);
-  resultManager.AddLinkStatistics (switchMap);
-  resultManager.AddSwitchDetails (switchMap);
-  resultManager.SaveXmlResultFile (xmlResultFilePath.c_str ());
-  // Storing the goodput for each flow per packet (only if this feature is enabled)
-  resultManager.SavePerPacketGoodPutResults (xmlResultFilePath, applicationMonitor);
+  // Simulator::Run ();
+  // Simulator::Stop ();
 
-  Simulator::Destroy ();
+  // resultManager.GenerateFlowMonitorXmlLog (enableHistograms, enableFlowProbes);
+  // resultManager.AddApplicationMonitorResults (applicationMonitor);
+  // resultManager.UpdateFlowIds (rootNode, allNodes);
+  // resultManager.AddQueueStatistics (switchMap);
+  // resultManager.AddLinkStatistics (switchMap);
+  // resultManager.AddSwitchDetails (switchMap);
+  // resultManager.SaveXmlResultFile (xmlResultFilePath.c_str ());
+  // // Storing the goodput for each flow per packet (only if this feature is enabled)
+  // resultManager.SavePerPacketGoodPutResults (xmlResultFilePath, applicationMonitor);
+
+  // Simulator::Destroy ();
 
   return 0;
 }
