@@ -73,13 +73,14 @@ protected:
   /**
    *  \brief Constructor is protected because this class cannot be instantiated directly
    */
-  SwitchDevice ();
+  SwitchDevice () = default;
   /**
    *  \brief Constructor is protected because this class cannot be instantiated directly
    *  \param id The node's id
    *  \param node An ns3 pointer to the node that this switch represents
    */
-  SwitchDevice (NodeId_t id, ns3::Ptr<ns3::Node> node);
+  // SwitchDevice (NodeId_t id, ns3::Ptr<ns3::Node> node);
+  SwitchDevice (id_t id);
   virtual ~SwitchDevice ();
 
   virtual void SetPacketHandlingMechanism () = 0;

@@ -53,12 +53,9 @@ SwitchDevice::GetLinkStatistics () const
   return m_linkStatistics;
 }
 
-SwitchDevice::SwitchDevice ()
+SwitchDevice::SwitchDevice (id_t id)
 {
-}
-
-SwitchDevice::SwitchDevice (NodeId_t id, Ptr<Node> node) : m_id (id), m_node (node)
-{
+  m_node = CreateObject<Node> ();
 }
 
 SwitchDevice::~SwitchDevice ()

@@ -9,8 +9,8 @@
 class OspfSwitch : public SwitchDevice
 {
 public:
-  OspfSwitch ();
-  OspfSwitch (NodeId_t id, ns3::Ptr<ns3::Node> switchNode);
+  OspfSwitch () = default;
+  OspfSwitch (id_t id);
 
   void SetPacketHandlingMechanism ();
   void InsertEntryInRoutingTable (uint32_t srcIpAddr, uint32_t dstIpAddr, uint16_t portNumber,

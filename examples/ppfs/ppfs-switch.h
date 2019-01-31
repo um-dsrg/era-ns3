@@ -14,8 +14,8 @@
 class PpfsSwitch : public SwitchDevice
 {
 public:
-  PpfsSwitch ();
-  PpfsSwitch (NodeId_t id, ns3::Ptr<ns3::Node> switchNode);
+  PpfsSwitch () = default;
+  PpfsSwitch (id_t id);
 
   const uint32_t GetSeed () const;
   const uint32_t GetRun () const;
