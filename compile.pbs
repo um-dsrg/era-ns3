@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+#
+#PBS -q short
+#
+#PBS -N ns3_compile
+#
+#PBS -l ncpus=40
+#
+#PBS -m a
+#
+#PBS -M noel.farrugia.09@um.edu.mt
+#
+#PBS -e localhost:${HOME}/logs/${PBS_JOBNAME}.err.txt
+#PBS -o localhost:${HOME}/logs/${PBS_JOBNAME}.out.txt
+
+${HOME}/Repositories/Ns3/waf configure --build-profile=optimized --enable-examples
+${HOME}/Repositories/Ns3/waf build -j40
