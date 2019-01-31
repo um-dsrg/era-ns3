@@ -160,8 +160,8 @@ main (int argc, char *argv[])
   resultManager.SetupFlowMonitor (allNodes);
   resultManager.TraceTerminalTransmissions (terminalDevices, terminalToLinkId);
 
-  Config::Set ("/NodeList/*/DeviceList/*/$ns3::PointToPointNetDevice/TxQueue/MaxPackets",
-               UintegerValue (queuePacketSize));
+  Config::Set ("/NodeList/*/DeviceList/*/$ns3::PointToPointNetDevice/TxQueue/MaxSize",
+               QueueSizeValue(QueueSize(QueueSizeUnit::PACKETS, queuePacketSize)));
 
   if (enablePcapTracing) // Enable PCAP tracing if the command line parameter was set
     {
@@ -171,7 +171,6 @@ main (int argc, char *argv[])
 
   if (!stopTime.empty())
     {
-      NS_LOG_UNCOND("This is my message");
       NS_LOG_UNCOND ("Simulation to stop at " << stopTime);
       Simulator::Stop(Time(stopTime));
     }

@@ -208,7 +208,7 @@ TopologyBuilder<SwitchType>::InstallP2pLink (LinkInformation& linkA, LinkInforma
 {
   ObjectFactory m_channelFactory("ns3::PointToPointChannel");
   ObjectFactory m_deviceFactory("ns3::PointToPointNetDevice");
-  ObjectFactory m_queueFactory ("ns3::DropTailQueue");
+  ObjectFactory m_queueFactory ("ns3::DropTailQueue<Packet>");
 
   // A single delay for the link.
   m_channelFactory.Set ("Delay", TimeValue(MilliSeconds(delay)));
