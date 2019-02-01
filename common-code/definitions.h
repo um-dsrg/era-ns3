@@ -5,6 +5,9 @@
 
 // Variable definitions ///////////////////////////////////////////////////////
 typedef uint32_t id_t;
+typedef double delay_t;
+typedef double dataRate_t;
+// TODO Remove the below typedefs
 typedef uint32_t LinkId_t;
 typedef uint32_t NodeId_t;
 typedef uint32_t FlowId_t;
