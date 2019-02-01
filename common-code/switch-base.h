@@ -1,5 +1,5 @@
-#ifndef SWITCH_DEVICE_H
-#define SWITCH_DEVICE_H
+#ifndef SWITCH_BASE_H
+#define SWITCH_BASE_H
 
 #include <map>
 
@@ -7,8 +7,9 @@
 #include "ns3/queue.h"
 
 #include "definitions.h"
+#include "custom-device.h"
 
-class SwitchDevice
+class SwitchBase : public CustomDevice
 {
 public:
   /**
@@ -73,15 +74,9 @@ protected:
   /**
    *  \brief Constructor is protected because this class cannot be instantiated directly
    */
-  SwitchDevice () = default;
-  /**
-   *  \brief Constructor is protected because this class cannot be instantiated directly
-   *  \param id The node's id
-   *  \param node An ns3 pointer to the node that this switch represents
-   */
-  // SwitchDevice (NodeId_t id, ns3::Ptr<ns3::Node> node);
-  SwitchDevice (id_t id);
-  virtual ~SwitchDevice ();
+  SwitchBase () = default;
+  SwitchBase (id_t id);
+  virtual ~SwitchBase ();
 
   virtual void SetPacketHandlingMechanism () = 0;
 
@@ -105,9 +100,6 @@ protected:
    * this net device. (This is the inverse of m_linkNetDeviceTable)
    */
   std::map<ns3::Ptr<ns3::NetDevice>, LinkId_t> m_netDeviceLinkTable;
-
-  NodeId_t m_id; //!< The id associated with this device
-  ns3::Ptr<ns3::Node> m_node; //!< Pointer to the ns3 node associated with this device
 };
 
-#endif /* SWITCH_DEVICE_H */
+#endif /* SWITCH_BASE_H */

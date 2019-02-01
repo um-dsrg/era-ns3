@@ -10,14 +10,22 @@
 #include "ns3/tcp-l4-protocol.h"
 #include "ns3/icmpv4-l4-protocol.h"
 
-#include "switch-device.h"
+#include "switch-base.h"
 
 using namespace ns3;
 
-NS_LOG_COMPONENT_DEFINE ("SwitchDevice");
+NS_LOG_COMPONENT_DEFINE ("SwitchBase");
+
+SwitchBase::SwitchBase (id_t id) : CustomDevice (id)
+{
+}
+
+SwitchBase::~SwitchBase ()
+{
+}
 
 void
-SwitchDevice::InsertNetDevice (LinkId_t linkId, Ptr<NetDevice> device)
+SwitchBase::InsertNetDevice (LinkId_t linkId, Ptr<NetDevice> device)
 {
   auto ret = m_linkNetDeviceTable.insert ({linkId, device});
   NS_ABORT_MSG_IF (ret.second == false, "The Link ID " << linkId << " is already stored in node's "
@@ -30,7 +38,7 @@ SwitchDevice::InsertNetDevice (LinkId_t linkId, Ptr<NetDevice> device)
 }
 
 Ptr<Queue<Packet>>
-SwitchDevice::GetQueueFromLinkId (LinkId_t linkId) const
+SwitchBase::GetQueueFromLinkId (LinkId_t linkId) const
 {
   auto ret = m_linkNetDeviceTable.find (linkId);
   NS_ABORT_MSG_IF (ret == m_linkNetDeviceTable.end (),
@@ -41,29 +49,20 @@ SwitchDevice::GetQueueFromLinkId (LinkId_t linkId) const
   return p2pDevice->GetQueue ();
 }
 
-const std::map<LinkId_t, SwitchDevice::QueueResults> &
-SwitchDevice::GetQueueResults () const
+const std::map<LinkId_t, SwitchBase::QueueResults> &
+SwitchBase::GetQueueResults () const
 {
   return m_switchQueueResults;
 }
 
-const std::map<SwitchDevice::LinkFlowId, LinkStatistic> &
-SwitchDevice::GetLinkStatistics () const
+const std::map<SwitchBase::LinkFlowId, LinkStatistic> &
+SwitchBase::GetLinkStatistics () const
 {
   return m_linkStatistics;
 }
 
-SwitchDevice::SwitchDevice (id_t id)
-{
-  m_node = CreateObject<Node> ();
-}
-
-SwitchDevice::~SwitchDevice ()
-{
-}
-
 void
-SwitchDevice::LogLinkStatistics (Ptr<NetDevice> port, FlowId_t flowId, uint32_t packetSize)
+SwitchBase::LogLinkStatistics (Ptr<NetDevice> port, FlowId_t flowId, uint32_t packetSize)
 {
   auto linkRet = m_netDeviceLinkTable.find (port);
   NS_ABORT_MSG_IF (linkRet == m_netDeviceLinkTable.end (), "The Link connected to the net device"
@@ -92,7 +91,7 @@ SwitchDevice::LogLinkStatistics (Ptr<NetDevice> port, FlowId_t flowId, uint32_t 
 }
 
 Flow
-SwitchDevice::ParsePacket (Ptr<const Packet> packet, uint16_t protocol, bool allowIcmpPackets)
+SwitchBase::ParsePacket (Ptr<const Packet> packet, uint16_t protocol, bool allowIcmpPackets)
 {
   Ptr<Packet> recvPacket = packet->Copy (); // Copy the packet for parsing purposes
   Flow flow;
@@ -164,7 +163,7 @@ SwitchDevice::ParsePacket (Ptr<const Packet> packet, uint16_t protocol, bool all
 }
 
 void
-SwitchDevice::LogQueueEntries (Ptr<NetDevice> port)
+SwitchBase::LogQueueEntries (Ptr<NetDevice> port)
 {
   Ptr<PointToPointNetDevice> p2pDevice = port->GetObject<PointToPointNetDevice> ();
   Ptr<Queue<Packet>> queue = p2pDevice->GetQueue ();
