@@ -19,7 +19,7 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("PpfsSwitch");
 
-PpfsSwitch::PpfsSwitch (id_t id) : SwitchDevice (id)
+PpfsSwitch::PpfsSwitch (id_t id) : SwitchBase (id)
 {
 }
 

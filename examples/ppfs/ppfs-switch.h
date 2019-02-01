@@ -9,9 +9,9 @@
 #include "ns3/nstime.h"
 #include "ns3/queue.h"
 
-#include "../common-code/switch-device.h"
+#include "../common-code/switch-base.h"
 
-class PpfsSwitch : public SwitchDevice
+class PpfsSwitch : public SwitchBase
 {
 public:
   PpfsSwitch () = default;
