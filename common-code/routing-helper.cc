@@ -17,127 +17,127 @@ RoutingHelper<SwitchType>::RoutingHelper (std::map<NodeId_t, SwitchType> &switch
 {
 }
 
-template <>
-void
-RoutingHelper<OspfSwitch>::PopulateRoutingTables (NodeContainer &allNodes, XMLNode *rootNode)
-{
-  XMLElement *optimalSolutionElement = rootNode->FirstChildElement ("OptimalSolution");
-  NS_ABORT_MSG_IF (optimalSolutionElement == nullptr, "OptimalSolution element not found");
+// template <>
+// void
+// RoutingHelper<OspfSwitch>::PopulateRoutingTables (NodeContainer &allNodes, XMLNode *rootNode)
+// {
+//   XMLElement *optimalSolutionElement = rootNode->FirstChildElement ("OptimalSolution");
+//   NS_ABORT_MSG_IF (optimalSolutionElement == nullptr, "OptimalSolution element not found");
 
-  XMLElement *flowElement = optimalSolutionElement->FirstChildElement ("Flow");
+//   XMLElement *flowElement = optimalSolutionElement->FirstChildElement ("Flow");
 
-  while (flowElement != nullptr)
-    {
-      // Parse the required flow details
-      FlowId_t flowId (0);
-      NodeId_t sourceNodeId (0);
-      NodeId_t destinationNodeId (0);
-      uint32_t portNumberXml (0);
-      uint16_t portNumber (0);
-      char protocol (0);
+//   while (flowElement != nullptr)
+//     {
+//       // Parse the required flow details
+//       FlowId_t flowId (0);
+//       NodeId_t sourceNodeId (0);
+//       NodeId_t destinationNodeId (0);
+//       uint32_t portNumberXml (0);
+//       uint16_t portNumber (0);
+//       char protocol (0);
 
-      flowElement->QueryAttribute ("Id", &flowId);
-      flowElement->QueryAttribute ("SourceNode", &sourceNodeId);
-      flowElement->QueryAttribute ("DestinationNode", &destinationNodeId);
-      protocol = *flowElement->Attribute ("Protocol");
+//       flowElement->QueryAttribute ("Id", &flowId);
+//       flowElement->QueryAttribute ("SourceNode", &sourceNodeId);
+//       flowElement->QueryAttribute ("DestinationNode", &destinationNodeId);
+//       protocol = *flowElement->Attribute ("Protocol");
 
-      if (protocol == 'T')
-        {
-          flowElement->QueryAttribute ("DstPortNumber", &portNumberXml);
-          portNumber =
-              (uint16_t) portNumberXml; // Required because tinyxml does not handle uint16_t
-        }
-      else
-        {
-          flowElement->QueryAttribute ("PortNumber", &portNumberXml);
-          portNumber =
-              (uint16_t) portNumberXml; // Required because tinyxml does not handle uint16_t
-        }
+//       if (protocol == 'T')
+//         {
+//           flowElement->QueryAttribute ("DstPortNumber", &portNumberXml);
+//           portNumber =
+//               (uint16_t) portNumberXml; // Required because tinyxml does not handle uint16_t
+//         }
+//       else
+//         {
+//           flowElement->QueryAttribute ("PortNumber", &portNumberXml);
+//           portNumber =
+//               (uint16_t) portNumberXml; // Required because tinyxml does not handle uint16_t
+//         }
 
-      uint32_t srcIp = GetIpAddress (sourceNodeId, allNodes);
-      uint32_t dstIp = GetIpAddress (destinationNodeId, allNodes);
+//       uint32_t srcIp = GetIpAddress (sourceNodeId, allNodes);
+//       uint32_t dstIp = GetIpAddress (destinationNodeId, allNodes);
 
-      for (auto &switchDetails : m_switchMap)
-        {
-          switchDetails.second.InsertEntryInRoutingTable (srcIp, dstIp, portNumber, protocol,
-                                                          flowId);
-        }
+//       for (auto &switchDetails : m_switchMap)
+//         {
+//           switchDetails.second.InsertEntryInRoutingTable (srcIp, dstIp, portNumber, protocol,
+//                                                           flowId);
+//         }
 
-      flowElement = flowElement->NextSiblingElement ("Flow");
-    }
-}
+//       flowElement = flowElement->NextSiblingElement ("Flow");
+//     }
+// }
 
-template <>
-void
-RoutingHelper<PpfsSwitch>::PopulateRoutingTables (
-    std::map<LinkId_t, LinkInformation> &linkInformation, NodeContainer &allNodes,
-    XMLNode *rootNode)
-{
-  // Key -> Node Id, Flow Id, Value -> Incoming flow rate.
-  std::map<std::pair<NodeId_t, FlowId_t>, double> incomingFlow;
-  ParseIncomingFlows (incomingFlow, rootNode);
-  /*!< Key -> Node ID. Value -> Switch object switchMap*/
-  /*!< Key -> Link ID, Value -> Link Info linkInformation*/
-  XMLElement *optimalSolutionElement = rootNode->FirstChildElement ("OptimalSolution");
-  NS_ABORT_MSG_IF (optimalSolutionElement == nullptr, "OptimalSolution element not found");
+// template <>
+// void
+// RoutingHelper<PpfsSwitch>::PopulateRoutingTables (
+//     std::map<LinkId_t, LinkInformation> &linkInformation, NodeContainer &allNodes,
+//     XMLNode *rootNode)
+// {
+//   // Key -> Node Id, Flow Id, Value -> Incoming flow rate.
+//   std::map<std::pair<NodeId_t, FlowId_t>, double> incomingFlow;
+//   ParseIncomingFlows (incomingFlow, rootNode);
+//   /*!< Key -> Node ID. Value -> Switch object switchMap*/
+//   /*!< Key -> Link ID, Value -> Link Info linkInformation*/
+//   XMLElement *optimalSolutionElement = rootNode->FirstChildElement ("OptimalSolution");
+//   NS_ABORT_MSG_IF (optimalSolutionElement == nullptr, "OptimalSolution element not found");
 
-  XMLElement *flowElement = optimalSolutionElement->FirstChildElement ("Flow");
+//   XMLElement *flowElement = optimalSolutionElement->FirstChildElement ("Flow");
 
-  while (flowElement != nullptr)
-    {
-      // Parse the required flow details
-      uint32_t flowId (0);
-      uint32_t sourceNodeId (0);
-      uint32_t destinationNodeId (0);
-      uint32_t portNumberXml (0);
-      uint16_t portNumber (0);
-      char protocol (0);
+//   while (flowElement != nullptr)
+//     {
+//       // Parse the required flow details
+//       uint32_t flowId (0);
+//       uint32_t sourceNodeId (0);
+//       uint32_t destinationNodeId (0);
+//       uint32_t portNumberXml (0);
+//       uint16_t portNumber (0);
+//       char protocol (0);
 
-      flowElement->QueryAttribute ("Id", &flowId);
-      flowElement->QueryAttribute ("SourceNode", &sourceNodeId);
-      flowElement->QueryAttribute ("DestinationNode", &destinationNodeId);
-      flowElement->QueryAttribute ("PortNumber", &portNumberXml);
-      protocol = *flowElement->Attribute ("Protocol");
+//       flowElement->QueryAttribute ("Id", &flowId);
+//       flowElement->QueryAttribute ("SourceNode", &sourceNodeId);
+//       flowElement->QueryAttribute ("DestinationNode", &destinationNodeId);
+//       flowElement->QueryAttribute ("PortNumber", &portNumberXml);
+//       protocol = *flowElement->Attribute ("Protocol");
 
-      if (protocol == 'T')
-        {
-          flowElement->QueryAttribute ("DstPortNumber", &portNumberXml);
-          portNumber =
-              (uint16_t) portNumberXml; // Required because tinyxml does not handle uint16_t
-        }
-      else
-        {
-          flowElement->QueryAttribute ("PortNumber", &portNumberXml);
-          portNumber =
-              (uint16_t) portNumberXml; // Required because tinyxml does not handle uint16_t
-        }
+//       if (protocol == 'T')
+//         {
+//           flowElement->QueryAttribute ("DstPortNumber", &portNumberXml);
+//           portNumber =
+//               (uint16_t) portNumberXml; // Required because tinyxml does not handle uint16_t
+//         }
+//       else
+//         {
+//           flowElement->QueryAttribute ("PortNumber", &portNumberXml);
+//           portNumber =
+//               (uint16_t) portNumberXml; // Required because tinyxml does not handle uint16_t
+//         }
 
-      uint32_t srcIp = GetIpAddress (sourceNodeId, allNodes);
-      uint32_t dstIp = GetIpAddress (destinationNodeId, allNodes);
+//       uint32_t srcIp = GetIpAddress (sourceNodeId, allNodes);
+//       uint32_t dstIp = GetIpAddress (destinationNodeId, allNodes);
 
-      XMLElement *linkElement = flowElement->FirstChildElement ("Link");
-      while (linkElement != nullptr)
-        {
-          LinkId_t linkId (0);
-          double linkFlowRate (0.0);
-          linkElement->QueryAttribute ("Id", &linkId);
-          linkElement->QueryAttribute ("FlowRate", &linkFlowRate);
+//       XMLElement *linkElement = flowElement->FirstChildElement ("Link");
+//       while (linkElement != nullptr)
+//         {
+//           LinkId_t linkId (0);
+//           double linkFlowRate (0.0);
+//           linkElement->QueryAttribute ("Id", &linkId);
+//           linkElement->QueryAttribute ("FlowRate", &linkFlowRate);
 
-          NodeId_t linkSrcNode = linkInformation[linkId].srcNode; // Get the link's source node
+//           NodeId_t linkSrcNode = linkInformation[linkId].srcNode; // Get the link's source node
 
-          if (linkInformation[linkId].srcNodeType == 'S') // Only switches have routing tables.
-            {
-              double nodeIncomingFlow = incomingFlow[std::make_pair (linkSrcNode, flowId)];
-              double flowRatio = linkFlowRate / nodeIncomingFlow;
+//           if (linkInformation[linkId].srcNodeType == 'S') // Only switches have routing tables.
+//             {
+//               double nodeIncomingFlow = incomingFlow[std::make_pair (linkSrcNode, flowId)];
+//               double flowRatio = linkFlowRate / nodeIncomingFlow;
 
-              m_switchMap[linkSrcNode].InsertEntryInRoutingTable (
-                  srcIp, dstIp, portNumber, protocol, flowId, linkId, flowRatio);
-            }
-          linkElement = linkElement->NextSiblingElement ("Link");
-        }
-      flowElement = flowElement->NextSiblingElement ("Flow");
-    }
-}
+//               m_switchMap[linkSrcNode].InsertEntryInRoutingTable (
+//                   srcIp, dstIp, portNumber, protocol, flowId, linkId, flowRatio);
+//             }
+//           linkElement = linkElement->NextSiblingElement ("Link");
+//         }
+//       flowElement = flowElement->NextSiblingElement ("Flow");
+//     }
+// }
 
 template <class SwitchType>
 void

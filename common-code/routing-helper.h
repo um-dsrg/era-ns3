@@ -18,9 +18,9 @@ class RoutingHelper
 public:
   RoutingHelper (std::map<NodeId_t, SwitchType> &switchMap);
 
-  void PopulateRoutingTables (ns3::NodeContainer &allNodes, tinyxml2::XMLNode *rootNode);
-  void PopulateRoutingTables (std::map<LinkId_t, LinkInformation> &linkInformation,
-                              ns3::NodeContainer &allNodes, tinyxml2::XMLNode *rootNode);
+  // void PopulateRoutingTables (ns3::NodeContainer &allNodes, tinyxml2::XMLNode *rootNode);
+  // void PopulateRoutingTables (std::map<LinkId_t, LinkInformation> &linkInformation,
+  //                             ns3::NodeContainer &allNodes, tinyxml2::XMLNode *rootNode);
 
   void SetSwitchesPacketHandler ();
 
