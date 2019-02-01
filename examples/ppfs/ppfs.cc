@@ -134,6 +134,11 @@ main (int argc, char *argv[])
 
   TopologyBuilder<PpfsSwitch> topologyBuilder;
   topologyBuilder.CreateNodes (rootNode);
+  topologyBuilder.BuildNetworkTopology (rootNode);
+  topologyBuilder.AssignIpToNodes ();
+
+  // Now we assign IP address to the terminals.
+  // TODO The terminal object should have a function that creates it's own IP address!
 
   // NodeContainer allNodes; /*!< Node container storing all the nodes */
   // NodeContainer terminalNodes; /*!< Node container storing a reference to the terminal nodes */

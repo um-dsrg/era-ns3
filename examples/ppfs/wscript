@@ -7,7 +7,9 @@ def build(bld):
     all_modules = [mod[len("ns3-"):] for mod in bld.env['NS3_ENABLED_MODULES']]
     obj = bld.create_ns3_program('ppfs', all_modules)
     obj.source = ['ppfs.cc',
-                  '../../common-code/switch-device.cc',
+                  '../../common-code/custom-device.cc',
+                  '../../common-code/terminal.cc',
+                  '../../common-code/switch-base.cc',
                   '../../common-code/application-helper.cc',
                   '../../common-code/application-monitor.cc',
                   '../../common-code/animation-helper.cc',

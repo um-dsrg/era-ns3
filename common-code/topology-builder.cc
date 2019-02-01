@@ -36,111 +36,6 @@ using namespace tinyxml2;
 // {
 // }
 
-// template <class SwitchType>
-// void
-// TopologyBuilder<SwitchType>::CreateNodes ()
-// {
-//   XMLElement *networkTopologyElement = m_xmlRootNode->FirstChildElement ("NetworkTopology");
-//   NS_ABORT_MSG_IF (networkTopologyElement == nullptr, "NetworkTopology Element not found");
-
-//   uint32_t numOfNodes;
-//   networkTopologyElement->QueryAttribute ("NumberOfNodes", &numOfNodes);
-//   m_allNodes.Create (numOfNodes);
-// }
-
-// template <class SwitchType>
-// void
-// TopologyBuilder<SwitchType>::ParseNodeConfiguration ()
-// {
-//   XMLElement *nodeConfigurationElement = m_xmlRootNode->FirstChildElement ("NodeConfiguration");
-//   NS_ABORT_MSG_IF (nodeConfigurationElement == nullptr, "NodeConfiguration Element not found");
-
-//   XMLElement *nodeElement = nodeConfigurationElement->FirstChildElement ("Node");
-//   while (nodeElement != nullptr)
-//     {
-//       NodeId_t nodeId;
-//       char nodeType;
-
-//       nodeElement->QueryAttribute ("Id", &nodeId);
-//       nodeType = *nodeElement->Attribute ("Type");
-
-//       if (nodeType == 'S')
-//         {
-//           Ptr<Node> switchNode = m_allNodes.Get (nodeId);
-//           auto ret = m_switchMap.insert ({nodeId, SwitchType (nodeId, switchNode)});
-//           NS_ABORT_MSG_IF (ret.second == false, "A switch with Id " << nodeId << " exists already");
-//           m_switchNodes.Add (switchNode); // Add the node to the switches node container
-//         }
-//       else if (nodeType == 'T')
-//         m_terminalNodes.Add (
-//             m_allNodes.Get (nodeId)); // Add the node to the terminals node container
-//       else
-//         NS_ABORT_MSG ("Unknown node type encountered");
-
-//       nodeElement = nodeElement->NextSiblingElement ("Node");
-//     }
-// }
-
-template <class SwitchType>
-void
-TopologyBuilder<SwitchType>::BuildNetworkTopology (
-    std::map<LinkId_t, LinkInformation> &linkInformation)
-{
-  // XMLElement *networkTopologyElement = m_xmlRootNode->FirstChildElement ("NetworkTopology");
-  // NS_ABORT_MSG_IF (networkTopologyElement == nullptr, "NetworkTopology Element not found");
-
-  // /*
-  //  * Looping through all the link Elements and storing them in a vector such that they can be
-  //  * shuffled
-  //  */
-  // std::vector<XMLElement *> linkElements;
-  // XMLElement *linkElement = networkTopologyElement->FirstChildElement ("Link");
-  // while (linkElement != nullptr)
-  //   {
-  //     linkElements.push_back (linkElement);
-  //     linkElement = linkElement->NextSiblingElement ("Link");
-  //   }
-
-  // ShuffleLinkElements (linkElements);
-
-  // uint32_t linkDelay;
-  // for (auto linkElement : linkElements)
-  //   {
-  //     linkElement->QueryAttribute ("Delay", &linkDelay);
-
-  //     // We need to loop through all the Link Elements here.
-  //     XMLElement *linkElementElement = linkElement->FirstChildElement ("LinkElement");
-
-  //     int linkIds[] = {-1, -1};
-
-  //     int linkElementCounter = 0;
-  //     while (linkElementElement != nullptr)
-  //       {
-  //         LinkInformation linkInfo;
-
-  //         linkElementElement->QueryAttribute ("Id", &linkInfo.linkId);
-  //         linkElementElement->QueryAttribute ("SourceNode", &linkInfo.srcNode);
-  //         linkInfo.srcNodeType = *linkElementElement->Attribute ("SourceNodeType");
-  //         linkElementElement->QueryAttribute ("DestinationNode", &linkInfo.dstNode);
-  //         linkInfo.dstNodeType = *linkElementElement->Attribute ("DestinationNodeType");
-  //         linkElementElement->QueryAttribute ("Capacity", &linkInfo.capacity);
-
-  //         auto ret = linkInformation.insert ({linkInfo.linkId, linkInfo});
-  //         NS_ABORT_MSG_IF (ret.second == false, "Link ID " << linkInfo.linkId << " is duplicate");
-
-  //         linkIds[linkElementCounter++] = linkInfo.linkId;
-  //         linkElementElement = linkElementElement->NextSiblingElement ("LinkElement");
-  //       }
-
-  //     if (linkIds[1] == -1)
-  //       InstallP2pLink (linkInformation[linkIds[0]], linkDelay);
-  //     else
-  //       InstallP2pLink (linkInformation[linkIds[0]], linkInformation[linkIds[1]], linkDelay);
-
-  //     linkElement = linkElement->NextSiblingElement ("Link");
-  //   }
-}
-
 template <class SwitchType>
 void
 TopologyBuilder<SwitchType>::SetSwitchRandomNumberGenerator ()
@@ -191,154 +86,134 @@ TopologyBuilder<OspfSwitch>::AssignIpToNodes ()
   // std::vector<ns3::NetDeviceContainer> ().swap (m_linkNetDeviceContainers);
 }
 
-template <class SwitchType>
-void
-TopologyBuilder<SwitchType>::ShuffleLinkElements (std::vector<XMLElement *> &linkElements)
-{
-  typedef
-      typename std::iterator_traits<std::vector<XMLElement *>::iterator>::difference_type diff_t;
+// template <class SwitchType>
+// void
+// TopologyBuilder<SwitchType>::InstallP2pLink (LinkInformation &linkA, LinkInformation &linkB,
+//                                              uint32_t delay)
+// {
+//   ObjectFactory m_channelFactory ("ns3::PointToPointChannel");
+//   ObjectFactory m_deviceFactory ("ns3::PointToPointNetDevice");
+//   ObjectFactory m_queueFactory ("ns3::DropTailQueue<Packet>");
 
-  Ptr<UniformRandomVariable> randomGenerator =
-      RandomGeneratorManager::CreateUniformRandomVariable (0, 0);
+//   // // A single delay for the link.
+//   // m_channelFactory.Set ("Delay", TimeValue (MilliSeconds (delay)));
 
-  diff_t numOfLinkElements = linkElements.end () - linkElements.begin ();
+//   // // Setting up link A ////////////////////////////////////////////////////////
+//   // Ptr<Node> nodeA = m_allNodes.Get (linkA.srcNode);
+//   // m_deviceFactory.Set ("DataRate", DataRateValue (DataRate (linkA.capacity * 1000000))); // In bps
+//   // Ptr<PointToPointNetDevice> devA = m_deviceFactory.Create<PointToPointNetDevice> ();
+//   // devA->SetAddress (Mac48Address::Allocate ());
+//   // nodeA->AddDevice (devA);
+//   // Ptr<Queue<Packet>> queueA = m_queueFactory.Create<Queue<Packet>> ();
+//   // devA->SetQueue (queueA);
+//   // /*
+//   //  * Inserting a reference to the net device in the switch. This information will be
+//   //  * used when building the routing table.
+//   //  */
+//   // if (linkA.srcNodeType == 'S')
+//   //   {
+//   //     m_switchMap[linkA.srcNode].InsertNetDevice (linkA.linkId, devA);
+//   //     m_switchDevices.Add (devA);
+//   //   }
+//   // else if (linkA.srcNodeType == 'T')
+//   //   {
+//   //     m_terminalToLinkId.insert ({devA, linkA.linkId});
+//   //     m_terminalDevices.Add (devA);
+//   //   }
 
-  for (diff_t i = numOfLinkElements - 1; i > 0; --i)
-    {
-      // I think this is inclusive. Verify
-      uint32_t randValue = randomGenerator->GetInteger (0, i);
-      std::swap (linkElements[i], linkElements[randValue]);
-    }
-}
+//   // // Setting up link B ////////////////////////////////////////////////////////
+//   // Ptr<Node> nodeB = m_allNodes.Get (linkB.srcNode);
+//   // m_deviceFactory.Set ("DataRate", DataRateValue (DataRate (linkB.capacity * 1000000))); // In bps
+//   // Ptr<PointToPointNetDevice> devB = m_deviceFactory.Create<PointToPointNetDevice> ();
+//   // devB->SetAddress (Mac48Address::Allocate ());
+//   // nodeB->AddDevice (devB);
+//   // Ptr<Queue<Packet>> queueB = m_queueFactory.Create<Queue<Packet>> ();
+//   // devB->SetQueue (queueB);
+//   // /*
+//   //  * Inserting a reference to the net device in the switch. This information will be
+//   //  * used when building the routing table.
+//   //  */
+//   // if (linkB.srcNodeType == 'S')
+//   //   {
+//   //     m_switchMap[linkB.srcNode].InsertNetDevice (linkB.linkId, devB);
+//   //     m_switchDevices.Add (devB);
+//   //   }
+//   // else if (linkB.srcNodeType == 'T')
+//   //   {
+//   //     m_terminalToLinkId.insert ({devB, linkB.linkId});
+//   //     m_terminalDevices.Add (devB);
+//   //   }
 
-template <class SwitchType>
-void
-TopologyBuilder<SwitchType>::InstallP2pLink (LinkInformation &linkA, LinkInformation &linkB,
-                                             uint32_t delay)
-{
-  ObjectFactory m_channelFactory ("ns3::PointToPointChannel");
-  ObjectFactory m_deviceFactory ("ns3::PointToPointNetDevice");
-  ObjectFactory m_queueFactory ("ns3::DropTailQueue<Packet>");
+//   // Ptr<PointToPointChannel> channel = m_channelFactory.Create<PointToPointChannel> ();
+//   // devA->Attach (channel);
+//   // devB->Attach (channel);
 
-  // // A single delay for the link.
-  // m_channelFactory.Set ("Delay", TimeValue (MilliSeconds (delay)));
+//   // if (m_storeNetDeviceLinkPairs) // Storing the link net device pairs
+//   //   {
+//   //     NetDeviceContainer netDeviceContainer;
+//   //     netDeviceContainer.Add (devA);
+//   //     netDeviceContainer.Add (devB);
+//   //     m_linkNetDeviceContainers.push_back (netDeviceContainer);
+//   //   }
+// }
 
-  // // Setting up link A ////////////////////////////////////////////////////////
-  // Ptr<Node> nodeA = m_allNodes.Get (linkA.srcNode);
-  // m_deviceFactory.Set ("DataRate", DataRateValue (DataRate (linkA.capacity * 1000000))); // In bps
-  // Ptr<PointToPointNetDevice> devA = m_deviceFactory.Create<PointToPointNetDevice> ();
-  // devA->SetAddress (Mac48Address::Allocate ());
-  // nodeA->AddDevice (devA);
-  // Ptr<Queue<Packet>> queueA = m_queueFactory.Create<Queue<Packet>> ();
-  // devA->SetQueue (queueA);
-  // /*
-  //  * Inserting a reference to the net device in the switch. This information will be
-  //  * used when building the routing table.
-  //  */
-  // if (linkA.srcNodeType == 'S')
-  //   {
-  //     m_switchMap[linkA.srcNode].InsertNetDevice (linkA.linkId, devA);
-  //     m_switchDevices.Add (devA);
-  //   }
-  // else if (linkA.srcNodeType == 'T')
-  //   {
-  //     m_terminalToLinkId.insert ({devA, linkA.linkId});
-  //     m_terminalDevices.Add (devA);
-  //   }
+// template <class SwitchType>
+// void
+// TopologyBuilder<SwitchType>::InstallP2pLink (LinkInformation &link, uint32_t delay)
+// {
+//   ObjectFactory channelFactory ("ns3::PointToPointChannel");
+//   ObjectFactory deviceFactory ("ns3::PointToPointNetDevice");
+//   ObjectFactory queueFactory ("ns3::DropTailQueue");
 
-  // // Setting up link B ////////////////////////////////////////////////////////
-  // Ptr<Node> nodeB = m_allNodes.Get (linkB.srcNode);
-  // m_deviceFactory.Set ("DataRate", DataRateValue (DataRate (linkB.capacity * 1000000))); // In bps
-  // Ptr<PointToPointNetDevice> devB = m_deviceFactory.Create<PointToPointNetDevice> ();
-  // devB->SetAddress (Mac48Address::Allocate ());
-  // nodeB->AddDevice (devB);
-  // Ptr<Queue<Packet>> queueB = m_queueFactory.Create<Queue<Packet>> ();
-  // devB->SetQueue (queueB);
-  // /*
-  //  * Inserting a reference to the net device in the switch. This information will be
-  //  * used when building the routing table.
-  //  */
-  // if (linkB.srcNodeType == 'S')
-  //   {
-  //     m_switchMap[linkB.srcNode].InsertNetDevice (linkB.linkId, devB);
-  //     m_switchDevices.Add (devB);
-  //   }
-  // else if (linkB.srcNodeType == 'T')
-  //   {
-  //     m_terminalToLinkId.insert ({devB, linkB.linkId});
-  //     m_terminalDevices.Add (devB);
-  //   }
+//   // channelFactory.Set ("Delay", TimeValue (MilliSeconds (delay)));
+//   // // Setting the data rate in bps
+//   // deviceFactory.Set ("DataRate", DataRateValue (DataRate (link.capacity * 1000000)));
 
-  // Ptr<PointToPointChannel> channel = m_channelFactory.Create<PointToPointChannel> ();
-  // devA->Attach (channel);
-  // devB->Attach (channel);
+//   // // Setting up link A ////////////////////////////////////////////////////////
+//   // Ptr<Node> nodeA = m_allNodes.Get (link.srcNode);
+//   // Ptr<PointToPointNetDevice> devA = deviceFactory.Create<PointToPointNetDevice> ();
+//   // devA->SetAddress (Mac48Address::Allocate ());
+//   // nodeA->AddDevice (devA);
+//   // Ptr<Queue<Packet>> queueA = queueFactory.Create<Queue<Packet>> ();
+//   // devA->SetQueue (queueA);
+//   // // Inserting a reference to the net device in the switch. This information will be
+//   // // used when building the routing table.
+//   // if (link.srcNodeType == 'S')
+//   //   {
+//   //     m_switchMap[link.srcNode].InsertNetDevice (link.linkId, devA);
+//   //     m_switchDevices.Add (devA);
+//   //   }
+//   // else if (link.srcNodeType == 'T')
+//   //   {
+//   //     m_terminalToLinkId.insert ({devA, link.linkId});
+//   //     m_terminalDevices.Add (devA);
+//   //   }
 
-  // if (m_storeNetDeviceLinkPairs) // Storing the link net device pairs
-  //   {
-  //     NetDeviceContainer netDeviceContainer;
-  //     netDeviceContainer.Add (devA);
-  //     netDeviceContainer.Add (devB);
-  //     m_linkNetDeviceContainers.push_back (netDeviceContainer);
-  //   }
-}
+//   // // Setting up link B ////////////////////////////////////////////////////////
+//   // Ptr<Node> nodeB = m_allNodes.Get (link.dstNode);
+//   // Ptr<PointToPointNetDevice> devB = deviceFactory.Create<PointToPointNetDevice> ();
+//   // devB->SetAddress (Mac48Address::Allocate ());
+//   // nodeB->AddDevice (devB);
+//   // Ptr<Queue<Packet>> queueB = queueFactory.Create<Queue<Packet>> ();
+//   // queueB->SetMaxSize (
+//   //     QueueSize (QueueSizeUnit::PACKETS,
+//   //                0)); /**< Sanity check to make sure no packets are sent from this device */
+//   // devB->SetQueue (queueB);
 
-template <class SwitchType>
-void
-TopologyBuilder<SwitchType>::InstallP2pLink (LinkInformation &link, uint32_t delay)
-{
-  ObjectFactory channelFactory ("ns3::PointToPointChannel");
-  ObjectFactory deviceFactory ("ns3::PointToPointNetDevice");
-  ObjectFactory queueFactory ("ns3::DropTailQueue");
+//   // if (link.dstNodeType == 'S')
+//   //   m_switchDevices.Add (devB);
+//   // else if (link.dstNodeType == 'T')
+//   //   m_terminalDevices.Add (devB);
 
-  // channelFactory.Set ("Delay", TimeValue (MilliSeconds (delay)));
-  // // Setting the data rate in bps
-  // deviceFactory.Set ("DataRate", DataRateValue (DataRate (link.capacity * 1000000)));
+//   // Ptr<PointToPointChannel> channel = channelFactory.Create<PointToPointChannel> ();
+//   // devA->Attach (channel);
+//   // devB->Attach (channel);
 
-  // // Setting up link A ////////////////////////////////////////////////////////
-  // Ptr<Node> nodeA = m_allNodes.Get (link.srcNode);
-  // Ptr<PointToPointNetDevice> devA = deviceFactory.Create<PointToPointNetDevice> ();
-  // devA->SetAddress (Mac48Address::Allocate ());
-  // nodeA->AddDevice (devA);
-  // Ptr<Queue<Packet>> queueA = queueFactory.Create<Queue<Packet>> ();
-  // devA->SetQueue (queueA);
-  // // Inserting a reference to the net device in the switch. This information will be
-  // // used when building the routing table.
-  // if (link.srcNodeType == 'S')
-  //   {
-  //     m_switchMap[link.srcNode].InsertNetDevice (link.linkId, devA);
-  //     m_switchDevices.Add (devA);
-  //   }
-  // else if (link.srcNodeType == 'T')
-  //   {
-  //     m_terminalToLinkId.insert ({devA, link.linkId});
-  //     m_terminalDevices.Add (devA);
-  //   }
-
-  // // Setting up link B ////////////////////////////////////////////////////////
-  // Ptr<Node> nodeB = m_allNodes.Get (link.dstNode);
-  // Ptr<PointToPointNetDevice> devB = deviceFactory.Create<PointToPointNetDevice> ();
-  // devB->SetAddress (Mac48Address::Allocate ());
-  // nodeB->AddDevice (devB);
-  // Ptr<Queue<Packet>> queueB = queueFactory.Create<Queue<Packet>> ();
-  // queueB->SetMaxSize (
-  //     QueueSize (QueueSizeUnit::PACKETS,
-  //                0)); /**< Sanity check to make sure no packets are sent from this device */
-  // devB->SetQueue (queueB);
-
-  // if (link.dstNodeType == 'S')
-  //   m_switchDevices.Add (devB);
-  // else if (link.dstNodeType == 'T')
-  //   m_terminalDevices.Add (devB);
-
-  // Ptr<PointToPointChannel> channel = channelFactory.Create<PointToPointChannel> ();
-  // devA->Attach (channel);
-  // devB->Attach (channel);
-
-  // if (m_storeNetDeviceLinkPairs) // Storing the link net device pairs
-  //   {
-  //     NetDeviceContainer netDeviceContainer;
-  //     netDeviceContainer.Add (devA);
-  //     netDeviceContainer.Add (devB);
-  //     m_linkNetDeviceContainers.push_back (netDeviceContainer);
-  //   }
-}
+//   // if (m_storeNetDeviceLinkPairs) // Storing the link net device pairs
+//   //   {
+//   //     NetDeviceContainer netDeviceContainer;
+//   //     netDeviceContainer.Add (devA);
+//   //     netDeviceContainer.Add (devB);
+//   //     m_linkNetDeviceContainers.push_back (netDeviceContainer);
+//   //   }
+// }
