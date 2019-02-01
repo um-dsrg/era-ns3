@@ -15,6 +15,17 @@
 
 using namespace ns3;
 
+struct Link
+{
+  id_t id; //!< Link Id
+  CustomDevice *srcNode;
+  CustomDevice *dstNode;
+  NodeType srcNodeType;
+  NodeType dstNodeType;
+  delay_t delay;
+  dataRate_t capacity;
+};
+
 template <class SwitchType>
 class TopologyBuilder
 {

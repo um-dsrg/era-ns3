@@ -17,16 +17,6 @@ enum class NodeType : char { Switch = 'S', Terminal = 'T' };
 
 // Structure definitions /////////////////////////////////////////////////////////
 
-struct LinkInformation /*!< Stores information about a link */
-{
-  LinkId_t linkId;
-  NodeId_t srcNode;
-  char srcNodeType;
-  NodeId_t dstNode;
-  char dstNodeType;
-  double capacity;
-};
-
 // Flow Match definitions ///////////////////////////////////////////////////
 #include <iostream>
 #include "ns3/ipv4-address.h"
