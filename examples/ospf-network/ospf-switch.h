@@ -4,9 +4,9 @@
 #include "ns3/node.h"
 #include "ns3/packet.h"
 
-#include "../common-code/switch-device.h"
+#include "../common-code/switch-base.h"
 
-class OspfSwitch : public SwitchDevice
+class OspfSwitch : public SwitchBase
 {
 public:
   OspfSwitch () = default;

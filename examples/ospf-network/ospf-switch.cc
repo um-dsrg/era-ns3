@@ -9,7 +9,7 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("OspfSwitch");
 
-OspfSwitch::OspfSwitch (id_t id) : SwitchDevice (id)
+OspfSwitch::OspfSwitch (id_t id) : SwitchBase (id)
 {
 }
 
