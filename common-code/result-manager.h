@@ -12,7 +12,7 @@
 
 #include "definitions.h"
 #include "application-monitor.h"
-#include "switch-device.h"
+#include "switch-base.h"
 #include "../examples/ppfs/ppfs-switch.h"
 
 class ResultManager
