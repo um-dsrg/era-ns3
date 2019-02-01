@@ -136,9 +136,12 @@ main (int argc, char *argv[])
   topologyBuilder.CreateNodes (rootNode);
   topologyBuilder.BuildNetworkTopology (rootNode);
   topologyBuilder.AssignIpToNodes ();
+  auto flows{topologyBuilder.ParseFlows (rootNode)};
 
-  // Now we assign IP address to the terminals.
-  // TODO The terminal object should have a function that creates it's own IP address!
+  // TODO Build routing tables
+  // TODO Enable packet reception on switches
+  // TODO Install application on terminals (at first use default ON-OFF to see transmission)
+  // TODO Celebrate
 
   // NodeContainer allNodes; /*!< Node container storing all the nodes */
   // NodeContainer terminalNodes; /*!< Node container storing a reference to the terminal nodes */

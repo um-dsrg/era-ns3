@@ -19,6 +19,7 @@
 #include "definitions.h"
 #include "custom-device.h"
 #include "terminal.h"
+#include "flow.h"
 
 using namespace ns3;
 using namespace tinyxml2;
@@ -49,6 +50,7 @@ public:
   void CreateNodes (XMLNode *rootNode);
   void BuildNetworkTopology (XMLNode *rootNode);
   void AssignIpToTerminals ();
+  std::map<id_t, Flow> ParseFlows (XMLNode *rootNode);
 
   /* The below public functions still need to be optimised */
   // Parses the node configuration element and creates PpfsSwitches instances
@@ -361,6 +363,67 @@ TopologyBuilder<SwitchType>::AssignIpToTerminals ()
     {
       terminalPair.second.RetrieveIpAddress ();
     }
+}
+
+// template <class SwitchType>
+// void
+// TopologyBuilder<SwitchType>::AssignIpToTerminals ()
+
+template <class SwitchType>
+std::map<id_t, Flow>
+TopologyBuilder<SwitchType>::ParseFlows (XMLNode *rootNode)
+{
+  NS_LOG_WARN ("Flow DATA RATE has not been set yet");
+
+  std::map<id_t, Flow> flows;
+
+  auto flowDetElement = rootNode->FirstChildElement ("FlowDetails");
+  NS_ABORT_MSG_IF (flowDetElement == nullptr, "FlowDetails Element not found");
+
+  auto flowElement = flowDetElement->FirstChildElement ("Flow");
+  while (flowElement != nullptr)
+    {
+      Flow flow;
+
+      flowElement->QueryAttribute ("Id", &flow.id);
+      id_t srcNodeId{0};
+      flowElement->QueryAttribute ("SourceNode", &srcNodeId);
+      flow.srcNode = &m_terminals.at (srcNodeId);
+      id_t dstNodeId{0};
+      flowElement->QueryAttribute ("DestinationNode", &dstNodeId);
+      flow.dstNode = &m_terminals.at (dstNodeId);
+      flow.protocol = static_cast<FlowProtocol> (*flowElement->Attribute ("Protocol"));
+
+      auto pathsElement = flowElement->FirstChildElement ("Paths");
+      auto pathElement = pathsElement->FirstChildElement ("Path");
+
+      while (pathElement != nullptr)
+        {
+          Path path;
+          pathElement->QueryAttribute ("Id", &path.id);
+
+          auto linkElement = pathElement->FirstChildElement ("Link");
+          while (linkElement != nullptr)
+            {
+              id_t linkId;
+              linkElement->QueryAttribute ("Id", &linkId);
+              path.AddLink (linkId);
+
+              linkElement = linkElement->NextSiblingElement ("Link");
+            }
+
+          flow.AddPath (path);
+          pathElement = pathElement->NextSiblingElement ("Path");
+        }
+
+      auto ret = flows.emplace (flow.id, flow);
+      NS_ABORT_MSG_IF (ret.second == false, "Inserting Flow " << flow.id << " failed");
+
+      NS_LOG_INFO ("Flow Details" << flow);
+      flowElement = flowElement->NextSiblingElement ("Flow");
+    }
+
+  return flows;
 }
 
 // FIXME This needs to be removed at the end of the refactoring stage
