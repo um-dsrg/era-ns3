@@ -114,10 +114,8 @@
 		59A03FC92202DC9F00A7207A /* random-generator-manager.cc in Sources */ = {isa = PBXBuildFile; fileRef = 59A032122202DC9B00A7207A /* random-generator-manager.cc */; };
 		59A03FCA2202DC9F00A7207A /* animation-helper.cc in Sources */ = {isa = PBXBuildFile; fileRef = 59A032172202DC9B00A7207A /* animation-helper.cc */; };
 		59A03FCB2202DC9F00A7207A /* application-monitor.cc in Sources */ = {isa = PBXBuildFile; fileRef = 59A032182202DC9B00A7207A /* application-monitor.cc */; };
-		59A03FCC2202DC9F00A7207A /* switch-device.cc in Sources */ = {isa = PBXBuildFile; fileRef = 59A0321A2202DC9B00A7207A /* switch-device.cc */; };
 		59A03FCD2202DC9F00A7207A /* routing-helper.cc in Sources */ = {isa = PBXBuildFile; fileRef = 59A0321B2202DC9B00A7207A /* routing-helper.cc */; };
 		59A03FCE2202DC9F00A7207A /* result-manager.cc in Sources */ = {isa = PBXBuildFile; fileRef = 59A0321C2202DC9B00A7207A /* result-manager.cc */; };
-		59A03FCF2202DC9F00A7207A /* topology-builder.cc in Sources */ = {isa = PBXBuildFile; fileRef = 59A0321E2202DC9B00A7207A /* topology-builder.cc */; };
 		59A03FD02202DC9F00A7207A /* application-helper.cc in Sources */ = {isa = PBXBuildFile; fileRef = 59A032202202DC9B00A7207A /* application-helper.cc */; };
 		59A03FD12202DC9F00A7207A /* scratch-simulator.cc in Sources */ = {isa = PBXBuildFile; fileRef = 59A032242202DC9B00A7207A /* scratch-simulator.cc */; };
 		59A03FD22202DC9F00A7207A /* scratch-simulator-subdir.cc in Sources */ = {isa = PBXBuildFile; fileRef = 59A032262202DC9B00A7207A /* scratch-simulator-subdir.cc */; };
@@ -1461,6 +1459,10 @@
 		59A0450C2202DCA200A7207A /* nms-p2p-nix.cc in Sources */ = {isa = PBXBuildFile; fileRef = 59A03F542202DC9E00A7207A /* nms-p2p-nix.cc */; };
 		59A0450D2202DCA200A7207A /* ipv4-nix-vector-routing.cc in Sources */ = {isa = PBXBuildFile; fileRef = 59A03F572202DC9E00A7207A /* ipv4-nix-vector-routing.cc */; };
 		59A0450E2202DCA200A7207A /* ipv4-nix-vector-helper.cc in Sources */ = {isa = PBXBuildFile; fileRef = 59A03F602202DC9E00A7207A /* ipv4-nix-vector-helper.cc */; };
+		59F905D12204991500A7CBEE /* flow.cc in Sources */ = {isa = PBXBuildFile; fileRef = 59F905C92204991400A7CBEE /* flow.cc */; };
+		59F905D22204991500A7CBEE /* custom-device.cc in Sources */ = {isa = PBXBuildFile; fileRef = 59F905CB2204991400A7CBEE /* custom-device.cc */; };
+		59F905D32204991500A7CBEE /* terminal.cc in Sources */ = {isa = PBXBuildFile; fileRef = 59F905CD2204991400A7CBEE /* terminal.cc */; };
+		59F905D42204991500A7CBEE /* switch-base.cc in Sources */ = {isa = PBXBuildFile; fileRef = 59F905D02204991500A7CBEE /* switch-base.cc */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -1648,12 +1650,9 @@
 		59A032172202DC9B00A7207A /* animation-helper.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = "animation-helper.cc"; sourceTree = "<group>"; };
 		59A032182202DC9B00A7207A /* application-monitor.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = "application-monitor.cc"; sourceTree = "<group>"; };
 		59A032192202DC9B00A7207A /* topology-builder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "topology-builder.h"; sourceTree = "<group>"; };
-		59A0321A2202DC9B00A7207A /* switch-device.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = "switch-device.cc"; sourceTree = "<group>"; };
 		59A0321B2202DC9B00A7207A /* routing-helper.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = "routing-helper.cc"; sourceTree = "<group>"; };
 		59A0321C2202DC9B00A7207A /* result-manager.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = "result-manager.cc"; sourceTree = "<group>"; };
 		59A0321D2202DC9B00A7207A /* application-helper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "application-helper.h"; sourceTree = "<group>"; };
-		59A0321E2202DC9B00A7207A /* topology-builder.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = "topology-builder.cc"; sourceTree = "<group>"; };
-		59A0321F2202DC9B00A7207A /* switch-device.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "switch-device.h"; sourceTree = "<group>"; };
 		59A032202202DC9B00A7207A /* application-helper.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = "application-helper.cc"; sourceTree = "<group>"; };
 		59A032212202DC9B00A7207A /* definitions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = definitions.h; sourceTree = "<group>"; };
 		59A032222202DC9B00A7207A /* result-manager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "result-manager.h"; sourceTree = "<group>"; };
@@ -4733,6 +4732,14 @@
 		59A03F5F2202DC9E00A7207A /* ipv4-nix-vector-helper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "ipv4-nix-vector-helper.h"; sourceTree = "<group>"; };
 		59A03F602202DC9E00A7207A /* ipv4-nix-vector-helper.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = "ipv4-nix-vector-helper.cc"; sourceTree = "<group>"; };
 		59A0450F2202DCFD00A7207A /* Ns3 */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Ns3; sourceTree = BUILT_PRODUCTS_DIR; };
+		59F905C92204991400A7CBEE /* flow.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = flow.cc; sourceTree = "<group>"; };
+		59F905CA2204991400A7CBEE /* terminal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = terminal.h; sourceTree = "<group>"; };
+		59F905CB2204991400A7CBEE /* custom-device.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = "custom-device.cc"; sourceTree = "<group>"; };
+		59F905CC2204991400A7CBEE /* custom-device.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "custom-device.h"; sourceTree = "<group>"; };
+		59F905CD2204991400A7CBEE /* terminal.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = terminal.cc; sourceTree = "<group>"; };
+		59F905CE2204991500A7CBEE /* switch-base.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "switch-base.h"; sourceTree = "<group>"; };
+		59F905CF2204991500A7CBEE /* flow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = flow.h; sourceTree = "<group>"; };
+		59F905D02204991500A7CBEE /* switch-base.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = "switch-base.cc"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -5091,6 +5098,14 @@
 		59A032112202DC9B00A7207A /* common-code */ = {
 			isa = PBXGroup;
 			children = (
+				59F905CB2204991400A7CBEE /* custom-device.cc */,
+				59F905CC2204991400A7CBEE /* custom-device.h */,
+				59F905C92204991400A7CBEE /* flow.cc */,
+				59F905CF2204991500A7CBEE /* flow.h */,
+				59F905D02204991500A7CBEE /* switch-base.cc */,
+				59F905CE2204991500A7CBEE /* switch-base.h */,
+				59F905CD2204991400A7CBEE /* terminal.cc */,
+				59F905CA2204991400A7CBEE /* terminal.h */,
 				59A032122202DC9B00A7207A /* random-generator-manager.cc */,
 				59A032132202DC9B00A7207A /* animation-helper.h */,
 				59A032142202DC9B00A7207A /* application-monitor.h */,
@@ -5099,12 +5114,9 @@
 				59A032172202DC9B00A7207A /* animation-helper.cc */,
 				59A032182202DC9B00A7207A /* application-monitor.cc */,
 				59A032192202DC9B00A7207A /* topology-builder.h */,
-				59A0321A2202DC9B00A7207A /* switch-device.cc */,
 				59A0321B2202DC9B00A7207A /* routing-helper.cc */,
 				59A0321C2202DC9B00A7207A /* result-manager.cc */,
 				59A0321D2202DC9B00A7207A /* application-helper.h */,
-				59A0321E2202DC9B00A7207A /* topology-builder.cc */,
-				59A0321F2202DC9B00A7207A /* switch-device.h */,
 				59A032202202DC9B00A7207A /* application-helper.cc */,
 				59A032212202DC9B00A7207A /* definitions.h */,
 				59A032222202DC9B00A7207A /* result-manager.h */,
@@ -10874,6 +10886,7 @@
 				59A044E62202DCA100A7207A /* double-probe-example.cc in Sources */,
 				59A0403A2202DC9F00A7207A /* lte-ffr-simple.cc in Sources */,
 				59A044C82202DCA100A7207A /* model-typeid-creator.cc in Sources */,
+				59F905D42204991500A7CBEE /* switch-base.cc in Sources */,
 				59A041642202DC9F00A7207A /* buildings-helper.cc in Sources */,
 				59A040CF2202DC9F00A7207A /* eps-bearer-tag.cc in Sources */,
 				59A0417C2202DC9F00A7207A /* uan-tx-mode.cc in Sources */,
@@ -11169,6 +11182,7 @@
 				59A041E82202DC9F00A7207A /* win32-system-wall-clock-ms.cc in Sources */,
 				59A042072202DC9F00A7207A /* traced-value-callback-typedef-test-suite.cc in Sources */,
 				59A041BA2202DC9F00A7207A /* string.cc in Sources */,
+				59F905D32204991500A7CBEE /* terminal.cc in Sources */,
 				59A040C62202DC9F00A7207A /* pf-ff-mac-scheduler.cc in Sources */,
 				59A044F62202DCA200A7207A /* uinteger-8-probe.cc in Sources */,
 				59A0423D2202DCA000A7207A /* lr-wpan-ed-test.cc in Sources */,
@@ -11294,6 +11308,7 @@
 				59A040332202DC9F00A7207A /* lte-test-pss-ff-mac-scheduler.cc in Sources */,
 				59A0402D2202DC9F00A7207A /* lte-test-ue-phy.cc in Sources */,
 				59A043542202DCA000A7207A /* tcp-header.cc in Sources */,
+				59F905D22204991500A7CBEE /* custom-device.cc in Sources */,
 				59A03FC72202DC9F00A7207A /* udp-trace-client-server.cc in Sources */,
 				59A041EC2202DC9F00A7207A /* rng-stream.cc in Sources */,
 				59A042732202DCA000A7207A /* pcap-file-wrapper.cc in Sources */,
@@ -11580,7 +11595,6 @@
 				59A044722202DCA100A7207A /* codel-vs-pfifo-asymmetric.cc in Sources */,
 				59A0441D2202DCA100A7207A /* bs-net-device.cc in Sources */,
 				59A040952202DC9F00A7207A /* rr-ff-mac-scheduler.cc in Sources */,
-				59A03FCF2202DC9F00A7207A /* topology-builder.cc in Sources */,
 				59A043DD2202DCA100A7207A /* propagation-loss-model.cc in Sources */,
 				59A0446F2202DCA100A7207A /* adaptive-red-tests.cc in Sources */,
 				59A042BB2202DCA000A7207A /* fd2fd-onoff.cc in Sources */,
@@ -12008,6 +12022,7 @@
 				59A044142202DCA100A7207A /* wimax-connection.cc in Sources */,
 				59A043952202DCA000A7207A /* ipv6-interface-container.cc in Sources */,
 				59A044002202DCA100A7207A /* bs-link-manager.cc in Sources */,
+				59F905D12204991500A7CBEE /* flow.cc in Sources */,
 				59A041902202DC9F00A7207A /* type-id-test-suite.cc in Sources */,
 				59A03FBE2202DC9F00A7207A /* fragmentation-ipv6.cc in Sources */,
 				59A0437D2202DCA000A7207A /* ipv6-routing-protocol.cc in Sources */,
@@ -12209,7 +12224,6 @@
 				59A042922202DCA000A7207A /* buffer.cc in Sources */,
 				59A043962202DCA000A7207A /* ipv6-list-routing-helper.cc in Sources */,
 				59A0437B2202DCA000A7207A /* tcp-socket-base.cc in Sources */,
-				59A03FCC2202DC9F00A7207A /* switch-device.cc in Sources */,
 				59A043BF2202DCA100A7207A /* gauss-markov-mobility-model.cc in Sources */,
 				59A0445A2202DCA100A7207A /* dsdv-packet-queue.cc in Sources */,
 				59A0441E2202DCA100A7207A /* ss-link-manager.cc in Sources */,
