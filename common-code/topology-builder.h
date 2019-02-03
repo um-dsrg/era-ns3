@@ -16,76 +16,39 @@
 #include "ns3/point-to-point-channel.h"
 #include "ns3/point-to-point-net-device.h"
 
+#include "flow.h"
+#include "terminal.h"
 #include "definitions.h"
 #include "custom-device.h"
-#include "terminal.h"
-#include "flow.h"
 
 using namespace ns3;
 using namespace tinyxml2;
-
-struct Link
-{
-  id_t id; //!< Link Id
-  CustomDevice *srcNode;
-  CustomDevice *dstNode;
-  NodeType srcNodeType;
-  NodeType dstNodeType;
-  delay_t delay;
-  dataRate_t capacity;
-};
 
 template <class SwitchType>
 class TopologyBuilder
 {
 public:
-  // TopologyBuilder (tinyxml2::XMLNode *xmlRootNode, std::map<NodeId_t, SwitchType> &switchMap,
-  //                  std::map<ns3::Ptr<ns3::NetDevice>, LinkId_t> &terminalToLinkId,
-  //                  ns3::NodeContainer &allNodes, ns3::NodeContainer &terminalNodes,
-  //                  ns3::NodeContainer &switchNodes, ns3::NetDeviceContainer &terminalDevices,
-  //                  bool storeNetDeviceLinkPairs);
-
   TopologyBuilder ();
 
   void CreateNodes (XMLNode *rootNode);
-  void BuildNetworkTopology (XMLNode *rootNode);
+  std::map<id_t, Ptr<NetDevice>> BuildNetworkTopology (XMLNode *rootNode);
   void AssignIpToTerminals ();
   std::map<id_t, Flow> ParseFlows (XMLNode *rootNode);
 
-  /* The below public functions still need to be optimised */
-  // Parses the node configuration element and creates PpfsSwitches instances
-  void ParseNodeConfiguration ();
-  // linkinformation is output.
-
+  /* The below public functions still need to be refactored */
   void SetSwitchRandomNumberGenerator ();
-  void AssignIpToNodes ();
 
 private:
   void CreateUniqueNode (id_t nodeId, NodeType nodeType);
-  void InstallP2pLinks (const std::vector<Link> &links);
+  void InstallP2pLinks (const std::vector<Link> &links,
+                        std::map<id_t, Ptr<NetDevice>> &transmitOnLink);
   CustomDevice *GetNode (id_t id, NodeType nodeType);
-  // void InstallP2pLink (LinkInformation &linkA, LinkInformation &linkB, uint32_t delay);
-  // void InstallP2pLink (LinkInformation &link, uint32_t delay);
 
-  // tinyxml2::XMLNode *m_xmlRootNode;
-  /* Refactoring - BEGIN */
-  // std::map<ns3::Ptr<ns3::NetDevice>, LinkId_t> &m_terminalToLinkId;
-  // ns3::NetDeviceContainer &m_terminalDevices;
-  // ns3::NetDeviceContainer m_switchDevices;
-  // std::map<NodeId_t, SwitchType> &m_switchMap;
-  // ns3::NodeContainer &m_allNodes;
-  // ns3::NodeContainer &m_terminalNodes;
-  // ns3::NodeContainer &m_switchNodes;
   std::map<id_t, SwitchType> m_switches; //!< Maps the node id with the Switch object.
   std::map<id_t, Terminal> m_terminals; //!< Maps the node id with the Terminal object.
-  /**
-   * A map that given a link id will return the Node Id and the NetDevice that needs to be
-   * used to transmit on the given link.
-   */
-  // std::map<id_t, std::pair<id_t, ns3::Ptr<ns3::PointToPointNetDevice>>> m_transmit_on_link;
-  std::map<id_t, std::pair<id_t, Ptr<NetDevice>>> m_transmitOnLink;
-  /* Refactoring - END */
+  std::map<id_t, Link> m_links; //!< Maps the link id with the Link object.
 
+  // TODO: Not sure the below are being used.
   std::vector<NetDeviceContainer> m_linkNetDeviceContainers;
   /*
      * When set to true, the tow net devices that make one whole link will be stored in the vector
@@ -190,9 +153,16 @@ TopologyBuilder<SwitchType>::CreateNodes (XMLNode *rootNode)
 }
 
 template <class SwitchType>
-void
+std::map<id_t, Ptr<NetDevice>>
 TopologyBuilder<SwitchType>::BuildNetworkTopology (XMLNode *rootNode)
 {
+  /**
+   * A map that given a link id will return the NetDevice that needs to be used to
+   * transmit on the given link. The Node is not required because it can be retrieved
+   * from the link object.
+   */
+  std::map<id_t, Ptr<NetDevice>> transmitOnLink;
+
   XMLElement *networkTopologyElement = rootNode->FirstChildElement ("NetworkTopology");
   NS_ABORT_MSG_IF (networkTopologyElement == nullptr, "NetworkTopology Element not found");
 
@@ -240,17 +210,23 @@ TopologyBuilder<SwitchType>::BuildNetworkTopology (XMLNode *rootNode)
 
           // Save link
           sameDelayLinks.push_back (link);
+          auto ret = m_links.emplace (link.id, link);
+          NS_ABORT_MSG_IF (ret.second == false, "Duplicate link " << link.id << " found");
+
           linkElementElement = linkElementElement->NextSiblingElement ("LinkElement");
         }
 
-      InstallP2pLinks (sameDelayLinks);
+      InstallP2pLinks (sameDelayLinks, transmitOnLink);
       linkElement = linkElement->NextSiblingElement ("Link");
     }
+
+  return transmitOnLink;
 }
 
 template <class SwitchType>
 void
-TopologyBuilder<SwitchType>::InstallP2pLinks (const std::vector<Link> &links)
+TopologyBuilder<SwitchType>::InstallP2pLinks (const std::vector<Link> &links,
+                                              std::map<id_t, Ptr<NetDevice>> &transmitOnLink)
 {
   NS_ABORT_MSG_IF (links.size () > 2 || links.size () < 1,
                    "The number of same delay links should be between 1 and 2");
@@ -305,15 +281,13 @@ TopologyBuilder<SwitchType>::InstallP2pLinks (const std::vector<Link> &links)
   srcNd->Attach (channel);
   dstNd->Attach (channel);
 
-  auto ret = m_transmitOnLink.emplace (commonLink.id,
-                                       std::make_pair (commonLink.srcNode->GetId (), srcNd));
+  auto ret = transmitOnLink.emplace (commonLink.id, srcNd);
   NS_ABORT_MSG_IF (ret.second == false,
                    "Duplicate link id " << commonLink.id << " in transmit on link map");
 
   if (links.size () == 2)
     {
-      auto ret = m_transmitOnLink.emplace (links[1].id,
-                                           std::make_pair (links[1].srcNode->GetId (), dstNd));
+      auto ret = transmitOnLink.emplace (links[1].id, dstNd);
       NS_ABORT_MSG_IF (ret.second == false,
                        "Duplicate link id " << links[1].id << " in transmit on link map");
     }
@@ -340,7 +314,7 @@ TopologyBuilder<SwitchType>::AssignIpToTerminals ()
 
   for (auto &terminalPair : m_terminals)
     {
-      auto &terminalNode = terminalPair.second.GetNode ();
+      auto terminalNode = terminalPair.second.GetNode ();
 
       NS_ABORT_MSG_IF (terminalNode->GetNDevices () != 1,
                        "Terminal " << terminalPair.first << " has " << terminalNode->GetNDevices ()
@@ -364,10 +338,6 @@ TopologyBuilder<SwitchType>::AssignIpToTerminals ()
       terminalPair.second.RetrieveIpAddress ();
     }
 }
-
-// template <class SwitchType>
-// void
-// TopologyBuilder<SwitchType>::AssignIpToTerminals ()
 
 template <class SwitchType>
 std::map<id_t, Flow>
@@ -407,8 +377,7 @@ TopologyBuilder<SwitchType>::ParseFlows (XMLNode *rootNode)
             {
               id_t linkId;
               linkElement->QueryAttribute ("Id", &linkId);
-              path.AddLink (linkId);
-
+              path.AddLink (&m_links.at (linkId));
               linkElement = linkElement->NextSiblingElement ("Link");
             }
 
@@ -426,7 +395,14 @@ TopologyBuilder<SwitchType>::ParseFlows (XMLNode *rootNode)
   return flows;
 }
 
-// FIXME This needs to be removed at the end of the refactoring stage
-#include "topology-builder.cc"
+template <class SwitchType>
+void
+TopologyBuilder<SwitchType>::SetSwitchRandomNumberGenerator ()
+{
+  // for (auto &switchNode : m_switchMap)
+  //   {
+  //     switchNode.second.SetRandomNumberGenerator ();
+  //   }
+}
 
 #endif /* TOPOLOGY_BUILDER_H */
