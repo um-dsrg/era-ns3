@@ -1,21 +1,21 @@
-#include "ns3/ipv4.h"
-#include "ns3/log.h"
-#include "ns3/simulator.h"
-#include "ns3/point-to-point-net-device.h"
+// #include "ns3/ipv4.h"
+// #include "ns3/log.h"
+// #include "ns3/simulator.h"
+// #include "ns3/point-to-point-net-device.h"
 
-#include "../examples/ospf-network/ospf-switch.h"
-#include "../examples/ppfs/ppfs-switch.h"
+// #include "../examples/ospf-network/ospf-switch.h"
+// #include "../examples/ppfs/ppfs-switch.h"
 
-#include "routing-helper.h"
+// #include "routing-helper.h"
 
-using namespace ns3;
-using namespace tinyxml2;
+// using namespace ns3;
+// using namespace tinyxml2;
 
-template <class SwitchType>
-RoutingHelper<SwitchType>::RoutingHelper (std::map<NodeId_t, SwitchType> &switchMap)
-    : m_switchMap (switchMap)
-{
-}
+// template <class SwitchType>
+// RoutingHelper<SwitchType>::RoutingHelper (std::map<NodeId_t, SwitchType> &switchMap)
+//     : m_switchMap (switchMap)
+// {
+// }
 
 // template <>
 // void
@@ -69,9 +69,7 @@ RoutingHelper<SwitchType>::RoutingHelper (std::map<NodeId_t, SwitchType> &switch
 
 // template <>
 // void
-// RoutingHelper<PpfsSwitch>::PopulateRoutingTables (
-//     std::map<LinkId_t, LinkInformation> &linkInformation, NodeContainer &allNodes,
-//     XMLNode *rootNode)
+// RoutingHelper<PpfsSwitch>::PopulateRoutingTables ()
 // {
 //   // Key -> Node Id, Flow Id, Value -> Incoming flow rate.
 //   std::map<std::pair<NodeId_t, FlowId_t>, double> incomingFlow;
@@ -139,51 +137,51 @@ RoutingHelper<SwitchType>::RoutingHelper (std::map<NodeId_t, SwitchType> &switch
 //     }
 // }
 
-template <class SwitchType>
-void
-RoutingHelper<SwitchType>::SetSwitchesPacketHandler ()
-{
-  // Loop through the switch map.
-  for (auto &switchNode : m_switchMap)
-    {
-      switchNode.second.SetPacketHandlingMechanism ();
-    }
-}
+// template <class SwitchType>
+// void
+// RoutingHelper<SwitchType>::SetSwitchesPacketHandler ()
+// {
+//   // Loop through the switch map.
+//   for (auto &switchNode : m_switchMap)
+//     {
+//       switchNode.second.SetPacketHandlingMechanism ();
+//     }
+// }
 
-template <class SwitchType>
-void
-RoutingHelper<SwitchType>::ParseIncomingFlows (
-    std::map<std::pair<NodeId_t, FlowId_t>, double> &incomingFlow, XMLNode *rootNode)
-{
-  XMLElement *incomingFlowElement = rootNode->FirstChildElement ("IncomingFlow");
-  NS_ABORT_MSG_IF (incomingFlowElement == nullptr, "IncomingFlow element not found");
+// template <class SwitchType>
+// void
+// RoutingHelper<SwitchType>::ParseIncomingFlows (
+//     std::map<std::pair<NodeId_t, FlowId_t>, double> &incomingFlow, XMLNode *rootNode)
+// {
+//   XMLElement *incomingFlowElement = rootNode->FirstChildElement ("IncomingFlow");
+//   NS_ABORT_MSG_IF (incomingFlowElement == nullptr, "IncomingFlow element not found");
 
-  XMLElement *nodeElement = incomingFlowElement->FirstChildElement ("Node");
-  while (nodeElement != nullptr)
-    {
-      NodeId_t nodeId (0);
-      nodeElement->QueryAttribute ("Id", &nodeId);
+//   XMLElement *nodeElement = incomingFlowElement->FirstChildElement ("Node");
+//   while (nodeElement != nullptr)
+//     {
+//       NodeId_t nodeId (0);
+//       nodeElement->QueryAttribute ("Id", &nodeId);
 
-      XMLElement *flowElement = nodeElement->FirstChildElement ("Flow");
-      while (flowElement != nullptr)
-        {
-          FlowId_t flowId (0);
-          double flowValue (0);
-          flowElement->QueryAttribute ("Id", &flowId);
-          flowElement->QueryAttribute ("IncomingFlow", &flowValue);
+//       XMLElement *flowElement = nodeElement->FirstChildElement ("Flow");
+//       while (flowElement != nullptr)
+//         {
+//           FlowId_t flowId (0);
+//           double flowValue (0);
+//           flowElement->QueryAttribute ("Id", &flowId);
+//           flowElement->QueryAttribute ("IncomingFlow", &flowValue);
 
-          auto ret = incomingFlow.insert ({std::make_pair (nodeId, flowId), flowValue});
-          NS_ABORT_MSG_IF (ret.second == false, "Duplicate entry when parsing IncomingFlow");
+//           auto ret = incomingFlow.insert ({std::make_pair (nodeId, flowId), flowValue});
+//           NS_ABORT_MSG_IF (ret.second == false, "Duplicate entry when parsing IncomingFlow");
 
-          flowElement = flowElement->NextSiblingElement ("Flow");
-        }
-      nodeElement = nodeElement->NextSiblingElement ("Node");
-    }
-}
+//           flowElement = flowElement->NextSiblingElement ("Flow");
+//         }
+//       nodeElement = nodeElement->NextSiblingElement ("Node");
+//     }
+// }
 
-template <class SwitchType>
-uint32_t
-RoutingHelper<SwitchType>::GetIpAddress (NodeId_t nodeId, NodeContainer &nodes)
-{
-  return nodes.Get (nodeId)->GetObject<Ipv4> ()->GetAddress (1, 0).GetLocal ().Get ();
-}
+// template <class SwitchType>
+// uint32_t
+// RoutingHelper<SwitchType>::GetIpAddress (NodeId_t nodeId, NodeContainer &nodes)
+// {
+//   return nodes.Get (nodeId)->GetObject<Ipv4> ()->GetAddress (1, 0).GetLocal ().Get ();
+// }
