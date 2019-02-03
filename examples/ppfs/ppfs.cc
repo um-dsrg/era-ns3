@@ -132,13 +132,17 @@ main (int argc, char *argv[])
   XMLNode *rootNode = xmlLogFile.LastChild ();
   NS_ABORT_MSG_IF (rootNode == nullptr, "No root node node found");
 
+  // Create the nodes and build the topology
   TopologyBuilder<PpfsSwitch> topologyBuilder;
   topologyBuilder.CreateNodes (rootNode);
-  topologyBuilder.BuildNetworkTopology (rootNode);
-  topologyBuilder.AssignIpToNodes ();
-  auto flows{topologyBuilder.ParseFlows (rootNode)};
+  auto transmitOnLink{topologyBuilder.BuildNetworkTopology (rootNode)};
+  topologyBuilder.AssignIpToTerminals ();
 
-  // TODO Build routing tables
+  // Parse the flows and build the routing table
+  auto flows{topologyBuilder.ParseFlows (rootNode)};
+  RoutingHelper<PpfsSwitch> routingHelper;
+  routingHelper.BuildRoutingTable (flows, transmitOnLink);
+
   // TODO Enable packet reception on switches
   // TODO Install application on terminals (at first use default ON-OFF to see transmission)
   // TODO Celebrate
