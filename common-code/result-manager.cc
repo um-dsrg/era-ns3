@@ -66,110 +66,111 @@ ResultManager::GenerateFlowMonitorXmlLog (bool enableHistograms, bool enableFlow
 void
 ResultManager::UpdateFlowIds (XMLNode *logFileRootNode, NodeContainer &allNodes)
 {
-  // Parsing our flows ////////////////////////////////////////////////////////
-  XMLElement *optimalSolutionElement = logFileRootNode->FirstChildElement ("OptimalSolution");
-  NS_ABORT_MSG_IF (optimalSolutionElement == nullptr, "OptimalSolution element not found");
+  NS_LOG_WARN ("UpdateFlowIds is NOT implemented yet");
+  // // Parsing our flows ////////////////////////////////////////////////////////
+  // XMLElement *optimalSolutionElement = logFileRootNode->FirstChildElement ("OptimalSolution");
+  // NS_ABORT_MSG_IF (optimalSolutionElement == nullptr, "OptimalSolution element not found");
 
-  std::map<Flow, FlowId_t> flowToIdMap; /*!< Key -> Flow Details, Value -> Flow Id */
-  XMLElement *flowElement = optimalSolutionElement->FirstChildElement ("Flow");
-  while (flowElement != nullptr)
-    {
-      NodeId_t srcNodeId (0);
-      NodeId_t dstNodeId (0);
-      FlowId_t flowId (0);
-      flowElement->QueryAttribute ("SourceNode", &srcNodeId);
-      flowElement->QueryAttribute ("DestinationNode", &dstNodeId);
-      flowElement->QueryAttribute ("Id", &flowId);
+  // std::map<Flow, FlowId_t> flowToIdMap; /*!< Key -> Flow Details, Value -> Flow Id */
+  // XMLElement *flowElement = optimalSolutionElement->FirstChildElement ("Flow");
+  // while (flowElement != nullptr)
+  //   {
+  //     NodeId_t srcNodeId (0);
+  //     NodeId_t dstNodeId (0);
+  //     FlowId_t flowId (0);
+  //     flowElement->QueryAttribute ("SourceNode", &srcNodeId);
+  //     flowElement->QueryAttribute ("DestinationNode", &dstNodeId);
+  //     flowElement->QueryAttribute ("Id", &flowId);
 
-      Flow flow;
-      flow.srcIpAddr = GetIpAddress (srcNodeId, allNodes);
-      flow.dstIpAddr = GetIpAddress (dstNodeId, allNodes);
-      flow.SetProtocol (*flowElement->Attribute ("Protocol"));
+  //     Flow flow;
+  //     flow.srcIpAddr = GetIpAddress (srcNodeId, allNodes);
+  //     flow.dstIpAddr = GetIpAddress (dstNodeId, allNodes);
+  //     flow.SetProtocol (*flowElement->Attribute ("Protocol"));
 
-      // This conversion is needed because tinyxml2 does not handle uint16_t parameters
-      uint32_t portNumber;
-      if (flow.GetProtocol () == Flow::Protocol::Tcp)
-        {
-          flowElement->QueryAttribute ("DstPortNumber", &portNumber);
-          flow.dstPortNumber = (uint16_t) portNumber;
-        }
-      else
-        {
-          flowElement->QueryAttribute ("PortNumber", &portNumber);
-          flow.dstPortNumber = (uint16_t) portNumber;
-        }
-      flowToIdMap.insert ({flow, flowId});
+  //     // This conversion is needed because tinyxml2 does not handle uint16_t parameters
+  //     uint32_t portNumber;
+  //     if (flow.GetProtocol () == Flow::Protocol::Tcp)
+  //       {
+  //         flowElement->QueryAttribute ("DstPortNumber", &portNumber);
+  //         flow.dstPortNumber = (uint16_t) portNumber;
+  //       }
+  //     else
+  //       {
+  //         flowElement->QueryAttribute ("PortNumber", &portNumber);
+  //         flow.dstPortNumber = (uint16_t) portNumber;
+  //       }
+  //     flowToIdMap.insert ({flow, flowId});
 
-      flowElement = flowElement->NextSiblingElement ("Flow");
-    }
+  //     flowElement = flowElement->NextSiblingElement ("Flow");
+  //   }
 
-  FlowMonitor::FlowStatsContainer flowStatistics = m_flowMonitor->GetFlowStats ();
-  Ptr<Ipv4FlowClassifier> flowClassifier =
-      DynamicCast<Ipv4FlowClassifier> (m_flowMonHelper.GetClassifier ());
-  NS_ASSERT (flowClassifier != 0); // Checking that the type cast works.
+  // FlowMonitor::FlowStatsContainer flowStatistics = m_flowMonitor->GetFlowStats ();
+  // Ptr<Ipv4FlowClassifier> flowClassifier =
+  //     DynamicCast<Ipv4FlowClassifier> (m_flowMonHelper.GetClassifier ());
+  // NS_ASSERT (flowClassifier != 0); // Checking that the type cast works.
 
-  // Parsing the FlowMonitor's flows //////////////////////////////////////////
-  // Key -> FlowMonitor Flow Id, Value -> Our FlowId
-  std::map<FlowId_t, FlowId_t> flowMonIdToFlowId;
-  for (const auto &flow : flowStatistics)
-    {
-      uint32_t flowMonFlowId (flow.first);
-      Ipv4FlowClassifier::FiveTuple flowMonFlow = flowClassifier->FindFlow (flowMonFlowId);
+  // // Parsing the FlowMonitor's flows //////////////////////////////////////////
+  // // Key -> FlowMonitor Flow Id, Value -> Our FlowId
+  // std::map<FlowId_t, FlowId_t> flowMonIdToFlowId;
+  // for (const auto &flow : flowStatistics)
+  //   {
+  //     uint32_t flowMonFlowId (flow.first);
+  //     Ipv4FlowClassifier::FiveTuple flowMonFlow = flowClassifier->FindFlow (flowMonFlowId);
 
-      Flow flowDetails;
-      flowDetails.srcIpAddr = flowMonFlow.sourceAddress.Get ();
-      flowDetails.dstIpAddr = flowMonFlow.destinationAddress.Get ();
-      flowDetails.dstPortNumber = flowMonFlow.destinationPort; // Destination Port Number
+  //     Flow flowDetails;
+  //     flowDetails.srcIpAddr = flowMonFlow.sourceAddress.Get ();
+  //     flowDetails.dstIpAddr = flowMonFlow.destinationAddress.Get ();
+  //     flowDetails.dstPortNumber = flowMonFlow.destinationPort; // Destination Port Number
 
-      // Protocol numbers taken from ipv4-flow-classifier.cc
-      if (flowMonFlow.protocol == 6)
-        flowDetails.SetProtocol (Flow::Protocol::Tcp);
-      else if (flowMonFlow.protocol == 17)
-        flowDetails.SetProtocol (Flow::Protocol::Udp);
+  //     // Protocol numbers taken from ipv4-flow-classifier.cc
+  //     if (flowMonFlow.protocol == 6)
+  //       flowDetails.SetProtocol (Flow::Protocol::Tcp);
+  //     else if (flowMonFlow.protocol == 17)
+  //       flowDetails.SetProtocol (Flow::Protocol::Udp);
 
-      auto ourFlowIt = flowToIdMap.find (flowDetails);
-      NS_ABORT_MSG_IF (ourFlowIt == flowToIdMap.end (),
-                       "FlowMonitor's flow could not be mapped to our flow set");
-      flowMonIdToFlowId.insert ({flowMonFlowId, ourFlowIt->second});
-    }
+  //     auto ourFlowIt = flowToIdMap.find (flowDetails);
+  //     NS_ABORT_MSG_IF (ourFlowIt == flowToIdMap.end (),
+  //                      "FlowMonitor's flow could not be mapped to our flow set");
+  //     flowMonIdToFlowId.insert ({flowMonFlowId, ourFlowIt->second});
+  //   }
 
-  // Need to update the XML File
-  // Updating the FlowStats element ///////////////////////////////////////////
-  XMLElement *flowStatsElement = GetRootNode ()->FirstChildElement ("FlowStats");
-  NS_ABORT_MSG_IF (flowStatsElement == nullptr, "FlowStats element not found");
+  // // Need to update the XML File
+  // // Updating the FlowStats element ///////////////////////////////////////////
+  // XMLElement *flowStatsElement = GetRootNode ()->FirstChildElement ("FlowStats");
+  // NS_ABORT_MSG_IF (flowStatsElement == nullptr, "FlowStats element not found");
 
-  flowElement = flowStatsElement->FirstChildElement ("Flow");
+  // flowElement = flowStatsElement->FirstChildElement ("Flow");
 
-  while (flowElement != nullptr)
-    {
-      FlowId_t flowMonFlowId (0);
-      flowElement->QueryAttribute ("flowId", &flowMonFlowId);
+  // while (flowElement != nullptr)
+  //   {
+  //     FlowId_t flowMonFlowId (0);
+  //     flowElement->QueryAttribute ("flowId", &flowMonFlowId);
 
-      auto ret = flowMonIdToFlowId.find (flowMonFlowId);
-      NS_ABORT_MSG_IF (ret == flowMonIdToFlowId.end (),
-                       "Flow Id not found when parsing flow monitor results");
-      flowElement->SetAttribute ("flowId", ret->second /* Our Flow Id */);
+  //     auto ret = flowMonIdToFlowId.find (flowMonFlowId);
+  //     NS_ABORT_MSG_IF (ret == flowMonIdToFlowId.end (),
+  //                      "Flow Id not found when parsing flow monitor results");
+  //     flowElement->SetAttribute ("flowId", ret->second /* Our Flow Id */);
 
-      flowElement = flowElement->NextSiblingElement ("Flow");
-    }
-  // Updating the Ipv4FlowClassifier element //////////////////////////////////
-  XMLElement *flowClassifierElement = GetRootNode ()->FirstChildElement ("Ipv4FlowClassifier");
-  NS_ABORT_MSG_IF (flowClassifierElement == nullptr, "Ipv4FlowClassifier element not found");
+  //     flowElement = flowElement->NextSiblingElement ("Flow");
+  //   }
+  // // Updating the Ipv4FlowClassifier element //////////////////////////////////
+  // XMLElement *flowClassifierElement = GetRootNode ()->FirstChildElement ("Ipv4FlowClassifier");
+  // NS_ABORT_MSG_IF (flowClassifierElement == nullptr, "Ipv4FlowClassifier element not found");
 
-  flowElement = flowClassifierElement->FirstChildElement ("Flow");
+  // flowElement = flowClassifierElement->FirstChildElement ("Flow");
 
-  while (flowElement != nullptr)
-    {
-      FlowId_t flowMonFlowId (0);
-      flowElement->QueryAttribute ("flowId", &flowMonFlowId);
+  // while (flowElement != nullptr)
+  //   {
+  //     FlowId_t flowMonFlowId (0);
+  //     flowElement->QueryAttribute ("flowId", &flowMonFlowId);
 
-      auto ret = flowMonIdToFlowId.find (flowMonFlowId);
-      NS_ABORT_MSG_IF (ret == flowMonIdToFlowId.end (),
-                       "Flow Id not found when parsing flow monitor results");
-      flowElement->SetAttribute ("flowId", ret->second /* Our Flow Id */);
+  //     auto ret = flowMonIdToFlowId.find (flowMonFlowId);
+  //     NS_ABORT_MSG_IF (ret == flowMonIdToFlowId.end (),
+  //                      "Flow Id not found when parsing flow monitor results");
+  //     flowElement->SetAttribute ("flowId", ret->second /* Our Flow Id */);
 
-      flowElement = flowElement->NextSiblingElement ("Flow");
-    }
+  //     flowElement = flowElement->NextSiblingElement ("Flow");
+  //   }
 }
 
 void
@@ -210,8 +211,8 @@ ResultManager::AddSwitchDetails (std::map<NodeId_t, PpfsSwitch> &switchMap)
     {
       XMLElement *switchElement = m_xmlResultFile->NewElement ("Switch");
       switchElement->SetAttribute ("Id", switchNode.first);
-      switchElement->SetAttribute ("Seed", switchNode.second.GetSeed ());
-      switchElement->SetAttribute ("Run", switchNode.second.GetRun ());
+      // switchElement->SetAttribute ("Seed", switchNode.second.GetSeed ());
+      // switchElement->SetAttribute ("Run", switchNode.second.GetRun ());
 
       switchDetailsElement->InsertEndChild (switchElement);
     }
