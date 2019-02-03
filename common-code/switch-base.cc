@@ -90,77 +90,77 @@ SwitchBase::LogLinkStatistics (Ptr<NetDevice> port, FlowId_t flowId, uint32_t pa
     }
 }
 
-Flow
-SwitchBase::ParsePacket (Ptr<const Packet> packet, uint16_t protocol, bool allowIcmpPackets)
-{
-  Ptr<Packet> recvPacket = packet->Copy (); // Copy the packet for parsing purposes
-  Flow flow;
+// Flow
+// SwitchBase::ParsePacket (Ptr<const Packet> packet, uint16_t protocol, bool allowIcmpPackets)
+// {
+//   Ptr<Packet> recvPacket = packet->Copy (); // Copy the packet for parsing purposes
+//   Flow flow;
 
-  if (protocol == Ipv4L3Protocol::PROT_NUMBER) // Packet is IP
-    {
-      Ipv4Header ipHeader;
-      uint8_t ipProtocol (0);
+//   if (protocol == Ipv4L3Protocol::PROT_NUMBER) // Packet is IP
+//     {
+//       Ipv4Header ipHeader;
+//       uint8_t ipProtocol (0);
 
-      if (recvPacket->PeekHeader (ipHeader)) // Parsing IP Header
-        {
-          ipProtocol = ipHeader.GetProtocol ();
-          flow.srcIpAddr = ipHeader.GetSource ().Get ();
-          flow.dstIpAddr = ipHeader.GetDestination ().Get ();
-          recvPacket->RemoveHeader (ipHeader); // Removing the IP header
-        }
+//       if (recvPacket->PeekHeader (ipHeader)) // Parsing IP Header
+//         {
+//           ipProtocol = ipHeader.GetProtocol ();
+//           flow.srcIpAddr = ipHeader.GetSource ().Get ();
+//           flow.dstIpAddr = ipHeader.GetDestination ().Get ();
+//           recvPacket->RemoveHeader (ipHeader); // Removing the IP header
+//         }
 
-      if (ipProtocol == UdpL4Protocol::PROT_NUMBER) // UDP Packet
-        {
-          UdpHeader udpHeader;
-          if (recvPacket->PeekHeader (udpHeader))
-            {
-              flow.dstPortNumber = udpHeader.GetDestinationPort ();
-              flow.SetProtocol (Flow::Protocol::Udp);
-            }
-        }
-      else if (ipProtocol == TcpL4Protocol::PROT_NUMBER) // TCP Packet
-        {
-          TcpHeader tcpHeader;
-          if (recvPacket->PeekHeader (tcpHeader))
-            {
-              flow.dstPortNumber = tcpHeader.GetDestinationPort ();
-              flow.SetProtocol (Flow::Protocol::Tcp);
-            }
-        }
-      else if (ipProtocol == Icmpv4L4Protocol::PROT_NUMBER && allowIcmpPackets) // ICMP Packet
-        {
-          Icmpv4Header icmpHeader;
-          if (recvPacket->PeekHeader (icmpHeader))
-            {
-              flow.SetProtocol (Flow::Protocol::Icmp);
-              switch (icmpHeader.GetType ())
-                {
-                case Icmpv4Header::Type_e::ICMPV4_ECHO:
-                  NS_LOG_INFO ("ICMP Echo message received at Switch " << m_id);
-                  break;
-                case Icmpv4Header::Type_e::ICMPV4_ECHO_REPLY:
-                  NS_LOG_INFO ("ICMP Echo reply message received at Switch " << m_id);
-                  break;
-                case Icmpv4Header::Type_e::ICMPV4_DEST_UNREACH:
-                  NS_LOG_INFO ("ICMP Destination Unreachable message received at Switch " << m_id);
-                  break;
-                case Icmpv4Header::Type_e::ICMPV4_TIME_EXCEEDED:
-                  NS_LOG_INFO ("ICMP Time exceeded message received at Switch " << m_id);
-                  break;
-                default:
-                  NS_ABORT_MSG ("ICMP unidentified message received at Switch " << m_id);
-                  break;
-                }
-            }
-        }
-      else
-        NS_ABORT_MSG ("Unknown packet type received. Packet Type " << std::to_string (ipProtocol));
-    }
-  else
-    NS_ABORT_MSG ("Non-IP Packet received. Protocol value " << protocol);
+//       if (ipProtocol == UdpL4Protocol::PROT_NUMBER) // UDP Packet
+//         {
+//           UdpHeader udpHeader;
+//           if (recvPacket->PeekHeader (udpHeader))
+//             {
+//               flow.dstPortNumber = udpHeader.GetDestinationPort ();
+//               flow.SetProtocol (Flow::Protocol::Udp);
+//             }
+//         }
+//       else if (ipProtocol == TcpL4Protocol::PROT_NUMBER) // TCP Packet
+//         {
+//           TcpHeader tcpHeader;
+//           if (recvPacket->PeekHeader (tcpHeader))
+//             {
+//               flow.dstPortNumber = tcpHeader.GetDestinationPort ();
+//               flow.SetProtocol (Flow::Protocol::Tcp);
+//             }
+//         }
+//       else if (ipProtocol == Icmpv4L4Protocol::PROT_NUMBER && allowIcmpPackets) // ICMP Packet
+//         {
+//           Icmpv4Header icmpHeader;
+//           if (recvPacket->PeekHeader (icmpHeader))
+//             {
+//               flow.SetProtocol (Flow::Protocol::Icmp);
+//               switch (icmpHeader.GetType ())
+//                 {
+//                 case Icmpv4Header::Type_e::ICMPV4_ECHO:
+//                   NS_LOG_INFO ("ICMP Echo message received at Switch " << m_id);
+//                   break;
+//                 case Icmpv4Header::Type_e::ICMPV4_ECHO_REPLY:
+//                   NS_LOG_INFO ("ICMP Echo reply message received at Switch " << m_id);
+//                   break;
+//                 case Icmpv4Header::Type_e::ICMPV4_DEST_UNREACH:
+//                   NS_LOG_INFO ("ICMP Destination Unreachable message received at Switch " << m_id);
+//                   break;
+//                 case Icmpv4Header::Type_e::ICMPV4_TIME_EXCEEDED:
+//                   NS_LOG_INFO ("ICMP Time exceeded message received at Switch " << m_id);
+//                   break;
+//                 default:
+//                   NS_ABORT_MSG ("ICMP unidentified message received at Switch " << m_id);
+//                   break;
+//                 }
+//             }
+//         }
+//       else
+//         NS_ABORT_MSG ("Unknown packet type received. Packet Type " << std::to_string (ipProtocol));
+//     }
+//   else
+//     NS_ABORT_MSG ("Non-IP Packet received. Protocol value " << protocol);
 
-  return flow;
-}
+//   return flow;
+// }
 
 void
 SwitchBase::LogQueueEntries (Ptr<NetDevice> port)
