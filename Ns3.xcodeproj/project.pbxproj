@@ -4731,7 +4731,7 @@
 		59A03F5D2202DC9E00A7207A /* modulegen__gcc_ILP32.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = modulegen__gcc_ILP32.py; sourceTree = "<group>"; };
 		59A03F5F2202DC9E00A7207A /* ipv4-nix-vector-helper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "ipv4-nix-vector-helper.h"; sourceTree = "<group>"; };
 		59A03F602202DC9E00A7207A /* ipv4-nix-vector-helper.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = "ipv4-nix-vector-helper.cc"; sourceTree = "<group>"; };
-		59A0450F2202DCFD00A7207A /* Ns3 */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Ns3; sourceTree = BUILT_PRODUCTS_DIR; };
+		59A0450F2202DCFD00A7207A /* Ns3 */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; name = Ns3; path = /Users/noel/Repositories/Ns3/build/Debug/Ns3; sourceTree = "<absolute>"; };
 		59F905C92204991400A7CBEE /* flow.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = flow.cc; sourceTree = "<group>"; };
 		59F905CA2204991400A7CBEE /* terminal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = terminal.h; sourceTree = "<group>"; };
 		59F905CB2204991400A7CBEE /* custom-device.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = "custom-device.cc"; sourceTree = "<group>"; };
@@ -4761,7 +4761,6 @@
 				59A032232202DC9B00A7207A /* scratch */,
 				59A032272202DC9B00A7207A /* src */,
 				59A031582202DC9B00A7207A /* utils */,
-				59A0450F2202DCFD00A7207A /* Ns3 */,
 			);
 			sourceTree = "<group>";
 		};
