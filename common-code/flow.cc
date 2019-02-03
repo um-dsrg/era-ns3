@@ -18,9 +18,15 @@ Path::Path ()
 }
 
 void
-Path::AddLink (id_t linkId)
+Path::AddLink (Link const *link)
 {
-  links.push_back (linkId);
+  m_links.push_back (link);
+}
+
+const std::vector<Link const *> &
+Path::GetLinks () const
+{
+  return m_links;
 }
 
 std::ostream &
@@ -31,10 +37,13 @@ operator<< (std::ostream &output, Path &path)
   output << "Destination Port: " << path.dstPort << "\n";
   output << "Links \n";
 
-  for (const auto &linkId : path.links)
+  // FIXME The below loop needs to be updated
+  for (const auto &linkId : path.m_links)
     {
       output << "Link ID: " << linkId << "\n";
     }
+
+  return output;
 }
 
 /**
@@ -45,6 +54,12 @@ void
 Flow::AddPath (const Path &path)
 {
   m_paths.push_back (path);
+}
+
+const std::vector<Path> &
+Flow::GetPaths () const
+{
+  return m_paths;
 }
 
 bool
