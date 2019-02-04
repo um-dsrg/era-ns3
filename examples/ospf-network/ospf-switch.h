@@ -12,7 +12,7 @@ public:
   OspfSwitch () = default;
   OspfSwitch (id_t id);
 
-  void SetPacketHandlingMechanism ();
+  void SetPacketReception ();
   // void InsertEntryInRoutingTable (uint32_t srcIpAddr, uint32_t dstIpAddr, uint16_t portNumber,
   //                                 char protocol, FlowId_t flowId);
 

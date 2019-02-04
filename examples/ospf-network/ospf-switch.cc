@@ -14,7 +14,7 @@ OspfSwitch::OspfSwitch (id_t id) : SwitchBase (id)
 }
 
 void
-OspfSwitch::SetPacketHandlingMechanism ()
+OspfSwitch::SetPacketReception()
 {
   // for (auto &linkNetDevice : m_linkNetDeviceTable)
   //   {

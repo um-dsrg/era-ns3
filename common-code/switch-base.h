@@ -78,8 +78,7 @@ protected:
   SwitchBase (id_t id);
   virtual ~SwitchBase ();
 
-  // FIXME Update the below function
-  // virtual void SetPacketHandlingMechanism () = 0;
+  virtual void SetPacketReception () = 0;
 
   // Flow ParsePacket (ns3::Ptr<const ns3::Packet> packet, uint16_t protocol, bool allowIcmpPackets);
 

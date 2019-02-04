@@ -20,6 +20,8 @@ public:
   void AddEntryToRoutingTable (uint32_t srcIp, uint32_t dstIp, portNum_t srcPort, portNum_t dstPort,
                                FlowProtocol protocol, ns3::Ptr<ns3::NetDevice> forwardingPort);
 
+  void SetPacketReception ();
+
   // const uint32_t GetSeed () const;
   // const uint32_t GetRun () const;
 
@@ -32,6 +34,11 @@ public:
   // void SetRandomNumberGenerator ();
 
 private:
+
+  void PacketReceived(ns3::Ptr<ns3::NetDevice> incomingPort, ns3::Ptr<const ns3::Packet> packet,
+                      uint16_t protocol, const ns3::Address &src, const ns3::Address &dst,
+                      ns3::NetDevice::PacketType packetType);
+
   struct RtFlow
   {
     RtFlow (uint32_t srcIp, uint32_t dstIp, portNum_t srcPort, portNum_t dstPort,

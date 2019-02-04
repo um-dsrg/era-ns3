@@ -127,7 +127,8 @@ main (int argc, char *argv[])
 
   // Parsing the XML file.
   XMLDocument xmlLogFile;
-  XMLError error = xmlLogFile.LoadFile (xmlLogFilePath.c_str ());
+//  XMLError error = xmlLogFile.LoadFile (xmlLogFilePath.c_str ());
+  XMLError error = xmlLogFile.LoadFile("/Users/noel/Documents/Results/ns3/result.xml");
   NS_ABORT_MSG_IF (error != XML_SUCCESS, "Could not load LOG FILE");
   XMLNode *rootNode = xmlLogFile.LastChild ();
   NS_ABORT_MSG_IF (rootNode == nullptr, "No root node node found");
@@ -137,13 +138,13 @@ main (int argc, char *argv[])
   topologyBuilder.CreateNodes (rootNode);
   auto transmitOnLink{topologyBuilder.BuildNetworkTopology (rootNode)};
   topologyBuilder.AssignIpToTerminals ();
+  topologyBuilder.EnablePacketReceptionOnSwitches();
 
   // Parse the flows and build the routing table
   auto flows{topologyBuilder.ParseFlows (rootNode)};
   RoutingHelper<PpfsSwitch> routingHelper;
   routingHelper.BuildRoutingTable (flows, transmitOnLink);
 
-  // TODO Enable packet reception on switches
   // TODO Install application on terminals (at first use default ON-OFF to see transmission)
   // TODO Celebrate
 

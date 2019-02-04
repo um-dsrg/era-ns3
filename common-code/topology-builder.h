@@ -35,6 +35,7 @@ public:
   std::map<id_t, Ptr<NetDevice>> BuildNetworkTopology (XMLNode *rootNode);
   void AssignIpToTerminals ();
   std::map<id_t, Flow> ParseFlows (XMLNode *rootNode);
+  void EnablePacketReceptionOnSwitches ();
 
   /* The below public functions still need to be refactored */
   void SetSwitchRandomNumberGenerator ();
@@ -382,6 +383,17 @@ TopologyBuilder<SwitchType>::ParseFlows (XMLNode *rootNode)
     }
 
   return flows;
+}
+
+template <class SwitchType>
+void TopologyBuilder<SwitchType>::EnablePacketReceptionOnSwitches ()
+{
+  NS_LOG_INFO ("Enabling Packet reception on all switches");
+  for (auto& switchPair : m_switches)
+  {
+    auto& switchInstance = switchPair.second;
+    switchInstance.SetPacketReception ();
+  }
 }
 
 template <class SwitchType>

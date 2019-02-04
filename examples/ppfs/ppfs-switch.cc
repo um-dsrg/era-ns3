@@ -36,6 +36,23 @@ PpfsSwitch::AddEntryToRoutingTable (uint32_t srcIp, uint32_t dstIp, portNum_t sr
   NS_ABORT_MSG_IF (ret.second == false, "Unable to add routing table entry in Switch " << m_id);
 }
 
+void PpfsSwitch::SetPacketReception()
+{
+  uint32_t numOfDevices = m_node->GetNDevices ();
+  NS_ASSERT (numOfDevices > 0);
+  for (uint32_t currentDevice = 0; currentDevice < numOfDevices; ++currentDevice)
+  {
+    m_node->RegisterProtocolHandler (MakeCallback (&PpfsSwitch::PacketReceived, this),
+                                     /*all protocols*/ 0, m_node->GetDevice (currentDevice),
+                                     /*disable promiscuous mode*/ false);
+  }
+}
+
+void PpfsSwitch::PacketReceived(ns3::Ptr<ns3::NetDevice> incomingPort, ns3::Ptr<const ns3::Packet> packet, uint16_t protocol, const ns3::Address &src, const ns3::Address &dst, ns3::NetDevice::PacketType packetType)
+{
+  NS_LOG_UNCOND("A packet has been received by node " << m_id);
+}
+
 bool
 PpfsSwitch::RtFlow::operator< (const RtFlow &other) const
 {
