@@ -30,12 +30,12 @@ PpfsSwitch::AddEntryToRoutingTable (uint32_t srcIp, uint32_t dstIp, portNum_t sr
                                     portNum_t dstPort, FlowProtocol protocol,
                                     Ptr<NetDevice> forwardingPort)
 {
-  // FIXME May make this log more informative.
-  NS_LOG_INFO ("Adding routing table entry in PPFS Switch " << m_id);
-
-  auto ret =
-      m_routingTable.emplace (RtFlow (srcIp, dstIp, srcPort, dstPort, protocol), forwardingPort);
+  RtFlow rtFlow {srcIp, dstIp, srcPort, dstPort, protocol};
+  auto ret = m_routingTable.emplace (rtFlow, forwardingPort);
   NS_ABORT_MSG_IF (ret.second == false, "Unable to add routing table entry in Switch " << m_id);
+
+  NS_LOG_INFO("Add entry in PPFS Switch " << m_id);
+  NS_LOG_INFO(rtFlow);
 }
 
 void PpfsSwitch::SetPacketReception()
