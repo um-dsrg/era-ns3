@@ -8,8 +8,13 @@ Terminal::Terminal (id_t id) : CustomDevice (id)
 {
 }
 
+Ipv4Address Terminal::GetIpAddress() const
+{
+  return m_ipAddress;
+}
+
 void
-Terminal::RetrieveIpAddress ()
+Terminal::SetIpAddress()
 {
   m_ipAddress = m_node->GetObject<Ipv4> ()->GetAddress (1, 0).GetLocal ();
 }
