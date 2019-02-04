@@ -67,13 +67,13 @@ Flow::operator< (const Flow &other) const
 {
   /*
    * Used by the map to store the keys in order.
-   * In this case it is sorted by Source Ip Address, then Destination Ip Address, and
-   * finally Port Number.
+   * In this case it is sorted by Source Ip Address, then Destination Ip Address.
    */
-  if (srcAddress.Get () == other.srcAddress.Get ())
-    return dstAddress.Get () < other.dstAddress.Get ();
-  else
-    return srcAddress.Get () < other.srcAddress.Get ();
+  if (srcNode->GetIpAddress().Get() == other.srcNode->GetIpAddress().Get()) {
+    return dstNode->GetIpAddress().Get() < other.dstNode->GetIpAddress().Get();
+  } else {
+    return srcNode->GetIpAddress().Get() < other.srcNode->GetIpAddress().Get();
+  }
 }
 
 std::ostream &
@@ -82,12 +82,8 @@ operator<< (std::ostream &output, Flow &flow)
   ns3::Ipv4Address address;
   output << "Flow ID: " << flow.id << "\n";
   output << "Data Rate: " << flow.dataRate << "Mbps\n";
-  output << "Source IP Addr: ";
-  flow.srcAddress.Print (output);
-  output << "\n";
-  output << "Destination IP Addr: ";
-  flow.dstAddress.Print (output);
-  output << "\n";
+  output << "Source IP Addr: " << flow.srcNode->GetIpAddress().Get() << "\n";
+  output << "Destination IP Addr: " << flow.dstNode->GetIpAddress().Get() << "\n";
   output << "Protocol: " << static_cast<char> (flow.protocol) << "\n";
   output << "----------------------";
 
