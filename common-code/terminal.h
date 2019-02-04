@@ -13,7 +13,7 @@ public:
   ns3::Ipv4Address GetIpAddress () const;
   void SetIpAddress ();
 
-  typedef std::map<id_t, Terminal> TerminalsMap_t;
+  typedef std::map<id_t, Terminal> TerminalContainer;
 
 private:
   ns3::Ipv4Address m_ipAddress;
