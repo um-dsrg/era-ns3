@@ -56,9 +56,10 @@ RoutingHelper<SwitchType>::BuildRoutingTable (const std::map<id_t, Flow> &flows,
                 {
                   auto forwardingPort = transmitOnLink.at (link->id);
                   SwitchType *switchNode = dynamic_cast<SwitchType *> (link->srcNode);
-                  switchNode->AddEntryToRoutingTable (flow.srcAddress.Get (),
-                                                      flow.dstAddress.Get (), path.srcPort,
-                                                      path.dstPort, flow.protocol, forwardingPort);
+                  switchNode->AddEntryToRoutingTable (flow.srcNode->GetIpAddress().Get(),
+                                                      flow.dstNode->GetIpAddress().Get(),
+                                                      path.srcPort, path.dstPort, flow.protocol,
+                                                      forwardingPort);
                 }
             }
         }
