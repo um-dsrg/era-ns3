@@ -31,10 +31,11 @@ class TopologyBuilder
 public:
   TopologyBuilder ();
 
+  const Terminal::TerminalContainer&  GetTerminals();
   void CreateNodes (XMLNode *rootNode);
   std::map<id_t, Ptr<NetDevice>> BuildNetworkTopology (XMLNode *rootNode);
   void AssignIpToTerminals ();
-  std::map<id_t, Flow> ParseFlows (XMLNode *rootNode);
+  Flow::FlowContainer ParseFlows (XMLNode *rootNode);
   void EnablePacketReceptionOnSwitches ();
 
   /* The below public functions still need to be refactored */
@@ -46,8 +47,8 @@ private:
                         std::map<id_t, Ptr<NetDevice>> &transmitOnLink);
   CustomDevice *GetNode (id_t id, NodeType nodeType);
 
+  Terminal::TerminalContainer m_terminals; //!< Maps the node id with the Terminal object.
   std::map<id_t, SwitchType> m_switches; //!< Maps the node id with the Switch object.
-  std::map<id_t, Terminal> m_terminals; //!< Maps the node id with the Terminal object.
   std::map<id_t, Link> m_links; //!< Maps the link id with the Link object.
 
   // TODO: Not sure the below are being used.
@@ -71,6 +72,12 @@ void ShuffleLinkElements (std::vector<XMLElement *> &linkElements);
 template <class SwitchType>
 TopologyBuilder<SwitchType>::TopologyBuilder () : NS_LOG_TEMPLATE_DEFINE ("TopologyBuilder")
 {
+}
+
+template <class SwitchType>
+const Terminal::TerminalContainer& TopologyBuilder<SwitchType>::GetTerminals()
+{
+  return m_terminals;
 }
 
 template <class SwitchType>
@@ -325,17 +332,17 @@ TopologyBuilder<SwitchType>::AssignIpToTerminals ()
 
   for (auto &terminalPair : m_terminals)
     {
-      terminalPair.second.RetrieveIpAddress ();
+      terminalPair.second.SetIpAddress ();
     }
 }
 
 template <class SwitchType>
-std::map<id_t, Flow>
+Flow::FlowContainer
 TopologyBuilder<SwitchType>::ParseFlows (XMLNode *rootNode)
 {
   NS_LOG_WARN ("Flow DATA RATE has not been set yet");
 
-  std::map<id_t, Flow> flows;
+  Flow::FlowContainer flows;
 
   auto flowDetElement = rootNode->FirstChildElement ("FlowDetails");
   NS_ABORT_MSG_IF (flowDetElement == nullptr, "FlowDetails Element not found");
