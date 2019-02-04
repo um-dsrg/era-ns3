@@ -10,3 +10,13 @@ CustomDevice::CustomDevice (id_t id) : m_id (id)
 CustomDevice::~CustomDevice ()
 {
 }
+
+id_t CustomDevice::GetId ()
+{
+  return m_id;
+}
+
+ns3::Ptr<ns3::Node> CustomDevice::GetNode () const
+{
+  return m_node;
+}

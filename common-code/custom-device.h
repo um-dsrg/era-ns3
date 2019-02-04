@@ -7,17 +7,8 @@
 class CustomDevice
 {
 public:
-  id_t
-  GetId ()
-  {
-    return m_id;
-  }
-
-  ns3::Ptr<ns3::Node>
-  GetNode ()
-  {
-    return m_node;
-  }
+  id_t GetId ();
+  ns3::Ptr<ns3::Node> GetNode () const;
 
 protected:
   CustomDevice () = default;
