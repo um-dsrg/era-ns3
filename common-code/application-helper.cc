@@ -6,6 +6,7 @@
 #include "ns3/packet-sink-helper.h"
 
 #include "application-helper.h"
+#include "transmitter-app.h"
 
 using namespace ns3;
 using namespace tinyxml2;
@@ -16,26 +17,36 @@ NS_LOG_COMPONENT_DEFINE ("ApplicationHelper");
 void ApplicationHelper::InstallApplicationsOnTerminals(const Flow::FlowContainer &flows,
                                                        const Terminal::TerminalContainer &terminals)
 {
-  // Test application from source node 0 to 2
-  NS_LOG_UNCOND("This is a test");
-  // Source
-  InetSocketAddress sinkSocket (terminals.at(2).GetIpAddress(), 10000);
-  OnOffHelper onOff("ns3::UdpSocketFactory", sinkSocket);
-  onOff.SetAttribute("OnTime",  StringValue("ns3::ConstantRandomVariable[Constant=1]"));
-  onOff.SetAttribute("OffTime", StringValue("ns3::ConstantRandomVariable[Constant=0]"));
-  onOff.SetAttribute("PacketSize", UintegerValue(1470));
-  onOff.SetAttribute("DataRate", DataRateValue(5000000)); // Data rate is set to 5Mbps
-  onOff.SetAttribute("MaxBytes", UintegerValue(1470)); // 1 packet
+  for (const auto& flowPair : flows) {
+    NS_LOG_INFO("Installing flow " << flowPair.first);
+    const auto& flow {flowPair.second};
 
-  ApplicationContainer srcApp = onOff.Install(terminals.at(0).GetNode());
-  srcApp.Start(Seconds(1));
-  srcApp.Stop(Seconds(10));
+    Ptr<TransmitterApp> transmitterApp = CreateObject<TransmitterApp>(flow);
+    flow.srcNode->GetNode()->AddApplication(transmitterApp);
+    transmitterApp->SetStartTime(Seconds(1.0));
+    transmitterApp->SetStopTime(Seconds(10.0));
+  }
 
-  // Sink
-  PacketSinkHelper sinkHelper ("ns3::UdpSocketFactory", sinkSocket);
-  ApplicationContainer sinkApp = sinkHelper.Install(terminals.at(2).GetNode());
-  sinkApp.Start(Seconds(0));
-  sinkApp.Stop(Seconds(10));
+//  // Test application from source node 0 to 2
+//  NS_LOG_UNCOND("This is a test");
+//  // Source
+//  InetSocketAddress sinkSocket (terminals.at(2).GetIpAddress(), 10000);
+//  OnOffHelper onOff("ns3::UdpSocketFactory", sinkSocket);
+//  onOff.SetAttribute("OnTime",  StringValue("ns3::ConstantRandomVariable[Constant=1]"));
+//  onOff.SetAttribute("OffTime", StringValue("ns3::ConstantRandomVariable[Constant=0]"));
+//  onOff.SetAttribute("PacketSize", UintegerValue(1470));
+//  onOff.SetAttribute("DataRate", DataRateValue(5000000)); // Data rate is set to 5Mbps
+//  onOff.SetAttribute("MaxBytes", UintegerValue(1470)); // 1 packet
+//
+//  ApplicationContainer srcApp = onOff.Install(terminals.at(0).GetNode());
+//  srcApp.Start(Seconds(1));
+//  srcApp.Stop(Seconds(10));
+//
+//  // Sink
+//  PacketSinkHelper sinkHelper ("ns3::UdpSocketFactory", sinkSocket);
+//  ApplicationContainer sinkApp = sinkHelper.Install(terminals.at(2).GetNode());
+//  sinkApp.Start(Seconds(0));
+//  sinkApp.Stop(Seconds(10));
 }
 
 //ApplicationHelper::ApplicationHelper (bool ignoreOptimalDataRates)
