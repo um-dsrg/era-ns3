@@ -145,6 +145,12 @@ main (int argc, char *argv[])
   RoutingHelper<PpfsSwitch> routingHelper;
   routingHelper.BuildRoutingTable (flows, transmitOnLink);
 
+  ApplicationHelper appHelper;
+  appHelper.InstallApplicationsOnTerminals(flows, topologyBuilder.GetTerminals());
+
+  Simulator::Run();
+  Simulator::Stop();
+
   // TODO Install application on terminals (at first use default ON-OFF to see transmission)
   // TODO Celebrate
 
