@@ -57,9 +57,8 @@ private:
     portNum_t dstPort{0};
     FlowProtocol protocol {FlowProtocol::Undefined};
   };
-  
-  friend std::ostream& operator<<(std::ostream& os, const RtFlow& flow);
 
+  friend std::ostream& operator<<(std::ostream& os, const RtFlow& flow);
   RtFlow ExtractFlowFromPacket (ns3::Ptr<const ns3::Packet> packet, uint16_t protocol);
 
   std::map<RtFlow, ns3::Ptr<ns3::NetDevice>> m_routingTable;
