@@ -67,8 +67,7 @@ Network Trash Folder
 Temporary Items
 .apdisk
 
-# Xcode User settings
-xcuserdata/
+Ns3.xcodeproj/
 
 # Sublime
 *.sublime-workspace
