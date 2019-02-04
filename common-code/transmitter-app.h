@@ -24,8 +24,8 @@ public:
   virtual ~TransmitterApp();
 
 private:
-  virtual void StartApplication (void);
-  virtual void StopApplication (void);
+  virtual void StartApplication ();
+  virtual void StopApplication ();
 
   bool m_appRunning {false}; //!< Flag that determines the application's running stage
   dataRate_t m_dataRate {0.0}; //!< Application's data rate
