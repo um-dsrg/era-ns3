@@ -385,7 +385,7 @@ TopologyBuilder<SwitchType>::ParseFlows (XMLNode *rootNode)
       auto ret = flows.emplace (flow.id, flow);
       NS_ABORT_MSG_IF (ret.second == false, "Inserting Flow " << flow.id << " failed");
 
-      NS_LOG_INFO ("Flow Details" << flow);
+      NS_LOG_INFO ("Flow Details:\n" << flow);
       flowElement = flowElement->NextSiblingElement ("Flow");
     }
 
