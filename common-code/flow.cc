@@ -81,6 +81,7 @@ operator<< (std::ostream &output, Flow &flow)
 {
   ns3::Ipv4Address address;
   output << "Flow ID: " << flow.id << "\n";
+  output << "Data Rate: " << flow.dataRate << "Mbps\n";
   output << "Source IP Addr: ";
   flow.srcAddress.Print (output);
   output << "\n";

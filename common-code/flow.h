@@ -51,6 +51,7 @@ struct Flow
   id_t id{0};
   Terminal *srcNode{0};
   Terminal *dstNode{0};
+  dataRate_t dataRate {0.0};
   FlowProtocol protocol{FlowProtocol::Undefined};
   ns3::Ipv4Address srcAddress; // TODO May remove this
   ns3::Ipv4Address dstAddress; // TODO May remove this
