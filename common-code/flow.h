@@ -1,8 +1,10 @@
 #ifndef FLOW_H
 #define FLOW_H
 
+#include <map>
 #include <vector>
 #include <iostream>
+
 #include "ns3/ipv4-address.h"
 
 #include "definitions.h"
@@ -52,6 +54,8 @@ struct Flow
   FlowProtocol protocol{FlowProtocol::Undefined};
   ns3::Ipv4Address srcAddress; // TODO May remove this
   ns3::Ipv4Address dstAddress; // TODO May remove this
+
+  typedef std::map<id_t, Flow> FlowContainer;
 
 private:
   std::vector<Path> m_paths; //!< The paths this flow is using.
