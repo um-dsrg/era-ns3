@@ -41,6 +41,8 @@ private:
 
   struct RtFlow
   {
+    RtFlow () = default;
+
     RtFlow (uint32_t srcIp, uint32_t dstIp, portNum_t srcPort, portNum_t dstPort,
             FlowProtocol protocol)
         : srcIp{srcIp}, dstIp{dstIp}, srcPort{srcPort}, dstPort{dstPort}, protocol{protocol}
@@ -48,13 +50,24 @@ private:
     }
 
     bool operator< (const RtFlow &other) const;
+    friend std::ostream& operator<<(std::ostream& os, const RtFlow& flow)
+    {
+      os << "Protocol " << static_cast<char> (flow.protocol) << "\n";
+      os << "Source IP " << flow.srcIp << "\n";
+      os << "Source Port " << flow.srcPort << "\n";
+      os << "Destination IP " << flow.dstIp << "\n";
+      os << "Destination Port " << flow.dstPort << "\n";
+      return os;
+    }
 
     uint32_t srcIp{0};
     uint32_t dstIp{0};
     portNum_t srcPort{0};
     portNum_t dstPort{0};
-    FlowProtocol protocol;
+    FlowProtocol protocol {FlowProtocol::Undefined};
   };
+
+  RtFlow ExtractFlowFromPacket (ns3::Ptr<const ns3::Packet> packet, uint16_t protocol);
 
   std::map<RtFlow, ns3::Ptr<ns3::NetDevice>> m_routingTable;
 
