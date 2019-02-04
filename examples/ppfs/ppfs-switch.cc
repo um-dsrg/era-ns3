@@ -67,6 +67,16 @@ void PpfsSwitch::PacketReceived(Ptr<NetDevice> incomingPort, Ptr<const Packet> p
   }
 }
 
+std::ostream& operator<<(std::ostream& os, const PpfsSwitch::RtFlow& flow)
+{
+  os << "Protocol " << static_cast<char> (flow.protocol) << "\n";
+  os << "Source IP " << flow.srcIp << "\n";
+  os << "Source Port " << flow.srcPort << "\n";
+  os << "Destination IP " << flow.dstIp << "\n";
+  os << "Destination Port " << flow.dstPort << "\n";
+  return os;
+}
+
 bool
 PpfsSwitch::RtFlow::operator< (const RtFlow &other) const
 {

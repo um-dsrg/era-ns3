@@ -50,15 +50,6 @@ private:
     }
 
     bool operator< (const RtFlow &other) const;
-    friend std::ostream& operator<<(std::ostream& os, const RtFlow& flow)
-    {
-      os << "Protocol " << static_cast<char> (flow.protocol) << "\n";
-      os << "Source IP " << flow.srcIp << "\n";
-      os << "Source Port " << flow.srcPort << "\n";
-      os << "Destination IP " << flow.dstIp << "\n";
-      os << "Destination Port " << flow.dstPort << "\n";
-      return os;
-    }
 
     uint32_t srcIp{0};
     uint32_t dstIp{0};
@@ -66,6 +57,8 @@ private:
     portNum_t dstPort{0};
     FlowProtocol protocol {FlowProtocol::Undefined};
   };
+  
+  friend std::ostream& operator<<(std::ostream& os, const RtFlow& flow);
 
   RtFlow ExtractFlowFromPacket (ns3::Ptr<const ns3::Packet> packet, uint16_t protocol);
 
