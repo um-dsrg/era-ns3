@@ -1,3 +1,7 @@
+#include "routing-helper.h"
+
+NS_LOG_COMPONENT_DEFINE("RoutingHelper");
+
 // #include "ns3/ipv4.h"
 // #include "ns3/log.h"
 // #include "ns3/simulator.h"

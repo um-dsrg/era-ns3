@@ -113,7 +113,7 @@ main (int argc, char *argv[])
     {
       LogComponentEnable ("TopologyBuilder", LOG_LEVEL_INFO);
       LogComponentEnable ("PpfsSwitch", LOG_LEVEL_INFO);
-      LogComponentEnable ("SwitchDevice", LOG_LEVEL_INFO);
+      LogComponentEnable ("SwitchBase", LOG_LEVEL_INFO);
       LogComponentEnable ("ApplicationMonitor", LOG_LEVEL_INFO);
       LogComponentEnable ("ApplicationHelper", LOG_LEVEL_INFO);
       LogComponentEnable ("OnOffApplication", LOG_LEVEL_INFO);

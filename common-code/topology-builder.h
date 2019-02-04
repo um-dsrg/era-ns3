@@ -11,6 +11,7 @@
 #include "ns3/queue.h"
 #include "ns3/object-factory.h"
 #include "ns3/node-container.h"
+#include "ns3/ipv4-address-helper.h"
 #include "ns3/net-device-container.h"
 #include "ns3/internet-stack-helper.h"
 #include "ns3/point-to-point-channel.h"
@@ -57,14 +58,14 @@ private:
      */
   bool m_storeNetDeviceLinkPairs;
 
-  NS_LOG_TEMPLATE_DECLARE; //!< Logging
+  NS_LOG_TEMPLATE_DECLARE; //!< The log component
 };
 
 void ShuffleLinkElements (std::vector<XMLElement *> &linkElements);
 
 /**
-   * Implementation of the TopologyBuilder class
-   */
+  * Implementation of the TopologyBuilder class
+  */
 
 template <class SwitchType>
 TopologyBuilder<SwitchType>::TopologyBuilder () : NS_LOG_TEMPLATE_DEFINE ("TopologyBuilder")
@@ -291,18 +292,6 @@ TopologyBuilder<SwitchType>::InstallP2pLinks (const std::vector<Link> &links,
       NS_ABORT_MSG_IF (ret.second == false,
                        "Duplicate link id " << links[1].id << " in transmit on link map");
     }
-}
-
-/**
- * \brief      Shuffles the XML Link Elements in place.
- *
- * \param      linkElements  The link elements
- */
-void
-ShuffleLinkElements (std::vector<XMLElement *> &linkElements)
-{
-  // TODO Test that this is working
-  std::random_shuffle (linkElements.begin (), linkElements.end ());
 }
 
 template <class SwitchType>
