@@ -4,6 +4,7 @@
 #include "ns3/udp-socket-factory.h"
 #include "ns3/inet-socket-address.h"
 
+#include "mptcp-header.h"
 #include "receiver-app.h"
 
 using namespace ns3;
@@ -67,24 +68,48 @@ void ReceiverApp::HandleRead(Ptr<Socket> socket)
   Ptr<Packet> packet;
   Address from;
   Address localAddress;
+
   while ((packet = socket->RecvFrom (from))) {
     if (packet->GetSize () == 0) { //EOF
       break;
     }
 
-    if (InetSocketAddress::IsMatchingType (from)) {
-      NS_LOG_INFO ("At time " << Simulator::Now ().GetSeconds ()
-                   << "s packet sink received "
-                   <<  packet->GetSize () << " bytes from "
-                   << InetSocketAddress::ConvertFrom(from).GetIpv4 ()
-                   << " port " << InetSocketAddress::ConvertFrom (from).GetPort ());
-    }
-    else if (Inet6SocketAddress::IsMatchingType (from)) {
-      NS_LOG_INFO ("At time " << Simulator::Now ().GetSeconds ()
-                   << "s packet sink received "
-                   <<  packet->GetSize () << " bytes from "
-                   << Inet6SocketAddress::ConvertFrom(from).GetIpv6 ()
-                   << " port " << Inet6SocketAddress::ConvertFrom (from).GetPort ());
+    packetNumber_t packetNumber;
+    packetSize_t packetSize;
+    std::tie(packetNumber, packetSize) = ExtractPacketDetails(packet);
+
+    NS_LOG_INFO("Packet Number received " << packetNumber);
+    NS_LOG_INFO("Packet size " << packetSize << "bytes");
+    NS_LOG_INFO("Total Received bytes " << m_totalRecvBytes);
+
+    NS_ASSERT(packetNumber >= m_expectedPacketNum);
+
+    if (packetNumber == m_expectedPacketNum) {
+      m_totalRecvBytes += packetSize;
+      m_expectedPacketNum++;
+
+      popInOrderPacketsFromQueue();
+    } else {
+      m_recvBuffer.push(std::make_pair(packetNumber, packetSize));
     }
   }
+}
+
+void ReceiverApp::popInOrderPacketsFromQueue()
+{
+  bufferContents_t const * topElement = &m_recvBuffer.top();
+  
+  while (!m_recvBuffer.empty() && topElement->first == m_expectedPacketNum) {
+    m_totalRecvBytes += topElement->second;
+    m_expectedPacketNum++;
+    m_recvBuffer.pop();
+    topElement = &m_recvBuffer.top();
+  }
+}
+
+std::tuple<packetNumber_t, packetSize_t> ExtractPacketDetails(ns3::Ptr<ns3::Packet> packet)
+{
+  MptcpHeader mptcpHeader;
+  packet->RemoveHeader(mptcpHeader);
+  return std::make_tuple(mptcpHeader.GetPacketNumber(), packet->GetSize());
 }
