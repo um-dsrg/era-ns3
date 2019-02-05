@@ -40,3 +40,8 @@ void MptcpHeader::SetPacketNumber(packetNumber_t packetNumber)
 {
   m_packetNumber = packetNumber;
 }
+
+packetNumber_t MptcpHeader::GetPacketNumber() const
+{
+  return m_packetNumber;
+}

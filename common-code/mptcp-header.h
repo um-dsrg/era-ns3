@@ -16,6 +16,7 @@ public:
   virtual void Print (std::ostream &os) const;
 
   void SetPacketNumber (packetNumber_t packetNumber);
+  packetNumber_t GetPacketNumber () const;
 
 private:
   packetNumber_t m_packetNumber {0};
