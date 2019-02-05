@@ -30,18 +30,17 @@ Path::GetLinks () const
 }
 
 std::ostream &
-operator<< (std::ostream &output, Path &path)
+operator<< (std::ostream &output, const Path &path)
 {
   output << "Path ID: " << path.id << "\n";
+  output << "Data Rate: " << path.dataRate << "\n";
   output << "Source Port: " << path.srcPort << "\n";
   output << "Destination Port: " << path.dstPort << "\n";
   output << "Links \n";
 
-  // FIXME The below loop needs to be updated
-  for (const auto &linkId : path.m_links)
-    {
-      output << "Link ID: " << linkId << "\n";
-    }
+  for (const auto link : path.m_links) {
+    output << "Link ID: " << link->id << "\n";
+  }
 
   return output;
 }
@@ -77,15 +76,21 @@ Flow::operator< (const Flow &other) const
 }
 
 std::ostream &
-operator<< (std::ostream &output, Flow &flow)
+operator<< (std::ostream &output, const Flow &flow)
 {
   ns3::Ipv4Address address;
   output << "Flow ID: " << flow.id << "\n";
-  output << "Data Rate: " << flow.dataRate << "Mbps\n";
+  output << "Data Rate: " << flow.dataRate << "\n";
+  output << "Packet Size: " << flow.packetSize << "bytes\n";
   output << "Source IP Addr: " << flow.srcNode->GetIpAddress().Get() << "\n";
   output << "Destination IP Addr: " << flow.dstNode->GetIpAddress().Get() << "\n";
   output << "Protocol: " << static_cast<char> (flow.protocol) << "\n";
-  output << "----------------------";
+  output << "----------------------\n";
+
+  for (const auto& path : flow.m_paths) {
+    output << path;
+    output << "---\n";
+  }
 
   return output;
 }
