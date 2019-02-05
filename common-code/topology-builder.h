@@ -340,8 +340,6 @@ template <class SwitchType>
 Flow::FlowContainer
 TopologyBuilder<SwitchType>::ParseFlows (XMLNode *rootNode)
 {
-  NS_LOG_WARN ("Flow DATA RATE has not been set yet");
-
   Flow::FlowContainer flows;
 
   auto flowDetElement = rootNode->FirstChildElement ("FlowDetails");
@@ -353,13 +351,20 @@ TopologyBuilder<SwitchType>::ParseFlows (XMLNode *rootNode)
       Flow flow;
 
       flowElement->QueryAttribute ("Id", &flow.id);
+
       id_t srcNodeId{0};
       flowElement->QueryAttribute ("SourceNode", &srcNodeId);
       flow.srcNode = &m_terminals.at (srcNodeId);
+
       id_t dstNodeId{0};
       flowElement->QueryAttribute ("DestinationNode", &dstNodeId);
       flow.dstNode = &m_terminals.at (dstNodeId);
+
       flow.protocol = static_cast<FlowProtocol> (*flowElement->Attribute ("Protocol"));
+      flowElement->QueryAttribute("PacketSize", &flow.packetSize);
+      double dataRate;
+      flowElement->QueryAttribute("DataRate", &dataRate);
+      flow.dataRate = ns3::DataRate(std::string{std::to_string(dataRate) + "Mbps"});
 
       auto pathsElement = flowElement->FirstChildElement ("Paths");
       auto pathElement = pathsElement->FirstChildElement ("Path");
@@ -368,6 +373,10 @@ TopologyBuilder<SwitchType>::ParseFlows (XMLNode *rootNode)
         {
           Path path;
           pathElement->QueryAttribute ("Id", &path.id);
+
+          double dataRate;
+          pathElement->QueryAttribute("DataRate", &dataRate);
+          path.dataRate = ns3::DataRate(std::string{std::to_string(dataRate) + "Mbps"});
 
           auto linkElement = pathElement->FirstChildElement ("Link");
           while (linkElement != nullptr)
