@@ -1,4 +1,5 @@
 #include "ns3/log.h"
+#include "ns3/simulator.h"
 #include "ns3/tcp-socket-factory.h"
 #include "ns3/udp-socket-factory.h"
 #include "ns3/inet-socket-address.h"
@@ -41,7 +42,7 @@ ReceiverApp::~ReceiverApp()
 void ReceiverApp::StartApplication()
 {
   m_appRunning = true;
-  NS_LOG_UNCOND("Receiver application started");
+  NS_LOG_INFO("Receiver application started");
 
   // Initialise socket connections
   for (const auto& pathInfo : m_pathInfoContainer) {
@@ -51,16 +52,39 @@ void ReceiverApp::StartApplication()
 
     pathInfo.rxSocket->Listen();
     pathInfo.rxSocket->ShutdownSend (); // Half close the connection;
-    pathInfo.rxSocket->SetRecvCallback (MakeCallback(&ReceiverApp::PacketReceived, this));
+    pathInfo.rxSocket->SetRecvCallback (MakeCallback(&ReceiverApp::HandleRead, this));
   }
 }
 
 void ReceiverApp::StopApplication()
 {
-  NS_LOG_UNCOND("Receiver stopped");
+  NS_LOG_INFO("Receiver stopped");
 }
 
-void ReceiverApp::PacketReceived(Ptr<Socket> socket)
+void ReceiverApp::HandleRead(Ptr<Socket> socket)
 {
-  NS_LOG_UNCOND("A packet has been received");
+  NS_LOG_FUNCTION (this << socket);
+  Ptr<Packet> packet;
+  Address from;
+  Address localAddress;
+  while ((packet = socket->RecvFrom (from))) {
+    if (packet->GetSize () == 0) { //EOF
+      break;
+    }
+
+    if (InetSocketAddress::IsMatchingType (from)) {
+      NS_LOG_INFO ("At time " << Simulator::Now ().GetSeconds ()
+                   << "s packet sink received "
+                   <<  packet->GetSize () << " bytes from "
+                   << InetSocketAddress::ConvertFrom(from).GetIpv4 ()
+                   << " port " << InetSocketAddress::ConvertFrom (from).GetPort ());
+    }
+    else if (Inet6SocketAddress::IsMatchingType (from)) {
+      NS_LOG_INFO ("At time " << Simulator::Now ().GetSeconds ()
+                   << "s packet sink received "
+                   <<  packet->GetSize () << " bytes from "
+                   << Inet6SocketAddress::ConvertFrom(from).GetIpv6 ()
+                   << " port " << Inet6SocketAddress::ConvertFrom (from).GetPort ());
+    }
+  }
 }

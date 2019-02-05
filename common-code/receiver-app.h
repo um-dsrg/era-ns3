@@ -3,7 +3,7 @@
 
 #include "ns3/socket.h"
 #include "ns3/ipv4-address.h"
-#include "ns3/applications-module.h"
+#include "ns3/application.h"
 
 #include "flow.h"
 
@@ -16,7 +16,7 @@ public:
 private:
   virtual void StartApplication ();
   virtual void StopApplication ();
-  void PacketReceived (ns3::Ptr<ns3::Socket> socket);
+  void HandleRead (ns3::Ptr<ns3::Socket> socket);
 
   struct PathInformation
   {
@@ -26,7 +26,6 @@ private:
   };
 
   bool m_appRunning {false}; //!< Flag that determines the application's running stage
-  dataRate_t m_dataRate {0.0}; //!< Application's data rate
   std::vector<PathInformation> m_pathInfoContainer;
 };
 
