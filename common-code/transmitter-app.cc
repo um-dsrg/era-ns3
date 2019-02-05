@@ -22,7 +22,6 @@ Ptr<Socket> createSocket(Ptr<Node> srcNode, FlowProtocol protocol)
 TransmitterApp::TransmitterApp(const Flow& flow)
 {
   for (const auto& path : flow.GetPaths()) {
-
     // Store the path information
     PathInformation pathInfo;
     pathInfo.srcPort = path.srcPort;
@@ -60,7 +59,7 @@ void TransmitterApp::StartApplication()
 {
   m_appRunning = true;
 
-  NS_LOG_UNCOND("Application started");
+  NS_LOG_UNCOND("Transmitter application started");
 
   // Initialise socket connections
   for (const auto& pathPair : m_pathInfoContainer) {

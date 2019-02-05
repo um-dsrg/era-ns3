@@ -11,13 +11,6 @@
 #include "definitions.h"
 #include "flow.h"
 
-struct PathInformation
-{
-  portNum_t srcPort;
-  ns3::Ptr<ns3::Socket> txSocket; //!< The socket to transmit data on the given path.
-  ns3::Address dstAddress; //!< The path's destination address.
-};
-
 class TransmitterApp : public ns3::Application {
 public:
   TransmitterApp (const Flow& flow);
@@ -26,6 +19,13 @@ public:
 private:
   virtual void StartApplication ();
   virtual void StopApplication ();
+
+  struct PathInformation
+  {
+    portNum_t srcPort;
+    ns3::Ptr<ns3::Socket> txSocket; //!< The socket to transmit data on the given path.
+    ns3::Address dstAddress; //!< The path's destination address.
+  };
 
   bool m_appRunning {false}; //!< Flag that determines the application's running stage
   dataRate_t m_dataRate {0.0}; //!< Application's data rate
