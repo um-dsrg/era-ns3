@@ -1,12 +1,17 @@
+#include <math.h>
+
 #include "ns3/log.h"
+#include "ns3/simulator.h"
 #include "ns3/tcp-socket-factory.h"
 #include "ns3/udp-socket-factory.h"
 
+#include "mptcp-header.h"
 #include "transmitter-app.h"
+#include "random-generator-manager.h"
 
 using namespace ns3;
 
-NS_LOG_COMPONENT_DEFINE("Transmitter");
+NS_LOG_COMPONENT_DEFINE("TransmitterApp");
 
 Ptr<Socket> createSocket(Ptr<Node> srcNode, FlowProtocol protocol)
 {
@@ -19,7 +24,8 @@ Ptr<Socket> createSocket(Ptr<Node> srcNode, FlowProtocol protocol)
   }
 }
 
-TransmitterApp::TransmitterApp(const Flow& flow)
+TransmitterApp::TransmitterApp(const Flow& flow) : m_dataRate(flow.dataRate),
+                                                   m_packetSize(flow.packetSize)
 {
   for (const auto& path : flow.GetPaths()) {
     // Store the path information
@@ -30,24 +36,41 @@ TransmitterApp::TransmitterApp(const Flow& flow)
 
     auto ret =  m_pathInfoContainer.emplace(path.id, pathInfo);
     NS_ABORT_MSG_IF(ret.second == false, "Trying to insert duplicate path: " << path.id <<
-                                         " for flow " << flow.id);
+                    " for flow " << flow.id);
 
     // Calculate the split ratio at path level
-    m_pathSplitRatio.push_back(std::make_pair((path.dataRate / flow.dataRate), path.id));
+    m_pathSplitRatio.push_back(std::make_pair((path.dataRate.GetBitRate() /
+                                               flow.dataRate.GetBitRate()),
+                                              path.id));
   }
 
   // Sort the split ratio vector in ascending order
   std::sort(m_pathSplitRatio.begin(), m_pathSplitRatio.end(), std::greater<>());
 
-  // Calculating the cumulative split ratio
+  // Calculate the cumulative split ratio
   for (auto index = 1; index < m_pathSplitRatio.size(); ++index) {
     m_pathSplitRatio[index].first += m_pathSplitRatio[index - 1].first;
   }
 
-  // FIXME: Make this equality to be close to one, not exactly one
-  NS_ABORT_MSG_IF(m_pathSplitRatio.back().first == 1.0,
+  // Setup the random number generator
+  m_uniformRandomVariable = RandomGeneratorManager::CreateUniformRandomVariable(0.0, 1.0);
+
+  // If the number is very close to 1, set it equal to 1
+  if (Abs(m_pathSplitRatio.back().first - 1.0) <= 1e-5) {
+    m_pathSplitRatio.back().first = 1.0;
+  }
+
+  NS_ABORT_MSG_IF(m_pathSplitRatio.back().first != 1.0,
                   "The final split ratio is not equal to 1. Split Ratio: " <<
                   m_pathSplitRatio.back().first);
+
+  // Calculate the transmission interval
+  double pktSizeBits = static_cast<double>(m_packetSize * 8);
+  double transmissionInterval = pktSizeBits / static_cast<double>(m_dataRate.GetBitRate());
+  NS_ABORT_MSG_IF(transmissionInterval <= 0 || isnan(transmissionInterval),
+                  "The transmission interval cannot be less than or equal to 0 OR nan. "
+                  "Transmission interval: " << transmissionInterval);
+  m_transmissionInterval = Seconds(transmissionInterval);
 }
 
 TransmitterApp::~TransmitterApp()
@@ -75,14 +98,45 @@ void TransmitterApp::StartApplication()
     if (pathInfo.txSocket->Connect(pathInfo.dstAddress) == -1) {
       NS_ABORT_MSG("Failed to connect socket");
     }
-
-    // TODO: Remove the code from here and schedule events!
-    Ptr<Packet> dummyPacket = Create<Packet>(100);
-    pathInfo.txSocket->Send(dummyPacket);
   }
+
+  TransmitPacket();
 }
 
 void TransmitterApp::StopApplication()
 {
   NS_LOG_UNCOND("Application stopped");
+
+  m_appRunning = false;
+  Simulator::Cancel (m_sendEvent);
+}
+
+void TransmitterApp::TransmitPacket()
+{
+  if (m_appRunning) {
+    auto randNum = GetRandomNumber();
+    auto transmitPathId = id_t{0};
+
+    for (const auto& pathSplitPair : m_pathSplitRatio) {
+      const auto& splitRatio {pathSplitPair.first};
+      if (randNum <= splitRatio) {
+        transmitPathId = pathSplitPair.second;
+        break;
+      }
+    }
+
+    auto& pathInfo = m_pathInfoContainer.at(transmitPathId);
+
+    MptcpHeader mptcpHeader;
+    mptcpHeader.SetPacketNumber(m_packetNumber++);
+    Ptr<Packet> packet = Create<Packet>(m_packetSize);
+    packet->AddHeader(mptcpHeader);
+    pathInfo.txSocket->Send(packet);
+    m_sendEvent = Simulator::Schedule(m_transmissionInterval, &TransmitterApp::TransmitPacket, this);
+  }
+}
+
+inline double TransmitterApp::GetRandomNumber()
+{
+  return m_uniformRandomVariable->GetValue();
 }
