@@ -8,6 +8,8 @@ typedef uint32_t id_t;
 typedef uint16_t portNum_t;
 typedef double delay_t;
 typedef double dataRate_t;
+typedef uint32_t packetSize_t;
+typedef uint64_t packetNumber_t;
 // TODO Remove the below typedefs
 typedef uint32_t LinkId_t;
 typedef uint32_t NodeId_t;
