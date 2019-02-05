@@ -7,6 +7,7 @@
 
 #include "application-helper.h"
 #include "transmitter-app.h"
+#include "receiver-app.h"
 
 using namespace ns3;
 using namespace tinyxml2;
@@ -25,6 +26,11 @@ void ApplicationHelper::InstallApplicationsOnTerminals(const Flow::FlowContainer
     flow.srcNode->GetNode()->AddApplication(transmitterApp);
     transmitterApp->SetStartTime(Seconds(1.0));
     transmitterApp->SetStopTime(Seconds(10.0));
+
+    Ptr<ReceiverApp> receiverApp = CreateObject<ReceiverApp>(flow);
+    flow.dstNode->GetNode()->AddApplication(receiverApp);
+    receiverApp->SetStartTime(Seconds(0.0));
+    receiverApp->SetStopTime(Seconds(10.0));
   }
 
 //  // Test application from source node 0 to 2
