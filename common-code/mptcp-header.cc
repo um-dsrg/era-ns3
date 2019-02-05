@@ -17,7 +17,7 @@ uint32_t MptcpHeader::GetSerializedSize() const
 {
   // This header contains a 64-bit unsigned integer that represents
   // the packet number.
-  return 8;
+  return 8; // Size of the header in bytes.
 }
 
 void MptcpHeader::Serialize(Buffer::Iterator start) const
@@ -36,7 +36,7 @@ void MptcpHeader::Print(std::ostream &os) const
   os << "Packet number " << m_packetNumber;
 }
 
-void MptcpHeader::SetPacketNumber(uint64_t packetNumber)
+void MptcpHeader::SetPacketNumber(packetNumber_t packetNumber)
 {
   m_packetNumber = packetNumber;
 }

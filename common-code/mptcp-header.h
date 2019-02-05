@@ -3,6 +3,8 @@
 
 #include "ns3/header.h"
 
+#include "definitions.h"
+
 class MptcpHeader : public ns3::Header {
 public:
   // must be implemented to become a valid new header.
@@ -13,10 +15,10 @@ public:
   virtual uint32_t Deserialize (ns3::Buffer::Iterator start);
   virtual void Print (std::ostream &os) const;
 
-  void SetPacketNumber (uint64_t packetNumber);
+  void SetPacketNumber (packetNumber_t packetNumber);
 
 private:
-  uint64_t m_packetNumber {0};
+  packetNumber_t m_packetNumber {0};
 };
 
 #endif /* mptcp_header_h */
