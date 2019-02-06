@@ -22,6 +22,10 @@ void ApplicationHelper::InstallApplicationsOnTerminals(const Flow::FlowContainer
     NS_LOG_INFO("Installing flow " << flowPair.first);
     const auto& flow {flowPair.second};
 
+    if (flow.protocol == FlowProtocol::Ack) { // Do not install ACK flows
+      continue;
+    }
+
     Ptr<TransmitterApp> transmitterApp = CreateObject<TransmitterApp>(flow);
     flow.srcNode->GetNode()->AddApplication(transmitterApp);
     transmitterApp->SetStartTime(Seconds(1.0));
