@@ -25,7 +25,7 @@ Ptr<Socket> CreateSocket(Ptr<Node> node, FlowProtocol protocol)
 
 ReceiverApp::ReceiverApp(const Flow& flow)
 {
-  for (const auto& path : flow.GetPaths()) {
+  for (const auto& path : flow.GetDataPaths()) {
     PathInformation pathInfo;
     pathInfo.dstPort = path.dstPort;
     pathInfo.rxSocket = CreateSocket(flow.dstNode->GetNode(), flow.protocol);

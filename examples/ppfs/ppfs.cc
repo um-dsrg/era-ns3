@@ -128,7 +128,7 @@ main (int argc, char *argv[])
   // Parsing the XML file.
   XMLDocument xmlLogFile;
 //  XMLError error = xmlLogFile.LoadFile (xmlLogFilePath.c_str ());
-  XMLError error = xmlLogFile.LoadFile("/Users/noel/Documents/Results/ns3/result_mod.xml");
+  XMLError error = xmlLogFile.LoadFile("/Users/noel/Documents/Results/ns3/result_tcp.xml");
   NS_ABORT_MSG_IF (error != XML_SUCCESS, "Could not load LOG FILE");
   XMLNode *rootNode = xmlLogFile.LastChild ();
   NS_ABORT_MSG_IF (rootNode == nullptr, "No root node node found");

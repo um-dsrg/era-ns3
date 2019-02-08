@@ -27,7 +27,7 @@ Ptr<Socket> createSocket(Ptr<Node> srcNode, FlowProtocol protocol)
 TransmitterApp::TransmitterApp(const Flow& flow) : m_dataRate(flow.dataRate),
                                                    m_packetSize(flow.packetSize)
 {
-  for (const auto& path : flow.GetPaths()) {
+  for (const auto& path : flow.GetDataPaths()) {
     // Store the path information
     PathInformation pathInfo;
     pathInfo.srcPort = path.srcPort;

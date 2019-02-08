@@ -25,45 +25,51 @@
 using namespace ns3;
 using namespace tinyxml2;
 
+/**
+ * Definition of the TopologyBuilder class
+ */
+
 template <class SwitchType>
-class TopologyBuilder
-{
+class TopologyBuilder {
 public:
-  TopologyBuilder ();
+    TopologyBuilder ();
 
-  const Terminal::TerminalContainer&  GetTerminals();
-  void CreateNodes (XMLNode *rootNode);
-  std::map<id_t, Ptr<NetDevice>> BuildNetworkTopology (XMLNode *rootNode);
-  void AssignIpToTerminals ();
-  Flow::FlowContainer ParseFlows (XMLNode *rootNode);
-  void EnablePacketReceptionOnSwitches ();
-
-  /* The below public functions still need to be refactored */
-  void SetSwitchRandomNumberGenerator ();
+    const Terminal::TerminalContainer&  GetTerminals();
+    void CreateNodes (XMLNode *rootNode);
+    std::map<id_t, Ptr<NetDevice>> BuildNetworkTopology (XMLNode *rootNode);
+    void AssignIpToTerminals ();
+    Flow::FlowContainer ParseFlows (XMLNode *rootNode);
+    void EnablePacketReceptionOnSwitches ();
 
 private:
-  void CreateUniqueNode (id_t nodeId, NodeType nodeType);
-  void InstallP2pLinks (const std::vector<Link> &links,
-                        std::map<id_t, Ptr<NetDevice>> &transmitOnLink);
-  CustomDevice *GetNode (id_t id, NodeType nodeType);
+    void CreateUniqueNode (id_t nodeId, NodeType nodeType);
+    void InstallP2pLinks (const std::vector<Link> &links,
+                          std::map<id_t, Ptr<NetDevice>> &transmitOnLink);
+    CustomDevice *GetNode (id_t id, NodeType nodeType);
 
-  Terminal::TerminalContainer m_terminals; //!< Maps the node id with the Terminal object.
-  std::map<id_t, SwitchType> m_switches; //!< Maps the node id with the Switch object.
-  std::map<id_t, Link> m_links; //!< Maps the link id with the Link object.
+    /**< Key Path ID | Value source port, destination port */
+    using PathPortMap = std::map<id_t, std::pair<portNum_t, portNum_t>>;
 
-  // TODO: Not sure the below are being used.
-  std::vector<NetDeviceContainer> m_linkNetDeviceContainers;
-  /*
-     * When set to true, the tow net devices that make one whole link will be stored in the vector
+    PathPortMap AddDataPaths(Flow& flow, XMLElement* flowElement);
+    void AddAckPaths(Flow& flow, XMLElement* flowElement, const PathPortMap& pathPortMap);
+
+    Terminal::TerminalContainer m_terminals; //!< Maps the node id with the Terminal object.
+    std::map<id_t, SwitchType> m_switches; //!< Maps the node id with the Switch object.
+    std::map<id_t, Link> m_links; //!< Maps the link id with the Link object.
+
+    // TODO: Not sure the below are being used.
+    std::vector<NetDeviceContainer> m_linkNetDeviceContainers;
+    /*
+     * When set to true, the two net devices that make one whole link will be stored in the vector
      * m_linkNetDevicePair. This information will be used to assign IP addresses in the OSPF scenario
      * because each link must have a net "network".
      */
-  bool m_storeNetDeviceLinkPairs;
+    bool m_storeNetDeviceLinkPairs;
 
-  NS_LOG_TEMPLATE_DECLARE; //!< The log component
+    NS_LOG_TEMPLATE_DECLARE; //!< The log component
 };
 
-void ShuffleLinkElements (std::vector<XMLElement *> &linkElements);
+void ShuffleLinkElements(std::vector<XMLElement *> &linkElements);
 
 /**
   * Implementation of the TopologyBuilder class
@@ -337,68 +343,106 @@ TopologyBuilder<SwitchType>::AssignIpToTerminals ()
 }
 
 template <class SwitchType>
-Flow::FlowContainer
-TopologyBuilder<SwitchType>::ParseFlows (XMLNode *rootNode)
-{
-  Flow::FlowContainer flows;
+Flow::FlowContainer TopologyBuilder<SwitchType>::ParseFlows (XMLNode *rootNode) {
+    Flow::FlowContainer flows;
 
-  auto flowDetElement = rootNode->FirstChildElement ("FlowDetails");
-  NS_ABORT_MSG_IF (flowDetElement == nullptr, "FlowDetails Element not found");
+    auto flowDetElement = rootNode->FirstChildElement ("FlowDetails");
+    NS_ABORT_MSG_IF (flowDetElement == nullptr, "FlowDetails Element not found");
 
-  auto flowElement = flowDetElement->FirstChildElement ("Flow");
-  while (flowElement != nullptr)
-    {
-      Flow flow;
+    auto flowElement = flowDetElement->FirstChildElement ("Flow");
+    while (flowElement != nullptr) {
+        Flow flow;
 
-      flowElement->QueryAttribute ("Id", &flow.id);
+        flowElement->QueryAttribute ("Id", &flow.id);
 
-      id_t srcNodeId{0};
-      flowElement->QueryAttribute ("SourceNode", &srcNodeId);
-      flow.srcNode = &m_terminals.at (srcNodeId);
+        id_t srcNodeId{0};
+        flowElement->QueryAttribute ("SourceNode", &srcNodeId);
+        flow.srcNode = &m_terminals.at (srcNodeId);
 
-      id_t dstNodeId{0};
-      flowElement->QueryAttribute ("DestinationNode", &dstNodeId);
-      flow.dstNode = &m_terminals.at (dstNodeId);
+        id_t dstNodeId{0};
+        flowElement->QueryAttribute ("DestinationNode", &dstNodeId);
+        flow.dstNode = &m_terminals.at (dstNodeId);
 
-      flow.protocol = static_cast<FlowProtocol> (*flowElement->Attribute ("Protocol"));
-      flowElement->QueryAttribute("PacketSize", &flow.packetSize);
-      double dataRate;
-      flowElement->QueryAttribute("DataRate", &dataRate);
-      flow.dataRate = ns3::DataRate(std::string{std::to_string(dataRate) + "Mbps"});
+        flow.protocol = static_cast<FlowProtocol> (*flowElement->Attribute ("Protocol"));
+        flowElement->QueryAttribute("PacketSize", &flow.packetSize);
+        double dataRate;
+        flowElement->QueryAttribute("DataRate", &dataRate);
+        flow.dataRate = ns3::DataRate(std::string{std::to_string(dataRate) + "Mbps"});
 
-      auto pathsElement = flowElement->FirstChildElement ("Paths");
-      auto pathElement = pathsElement->FirstChildElement ("Path");
+        auto pathPortMap {AddDataPaths(flow, flowElement)};
+        AddAckPaths(flow, flowElement, pathPortMap);
 
-      while (pathElement != nullptr)
-        {
-          Path path;
-          pathElement->QueryAttribute ("Id", &path.id);
+        auto ret = flows.emplace (flow.id, flow);
+        NS_ABORT_MSG_IF (ret.second == false, "Inserting Flow " << flow.id << " failed");
 
-          double dataRate;
-          pathElement->QueryAttribute("DataRate", &dataRate);
-          path.dataRate = ns3::DataRate(std::string{std::to_string(dataRate) + "Mbps"});
-
-          auto linkElement = pathElement->FirstChildElement ("Link");
-          while (linkElement != nullptr)
-            {
-              id_t linkId;
-              linkElement->QueryAttribute ("Id", &linkId);
-              path.AddLink (&m_links.at (linkId));
-              linkElement = linkElement->NextSiblingElement ("Link");
-            }
-
-          flow.AddPath (path);
-          pathElement = pathElement->NextSiblingElement ("Path");
-        }
-
-      auto ret = flows.emplace (flow.id, flow);
-      NS_ABORT_MSG_IF (ret.second == false, "Inserting Flow " << flow.id << " failed");
-
-      NS_LOG_INFO ("Flow Details:\n" << flow);
-      flowElement = flowElement->NextSiblingElement ("Flow");
+        NS_LOG_INFO ("Flow Details:\n" << flow);
+        flowElement = flowElement->NextSiblingElement ("Flow");
     }
 
-  return flows;
+    return flows;
+}
+
+template <class SwitchType>
+typename TopologyBuilder<SwitchType>::PathPortMap
+TopologyBuilder<SwitchType>::AddDataPaths(Flow& flow, XMLElement* flowElement) {
+
+    TopologyBuilder<SwitchType>::PathPortMap pathPortMap;
+
+    auto pathsElement = flowElement->FirstChildElement ("Paths");
+    auto pathElement = pathsElement->FirstChildElement ("Path");
+
+    while (pathElement != nullptr) {
+        Path path(true);
+        pathElement->QueryAttribute ("Id", &path.id);
+
+        double dataRate;
+        pathElement->QueryAttribute("DataRate", &dataRate);
+        path.dataRate = ns3::DataRate(std::string{std::to_string(dataRate) + "Mbps"});
+
+        auto linkElement = pathElement->FirstChildElement ("Link");
+        while (linkElement != nullptr) {
+            id_t linkId;
+            linkElement->QueryAttribute ("Id", &linkId);
+            path.AddLink (&m_links.at (linkId));
+            linkElement = linkElement->NextSiblingElement ("Link");
+        }
+
+        auto ret = pathPortMap.emplace(path.id, std::make_pair(path.srcPort, path.dstPort));
+        NS_ABORT_MSG_IF(ret.second == false, "Trying to insert a duplicate path " << path.id);
+
+        flow.AddDataPath(path);
+        pathElement = pathElement->NextSiblingElement ("Path");
+    }
+
+    return pathPortMap;
+}
+
+template <class SwitchType>
+void TopologyBuilder<SwitchType>::AddAckPaths(Flow& flow, XMLElement* flowElement,
+                                              const TopologyBuilder<SwitchType>::PathPortMap& pathPortMap) {
+    auto ackPathsElement = flowElement->FirstChildElement ("AckPaths");
+    auto pathElement = ackPathsElement->FirstChildElement ("Path");
+
+    while (pathElement != nullptr) {
+        Path path(false);
+        pathElement->QueryAttribute ("Id", &path.id);
+
+        const auto& dataPathPortPair {pathPortMap.at(path.id)};
+        /* Swapping the port numbers for the ACK flows */
+        path.srcPort = dataPathPortPair.second;
+        path.dstPort = dataPathPortPair.first;
+
+        auto linkElement = pathElement->FirstChildElement ("Link");
+        while (linkElement != nullptr) {
+            id_t linkId;
+            linkElement->QueryAttribute ("Id", &linkId);
+            path.AddLink (&m_links.at (linkId));
+            linkElement = linkElement->NextSiblingElement ("Link");
+        }
+
+        flow.AddAckPath(path);
+        pathElement = pathElement->NextSiblingElement ("Path");
+    }
 }
 
 template <class SwitchType>
@@ -410,16 +454,6 @@ void TopologyBuilder<SwitchType>::EnablePacketReceptionOnSwitches ()
     auto& switchInstance = switchPair.second;
     switchInstance.SetPacketReception ();
   }
-}
-
-template <class SwitchType>
-void
-TopologyBuilder<SwitchType>::SetSwitchRandomNumberGenerator ()
-{
-  // for (auto &switchNode : m_switchMap)
-  //   {
-  //     switchNode.second.SetRandomNumberGenerator ();
-  //   }
 }
 
 #endif /* TOPOLOGY_BUILDER_H */
