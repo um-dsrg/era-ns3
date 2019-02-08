@@ -1,6 +1,7 @@
 #ifndef receiver_app_h
 #define receiver_app_h
 
+#include <list>
 #include <queue>
 #include <tuple>
 
@@ -11,38 +12,41 @@
 
 #include "flow.h"
 
-class ReceiverApp : public ns3::Application
-{
+class ReceiverApp : public ns3::Application {
 public:
-  ReceiverApp(const Flow& flow);
-  virtual ~ReceiverApp();
+    ReceiverApp(const Flow& flow);
+    virtual ~ReceiverApp();
 
 private:
-  virtual void StartApplication ();
-  virtual void StopApplication ();
-  void HandleRead (ns3::Ptr<ns3::Socket> socket);
+    virtual void StartApplication ();
+    virtual void StopApplication ();
+    void HandleAccept (ns3::Ptr<ns3::Socket> socket, const ns3::Address& from);
+    void HandleRead (ns3::Ptr<ns3::Socket> socket);
 
-  struct PathInformation
-  {
-    portNum_t dstPort;
-    ns3::Ptr<ns3::Socket> rxSocket; //!< The socket to transmit data on the given path.
-    ns3::Address dstAddress; //!< The path's destination address.
-  };
+    struct PathInformation {
+        portNum_t dstPort;
+        ns3::Ptr<ns3::Socket> rxListenSocket; /**< The socket to listen for incoming connections */
+        ns3::Address dstAddress; /**< The path's destination address. */
+    };
 
-  bool m_appRunning {false}; //!< Flag that determines the application's running stage
-  std::vector<PathInformation> m_pathInfoContainer;
+    FlowProtocol protocol{FlowProtocol::Undefined};
+    bool m_appRunning {false}; /**< Flag that determines the application's running state */
+    std::vector<PathInformation> m_pathInfoContainer;
 
-  /* Goodput calculation related variables */
-  uint64_t m_totalRecvBytes{0};
+    /* In the case of TCP, each socket accept returns a new socket, so the
+       listening socket is stored separately from the accepted sockets */
+    std::list<ns3::Ptr<ns3::Socket> > m_rxAcceptedSockets; /**< The accepted sockets */
 
-  /* Buffer related variables */
-  packetNumber_t m_expectedPacketNum{0};
+    /* Goodput calculation related variables */
+    uint64_t m_totalRecvBytes{0};
 
-  void popInOrderPacketsFromQueue();
-
-  // TODO: Set this to a struct to make the code more readable
-  typedef std::pair<packetNumber_t, packetSize_t> bufferContents_t;
-  std::priority_queue<bufferContents_t, std::vector<bufferContents_t>, std::greater<>> m_recvBuffer;
+    /* Buffer related variables */
+    packetNumber_t m_expectedPacketNum{0};
+    void popInOrderPacketsFromQueue();
+    // TODO: Set this to a struct to make the code more readable, a class may be worthwhile because we need
+    //to log this
+    typedef std::pair<packetNumber_t, packetSize_t> bufferContents_t;
+    std::priority_queue<bufferContents_t, std::vector<bufferContents_t>, std::greater<>> m_recvBuffer;
 };
 
 std::tuple<packetNumber_t, packetSize_t> ExtractPacketDetails(ns3::Ptr<ns3::Packet> packet);
