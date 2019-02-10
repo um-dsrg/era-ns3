@@ -17,7 +17,7 @@ typedef uint32_t FlowId_t;
 
 // Enum definitions /////////////////////////////////////////////////////////
 enum class NodeType : char { Switch = 'S', Terminal = 'T' };
-enum class FlowProtocol : char { Tcp = 'T', Udp = 'U', Icmp = 'I', Ack = 'A', Undefined = 'X' };
+enum class FlowProtocol : char { Tcp = 'T', Udp = 'U', Icmp = 'I', Undefined = 'X' };
 
 // Structure definitions /////////////////////////////////////////////////////////
 #include "ns3/nstime.h"
