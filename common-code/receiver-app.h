@@ -29,23 +29,27 @@ private:
 
     struct PathInformation {
         portNum_t dstPort;
-        ns3::Ptr<ns3::Socket> rxListenSocket; /**< The socket to listen for incoming connections */
+        ns3::Ptr<ns3::Socket> rxListenSocket; /**< The socket to listen for incoming connections. */
         ns3::Address dstAddress; /**< The path's destination address. */
     };
 
     FlowProtocol protocol{FlowProtocol::Undefined};
-    bool m_appRunning {false}; /**< Flag that determines the application's running state */
+    bool m_appRunning {false}; /**< Flag that represents the application's running state. */
     std::vector<PathInformation> m_pathInfoContainer;
 
-    /* In the case of TCP, each socket accept returns a new socket, so the
-       listening socket is stored separately from the accepted sockets */
-    std::list<ns3::Ptr<ns3::Socket> > m_rxAcceptedSockets; /**< The accepted sockets */
+    /**
+     In the case of TCP, each socket accept returns a new socket, so the
+     listening socket is stored separately from the accepted sockets.
+     */
+    std::list<ns3::Ptr<ns3::Socket> > m_rxAcceptedSockets; /**< List of the accepted sockets. */
 
     /* Goodput calculation related variables */
     uint64_t m_totalRecvBytes{0};
-    bool m_firstPacketReceived {false};
+    bool m_firstPacketReceived{false};
     ns3::Time m_firstRxPacket{0};
     ns3::Time m_lastRxPacket{0};
+
+    id_t m_id{0}; /**< The id of the flow that this application represents. */
 
     /* Buffer related variables */
     packetNumber_t m_expectedPacketNum{0};

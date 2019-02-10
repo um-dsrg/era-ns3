@@ -21,7 +21,7 @@ Ptr<Socket> CreateSocket(Ptr<Node> node, FlowProtocol protocol) {
     }
 }
 
-ReceiverApp::ReceiverApp(const Flow& flow) : protocol(flow.protocol) {
+ReceiverApp::ReceiverApp(const Flow& flow) : protocol(flow.protocol), m_id(flow.id) {
     for (const auto& path : flow.GetDataPaths()) {
         PathInformation pathInfo;
         pathInfo.dstPort = path.dstPort;
@@ -112,7 +112,6 @@ void ReceiverApp::HandleRead(Ptr<Socket> socket) {
             m_recvBuffer.push(std::make_pair(packetNumber, packetSize));
         }
         NS_LOG_INFO("Total Received bytes " << m_totalRecvBytes);
-        CalculateGoodPut();
     }
 }
 
