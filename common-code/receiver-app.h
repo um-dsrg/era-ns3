@@ -5,8 +5,10 @@
 #include <queue>
 #include <tuple>
 
+#include "ns3/nstime.h"
 #include "ns3/packet.h"
 #include "ns3/socket.h"
+#include "ns3/data-rate.h"
 #include "ns3/ipv4-address.h"
 #include "ns3/application.h"
 
@@ -17,11 +19,13 @@ public:
     ReceiverApp(const Flow& flow);
     virtual ~ReceiverApp();
 
+    void GetAverageRxGoodPut();
+
 private:
-    virtual void StartApplication ();
-    virtual void StopApplication ();
-    void HandleAccept (ns3::Ptr<ns3::Socket> socket, const ns3::Address& from);
-    void HandleRead (ns3::Ptr<ns3::Socket> socket);
+    virtual void StartApplication();
+    virtual void StopApplication();
+    void HandleAccept(ns3::Ptr<ns3::Socket> socket, const ns3::Address& from);
+    void HandleRead(ns3::Ptr<ns3::Socket> socket);
 
     struct PathInformation {
         portNum_t dstPort;
@@ -39,6 +43,9 @@ private:
 
     /* Goodput calculation related variables */
     uint64_t m_totalRecvBytes{0};
+    bool m_firstPacketReceived {false};
+    ns3::Time m_firstRxPacket{0};
+    ns3::Time m_lastRxPacket{0};
 
     /* Buffer related variables */
     packetNumber_t m_expectedPacketNum{0};

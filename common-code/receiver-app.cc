@@ -11,8 +11,7 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE("ReceiverApp");
 
-Ptr<Socket> CreateSocket(Ptr<Node> node, FlowProtocol protocol)
-{
+Ptr<Socket> CreateSocket(Ptr<Node> node, FlowProtocol protocol) {
   if (protocol == FlowProtocol::Tcp) { // Tcp Socket
     return Socket::CreateSocket(node, TcpSocketFactory::GetTypeId ());
   } else if (protocol == FlowProtocol::Udp) { // Udp Socket
@@ -23,7 +22,6 @@ Ptr<Socket> CreateSocket(Ptr<Node> node, FlowProtocol protocol)
 }
 
 ReceiverApp::ReceiverApp(const Flow& flow) : protocol(flow.protocol) {
-
   for (const auto& path : flow.GetDataPaths()) {
     PathInformation pathInfo;
     pathInfo.dstPort = path.dstPort;
@@ -36,6 +34,14 @@ ReceiverApp::ReceiverApp(const Flow& flow) : protocol(flow.protocol) {
 
 ReceiverApp::~ReceiverApp() {
     // TODO: Set all the sockets to 0 here.
+}
+
+double ReceiverApp::CalculateGoodPut() {
+    auto durationInSeconds = double{(m_lastRxPacket - m_firstRxPacket).GetSeconds()};
+    auto currentGoodPut = double{((m_totalRecvBytes * 8) / durationInSeconds) /
+                                  1000000};
+    // TODO: When logging output the flow id.
+    NS_LOG_INFO("The flow's good put is: " << currentGoodPut << "Mbps");
 }
 
 void ReceiverApp::StartApplication() {
@@ -59,8 +65,7 @@ void ReceiverApp::StartApplication() {
     }
 }
 
-void ReceiverApp::StopApplication()
-{
+void ReceiverApp::StopApplication() {
   NS_LOG_INFO("Receiver stopped");
 }
 
@@ -80,6 +85,13 @@ void ReceiverApp::HandleRead(Ptr<Socket> socket) {
             break;
         }
 
+        if (!m_firstPacketReceived) { // Log the time the first packet has been received
+            m_firstPacketReceived = true;
+            m_firstRxPacket = Simulator::Now();
+        }
+
+        m_lastRxPacket = Simulator::Now(); // Log the time the last packet is received
+
         packetNumber_t packetNumber;
         packetSize_t packetSize;
         std::tie(packetNumber, packetSize) = ExtractPacketDetails(packet);
@@ -98,6 +110,7 @@ void ReceiverApp::HandleRead(Ptr<Socket> socket) {
             m_recvBuffer.push(std::make_pair(packetNumber, packetSize));
         }
         NS_LOG_INFO("Total Received bytes " << m_totalRecvBytes);
+        CalculateGoodPut();
     }
 }
 
