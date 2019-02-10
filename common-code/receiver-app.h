@@ -19,7 +19,7 @@ public:
     ReceiverApp(const Flow& flow);
     virtual ~ReceiverApp();
 
-    void GetAverageRxGoodPut();
+    double GetMeanRxGoodput();
 
 private:
     virtual void StartApplication();

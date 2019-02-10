@@ -12,35 +12,37 @@ using namespace ns3;
 NS_LOG_COMPONENT_DEFINE("ReceiverApp");
 
 Ptr<Socket> CreateSocket(Ptr<Node> node, FlowProtocol protocol) {
-  if (protocol == FlowProtocol::Tcp) { // Tcp Socket
-    return Socket::CreateSocket(node, TcpSocketFactory::GetTypeId ());
-  } else if (protocol == FlowProtocol::Udp) { // Udp Socket
-    return Socket::CreateSocket(node, UdpSocketFactory::GetTypeId ());
-  } else {
-    NS_ABORT_MSG("Cannot create non TCP/UDP socket");
-  }
+    if (protocol == FlowProtocol::Tcp) { // Tcp Socket
+        return Socket::CreateSocket(node, TcpSocketFactory::GetTypeId ());
+    } else if (protocol == FlowProtocol::Udp) { // Udp Socket
+        return Socket::CreateSocket(node, UdpSocketFactory::GetTypeId ());
+    } else {
+        NS_ABORT_MSG("Cannot create non TCP/UDP socket");
+    }
 }
 
 ReceiverApp::ReceiverApp(const Flow& flow) : protocol(flow.protocol) {
-  for (const auto& path : flow.GetDataPaths()) {
-    PathInformation pathInfo;
-    pathInfo.dstPort = path.dstPort;
-    pathInfo.rxListenSocket = CreateSocket(flow.dstNode->GetNode(), flow.protocol);
-    pathInfo.dstAddress = Address(InetSocketAddress(flow.dstNode->GetIpAddress(), path.dstPort));
+    for (const auto& path : flow.GetDataPaths()) {
+        PathInformation pathInfo;
+        pathInfo.dstPort = path.dstPort;
+        pathInfo.rxListenSocket = CreateSocket(flow.dstNode->GetNode(),
+                                               flow.protocol);
+        pathInfo.dstAddress = Address(InetSocketAddress(flow.dstNode->GetIpAddress(),
+                                                        path.dstPort));
 
-    m_pathInfoContainer.push_back(pathInfo);
-  }
+        m_pathInfoContainer.push_back(pathInfo);
+    }
 }
 
 ReceiverApp::~ReceiverApp() {
     // TODO: Set all the sockets to 0 here.
 }
 
-double ReceiverApp::CalculateGoodPut() {
+double ReceiverApp::GetMeanRxGoodput() {
+    // FIXME: When logging output the flow id.
     auto durationInSeconds = double{(m_lastRxPacket - m_firstRxPacket).GetSeconds()};
     auto currentGoodPut = double{((m_totalRecvBytes * 8) / durationInSeconds) /
-                                  1000000};
-    // TODO: When logging output the flow id.
+                                 1'000'000};
     NS_LOG_INFO("The flow's good put is: " << currentGoodPut << "Mbps");
 }
 
@@ -66,7 +68,7 @@ void ReceiverApp::StartApplication() {
 }
 
 void ReceiverApp::StopApplication() {
-  NS_LOG_INFO("Receiver stopped");
+    NS_LOG_INFO("Receiver stopped");
 }
 
 void ReceiverApp::HandleAccept (Ptr<Socket> socket, const Address& from) {
