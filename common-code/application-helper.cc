@@ -16,47 +16,25 @@ NS_LOG_COMPONENT_DEFINE ("ApplicationHelper");
 
 
 void ApplicationHelper::InstallApplicationsOnTerminals(const Flow::FlowContainer &flows,
-                                                       const Terminal::TerminalContainer &terminals)
-{
-  for (const auto& flowPair : flows) {
-    NS_LOG_INFO("Installing flow " << flowPair.first);
-    const auto& flow {flowPair.second};
+                                                       const Terminal::TerminalContainer &terminals) {
+    for (const auto& flowPair : flows) {
+        NS_LOG_INFO("Installing flow " << flowPair.first);
+        const auto& flow {flowPair.second};
 
-    if (flow.protocol == FlowProtocol::Ack) { // Do not install ACK flows
-      continue;
+        // Install the transmitter
+        Ptr<TransmitterApp> transmitterApp = CreateObject<TransmitterApp>(flow);
+        flow.srcNode->GetNode()->AddApplication(transmitterApp);
+        transmitterApp->SetStartTime(Seconds(1.0));
+        transmitterApp->SetStopTime(Seconds(10.0));
+        m_transmitterApplications.Add(transmitterApp);
+
+        // Install the receiver
+        Ptr<ReceiverApp> receiverApp = CreateObject<ReceiverApp>(flow);
+        flow.dstNode->GetNode()->AddApplication(receiverApp);
+        receiverApp->SetStartTime(Seconds(0.0));
+        receiverApp->SetStopTime(Seconds(10.0));
+        m_receiverApplications.Add(receiverApp);
     }
-
-    Ptr<TransmitterApp> transmitterApp = CreateObject<TransmitterApp>(flow);
-    flow.srcNode->GetNode()->AddApplication(transmitterApp);
-    transmitterApp->SetStartTime(Seconds(1.0));
-    transmitterApp->SetStopTime(Seconds(10.0));
-
-    Ptr<ReceiverApp> receiverApp = CreateObject<ReceiverApp>(flow);
-    flow.dstNode->GetNode()->AddApplication(receiverApp);
-    receiverApp->SetStartTime(Seconds(0.0));
-    receiverApp->SetStopTime(Seconds(10.0));
-  }
-
-//  // Test application from source node 0 to 2
-//  NS_LOG_UNCOND("This is a test");
-//  // Source
-//  InetSocketAddress sinkSocket (terminals.at(2).GetIpAddress(), 10000);
-//  OnOffHelper onOff("ns3::UdpSocketFactory", sinkSocket);
-//  onOff.SetAttribute("OnTime",  StringValue("ns3::ConstantRandomVariable[Constant=1]"));
-//  onOff.SetAttribute("OffTime", StringValue("ns3::ConstantRandomVariable[Constant=0]"));
-//  onOff.SetAttribute("PacketSize", UintegerValue(1470));
-//  onOff.SetAttribute("DataRate", DataRateValue(5000000)); // Data rate is set to 5Mbps
-//  onOff.SetAttribute("MaxBytes", UintegerValue(1470)); // 1 packet
-//
-//  ApplicationContainer srcApp = onOff.Install(terminals.at(0).GetNode());
-//  srcApp.Start(Seconds(1));
-//  srcApp.Stop(Seconds(10));
-//
-//  // Sink
-//  PacketSinkHelper sinkHelper ("ns3::UdpSocketFactory", sinkSocket);
-//  ApplicationContainer sinkApp = sinkHelper.Install(terminals.at(2).GetNode());
-//  sinkApp.Start(Seconds(0));
-//  sinkApp.Stop(Seconds(10));
 }
 
 //ApplicationHelper::ApplicationHelper (bool ignoreOptimalDataRates)

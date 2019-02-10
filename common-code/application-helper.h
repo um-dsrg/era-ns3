@@ -1,17 +1,18 @@
-#ifndef APPLICATION_HELPER_H
-#define APPLICATION_HELPER_H
+#ifndef application_helper_h
+#define application_helper_h
 
 #include <tinyxml2.h>
 #include <map>
 
 #include "ns3/ipv4.h"
 #include "ns3/node-container.h"
+#include "ns3/application-container.h"
 
 #include "flow.h"
 #include "terminal.h"
 #include "definitions.h"
 #include "topology-builder.h"
-//#include "application-monitor.h"
+
 
 class ApplicationHelper
 {
@@ -21,6 +22,10 @@ public:
   void InstallApplicationsOnTerminals (const Flow::FlowContainer& flows,
                                        const Terminal::TerminalContainer& terminals);
 
+private:
+    ns3::ApplicationContainer m_transmitterApplications;
+    ns3::ApplicationContainer m_receiverApplications;
+    
 //  void InstallApplicationOnTerminals (ApplicationMonitor &applicationMonitor,
 //                                      ns3::NodeContainer &allNodes, uint32_t nPacketsPerFlow,
 //                                      tinyxml2::XMLNode *rootNode);
@@ -73,4 +78,4 @@ public:
 //  bool m_ignoreOptimalDataRates;
 };
 
-#endif /* APPLICATION_HELPER_H */
+#endif /* application_helper_h */
