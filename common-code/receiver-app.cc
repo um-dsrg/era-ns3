@@ -11,16 +11,6 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE("ReceiverApp");
 
-Ptr<Socket> CreateSocket(Ptr<Node> node, FlowProtocol protocol) {
-    if (protocol == FlowProtocol::Tcp) { // Tcp Socket
-        return Socket::CreateSocket(node, TcpSocketFactory::GetTypeId ());
-    } else if (protocol == FlowProtocol::Udp) { // Udp Socket
-        return Socket::CreateSocket(node, UdpSocketFactory::GetTypeId ());
-    } else {
-        NS_ABORT_MSG("Cannot create non TCP/UDP socket");
-    }
-}
-
 ReceiverApp::ReceiverApp(const Flow& flow) : protocol(flow.protocol), m_id(flow.id) {
     for (const auto& path : flow.GetDataPaths()) {
         PathInformation pathInfo;
@@ -31,6 +21,16 @@ ReceiverApp::ReceiverApp(const Flow& flow) : protocol(flow.protocol), m_id(flow.
                                                         path.dstPort));
 
         m_pathInfoContainer.push_back(pathInfo);
+    }
+}
+
+Ptr<Socket> ReceiverApp::CreateSocket(Ptr<Node> node, FlowProtocol protocol) {
+    if (protocol == FlowProtocol::Tcp) { // Tcp Socket
+        return Socket::CreateSocket(node, TcpSocketFactory::GetTypeId ());
+    } else if (protocol == FlowProtocol::Udp) { // Udp Socket
+        return Socket::CreateSocket(node, UdpSocketFactory::GetTypeId ());
+    } else {
+        NS_ABORT_MSG("Cannot create non TCP/UDP socket");
     }
 }
 

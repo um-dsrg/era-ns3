@@ -22,6 +22,7 @@ public:
     double GetMeanRxGoodput();
 
 private:
+    ns3::Ptr<ns3::Socket> CreateSocket(ns3::Ptr<ns3::Node> node, FlowProtocol protocol);
     virtual void StartApplication();
     virtual void StopApplication();
     void HandleAccept(ns3::Ptr<ns3::Socket> socket, const ns3::Address& from);
