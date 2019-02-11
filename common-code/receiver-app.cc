@@ -35,7 +35,13 @@ Ptr<Socket> ReceiverApp::CreateSocket(Ptr<Node> node, FlowProtocol protocol) {
 }
 
 ReceiverApp::~ReceiverApp() {
-    // TODO: Set all the sockets to 0 here.
+    for (auto& acceptedSocket : m_rxAcceptedSockets) {
+        acceptedSocket = 0;
+    }
+
+    for (auto& pathInfo : m_pathInfoContainer) {
+        pathInfo.rxListenSocket = 0;
+    }
 }
 
 double ReceiverApp::GetMeanRxGoodput() {

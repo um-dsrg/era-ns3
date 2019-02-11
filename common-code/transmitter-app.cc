@@ -85,7 +85,10 @@ Ptr<Socket> TransmitterApp::CreateSocket(Ptr<Node> srcNode, FlowProtocol protoco
 }
 
 TransmitterApp::~TransmitterApp() {
-  // TODO: Set sockets to 0 to close them.
+    for (auto& pathInfoPair : m_pathInfoContainer) {
+        auto& pathInfo {pathInfoPair.second};
+        pathInfo.txSocket = 0;
+    }
 }
 
 void TransmitterApp::StartApplication() {
