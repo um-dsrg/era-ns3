@@ -16,7 +16,7 @@ ApplicationMonitor::~ApplicationMonitor ()
 }
 
 void
-ApplicationMonitor::MonitorApplication (FlowId_t flowId, double requestedGoodput,
+ApplicationMonitor::MonitorApplication (id_t flowId, double requestedGoodput,
                                         ns3::Ptr<ns3::Application> application)
 {
   if (m_nBytesQuota == 0) // We do not need to do any monitoring if the quota is 0.
@@ -45,7 +45,7 @@ ApplicationMonitor::ReceivePacket (std::string context, ns3::Ptr<const ns3::Pack
 {
   NS_LOG_INFO ("Flow " << context << " received a packet at " << Simulator::Now ());
 
-  FlowId_t flowId (std::stoi (context));
+  id_t flowId (std::stoi (context));
 
   try
     {

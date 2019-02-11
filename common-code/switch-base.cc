@@ -30,7 +30,7 @@ SwitchBase::~SwitchBase () {
  @param linkId The link id.
  @param device A pointer to the net device.
  */
-void SwitchBase::InsertNetDevice (LinkId_t linkId, Ptr<NetDevice> device) {
+void SwitchBase::InsertNetDevice (id_t linkId, Ptr<NetDevice> device) {
     auto ret = m_linkNetDeviceTable.insert ({linkId, device});
     NS_ABORT_MSG_IF (ret.second == false, "The Link ID " << linkId << " is already stored in node's " << m_id <<
                      " Link->NetDevice map");
@@ -47,7 +47,7 @@ void SwitchBase::InsertNetDevice (LinkId_t linkId, Ptr<NetDevice> device) {
  @param linkId The link id.
  @return The queue connected to that link id.
  */
-Ptr<Queue<Packet>> SwitchBase::GetQueueFromLinkId (LinkId_t linkId) const {
+Ptr<Queue<Packet>> SwitchBase::GetQueueFromLinkId (id_t linkId) const {
     auto ret = m_linkNetDeviceTable.find (linkId);
     NS_ABORT_MSG_IF (ret == m_linkNetDeviceTable.end (),
                      "The port connecting link id: " << linkId << " was not found");
@@ -57,7 +57,7 @@ Ptr<Queue<Packet>> SwitchBase::GetQueueFromLinkId (LinkId_t linkId) const {
     return p2pDevice->GetQueue ();
 }
 
-const std::map<LinkId_t, SwitchBase::QueueResults>& SwitchBase::GetQueueResults () const {
+const std::map<id_t, SwitchBase::QueueResults>& SwitchBase::GetQueueResults () const {
     return m_switchQueueResults;
 }
 
@@ -65,7 +65,7 @@ const std::map<SwitchBase::LinkFlowId, LinkStatistic>& SwitchBase::GetLinkStatis
     return m_linkStatistics;
 }
 
-void SwitchBase::LogLinkStatistics (Ptr<NetDevice> port, FlowId_t flowId, uint32_t packetSize) {
+void SwitchBase::LogLinkStatistics (Ptr<NetDevice> port, id_t flowId, uint32_t packetSize) {
     auto linkRet = m_netDeviceLinkTable.find (port);
     NS_ABORT_MSG_IF (linkRet == m_netDeviceLinkTable.end (), "The Link connected to the net device"
                      "was not found");

@@ -75,7 +75,7 @@ public:
     std::vector<std::pair<uint64_t, double>> goodputPerPacket;
   };
 
-  const std::map<FlowId_t, FlowDetails> &
+  const std::map<id_t, FlowDetails> &
   GetFlowMap () const
   {
     return m_flows;
@@ -86,7 +86,7 @@ public:
     return m_logGoodputEveryPacket;
   }
 
-  void MonitorApplication (FlowId_t flowId, double requestedGoodput,
+  void MonitorApplication (id_t flowId, double requestedGoodput,
                            ns3::Ptr<ns3::Application> application);
 
 private:
@@ -98,7 +98,7 @@ private:
    * Key: Flow Id
    * Value: FlowDetails structure
    */
-  std::map<FlowId_t, FlowDetails> m_flows;
+  std::map<id_t, FlowDetails> m_flows;
   uint32_t m_nFlows; //!< The number of flows that are being monitored
   /**
    * The number of bytes each flow must receive before the simulation can
@@ -109,7 +109,7 @@ private:
    * A set of Flow Ids that have met the quota. A set is used because
    * duplicate values are not allowed.
    */
-  std::set<FlowId_t> m_flowsThatMetQuota;
+  std::set<id_t> m_flowsThatMetQuota;
 
   const bool m_logGoodputEveryPacket; //!< Store the application's goodput for every packet
 };

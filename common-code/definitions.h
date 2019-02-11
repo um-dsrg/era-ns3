@@ -11,9 +11,9 @@ typedef double dataRate_t;
 typedef uint32_t packetSize_t;
 typedef uint64_t packetNumber_t;
 // TODO Remove the below typedefs
-typedef uint32_t LinkId_t;
-typedef uint32_t NodeId_t;
-typedef uint32_t FlowId_t;
+//typedef uint32_t LinkId_t;
+//typedef uint32_t NodeId_t;
+//typedef uint32_t FlowId_t;
 
 // Enum definitions /////////////////////////////////////////////////////////
 enum class NodeType : char { Switch = 'S', Terminal = 'T' };
