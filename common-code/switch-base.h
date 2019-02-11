@@ -9,57 +9,34 @@
 #include "definitions.h"
 #include "custom-device.h"
 
-class SwitchBase : public CustomDevice
-{
+class SwitchBase : public CustomDevice {
 public:
-  /**
-   *  \brief Insert a reference to the NetDevice and the link id that is connected with that device
-   *
-   *  In this function a net device and the link id connected to it are stored.
-   *
-   *  \param linkId The link's id
-   *  \param device A pointer to the net device
-   */
-  void InsertNetDevice (LinkId_t linkId, ns3::Ptr<ns3::NetDevice> device);
+    void InsertNetDevice (LinkId_t linkId, ns3::Ptr<ns3::NetDevice> device);
 
-  // Queue Statistics /////////////////////////////////////////////////////////
-  struct QueueResults // Stores statistics about the queue of each net device
-  {
-    uint32_t peakNumOfPackets;
-    uint32_t peakNumOfBytes;
+    // Queue Statistics /////////////////////////////////////////////////////////
+    struct QueueResults {// Stores statistics about the queue of each net device
 
-    QueueResults () : peakNumOfPackets (0), peakNumOfBytes (0)
-    {
-    }
-  };
+        uint32_t peakNumOfPackets;
+        uint32_t peakNumOfBytes;
 
-  /**
-   *  \brief Will return a pointer to the queue connected to the link id
-   *
-   *  Returns a pointer to the queue that is connected with that particular link id
-   *
-   *  \param linkId The link id
-   *  \return Queue The queue connected to that link id
-   */
+        QueueResults () : peakNumOfPackets (0), peakNumOfBytes (0) {
+        }
+    };
   ns3::Ptr<ns3::Queue<ns3::Packet>> GetQueueFromLinkId (LinkId_t linkId) const;
 
   const std::map<LinkId_t, QueueResults> &GetQueueResults () const;
 
   // Link Statistics //////////////////////////////////////////////////////////
-  struct LinkFlowId
-  {
+  struct LinkFlowId {
     LinkId_t linkId;
     FlowId_t flowId;
-    LinkFlowId () : linkId (0), flowId (0)
-    {
+    LinkFlowId () : linkId (0), flowId (0) {
     }
-    LinkFlowId (LinkId_t linkId, FlowId_t flowId) : linkId (linkId), flowId (flowId)
-    {
+    LinkFlowId (LinkId_t linkId, FlowId_t flowId) : linkId (linkId), flowId (flowId) {
     }
 
     bool
-    operator< (const LinkFlowId &other) const
-    {
+    operator< (const LinkFlowId &other) const {
       // Used by the map to store the keys in order.
       if (linkId == other.linkId)
         return flowId < other.flowId;
@@ -79,8 +56,6 @@ protected:
   virtual ~SwitchBase ();
 
   virtual void SetPacketReception () = 0;
-
-  // Flow ParsePacket (ns3::Ptr<const ns3::Packet> packet, uint16_t protocol, bool allowIcmpPackets);
 
   // Queue Statistics /////////////////////////////////////////////////////////
   void LogQueueEntries (ns3::Ptr<ns3::NetDevice> port);

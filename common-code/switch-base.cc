@@ -16,168 +16,96 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("SwitchBase");
 
-SwitchBase::SwitchBase (id_t id) : CustomDevice (id)
-{
+SwitchBase::SwitchBase (id_t id) : CustomDevice (id) {
 }
 
-SwitchBase::~SwitchBase ()
-{
+SwitchBase::~SwitchBase () {
 }
 
-void
-SwitchBase::InsertNetDevice (LinkId_t linkId, Ptr<NetDevice> device)
-{
-  auto ret = m_linkNetDeviceTable.insert ({linkId, device});
-  NS_ABORT_MSG_IF (ret.second == false, "The Link ID " << linkId << " is already stored in node's "
-                                                       << m_id << " Link->NetDevice map");
+/**
+ @brief Insert a reference to the NetDevice and the link id that is connected with that device.
 
-  m_netDeviceLinkTable.insert ({device, linkId});
+ In this function a net device and the link id connected to it are stored.
 
-  m_switchQueueResults.insert (
-      {linkId, QueueResults ()}); // Pre-populating the map with empty values
+ @param linkId The link id.
+ @param device A pointer to the net device.
+ */
+void SwitchBase::InsertNetDevice (LinkId_t linkId, Ptr<NetDevice> device) {
+    auto ret = m_linkNetDeviceTable.insert ({linkId, device});
+    NS_ABORT_MSG_IF (ret.second == false, "The Link ID " << linkId << " is already stored in node's " << m_id <<
+                     " Link->NetDevice map");
+
+    m_netDeviceLinkTable.insert ({device, linkId});
+    m_switchQueueResults.insert ({linkId, QueueResults ()}); // Pre-populating the map with empty values
 }
 
-Ptr<Queue<Packet>>
-SwitchBase::GetQueueFromLinkId (LinkId_t linkId) const
-{
-  auto ret = m_linkNetDeviceTable.find (linkId);
-  NS_ABORT_MSG_IF (ret == m_linkNetDeviceTable.end (),
-                   "The port connecting link id: " << linkId << " was not found");
+/**
+ @brief Returns a pointer to the queue connected to the link id.
 
-  Ptr<NetDevice> port = ret->second;
-  Ptr<PointToPointNetDevice> p2pDevice = port->GetObject<PointToPointNetDevice> ();
-  return p2pDevice->GetQueue ();
+ Returns a pointer to the queue that is connected with that particular link id
+
+ @param linkId The link id.
+ @return The queue connected to that link id.
+ */
+Ptr<Queue<Packet>> SwitchBase::GetQueueFromLinkId (LinkId_t linkId) const {
+    auto ret = m_linkNetDeviceTable.find (linkId);
+    NS_ABORT_MSG_IF (ret == m_linkNetDeviceTable.end (),
+                     "The port connecting link id: " << linkId << " was not found");
+
+    Ptr<NetDevice> port = ret->second;
+    Ptr<PointToPointNetDevice> p2pDevice = port->GetObject<PointToPointNetDevice> ();
+    return p2pDevice->GetQueue ();
 }
 
-const std::map<LinkId_t, SwitchBase::QueueResults> &
-SwitchBase::GetQueueResults () const
-{
-  return m_switchQueueResults;
+const std::map<LinkId_t, SwitchBase::QueueResults>& SwitchBase::GetQueueResults () const {
+    return m_switchQueueResults;
 }
 
-const std::map<SwitchBase::LinkFlowId, LinkStatistic> &
-SwitchBase::GetLinkStatistics () const
-{
-  return m_linkStatistics;
+const std::map<SwitchBase::LinkFlowId, LinkStatistic>& SwitchBase::GetLinkStatistics () const {
+    return m_linkStatistics;
 }
 
-void
-SwitchBase::LogLinkStatistics (Ptr<NetDevice> port, FlowId_t flowId, uint32_t packetSize)
-{
-  auto linkRet = m_netDeviceLinkTable.find (port);
-  NS_ABORT_MSG_IF (linkRet == m_netDeviceLinkTable.end (), "The Link connected to the net device"
-                                                           "was not found");
+void SwitchBase::LogLinkStatistics (Ptr<NetDevice> port, FlowId_t flowId, uint32_t packetSize) {
+    auto linkRet = m_netDeviceLinkTable.find (port);
+    NS_ABORT_MSG_IF (linkRet == m_netDeviceLinkTable.end (), "The Link connected to the net device"
+                     "was not found");
 
-  LinkFlowId linkFlowId (linkRet->second, flowId);
+    LinkFlowId linkFlowId (linkRet->second, flowId);
 
-  auto linkStatRet = m_linkStatistics.find (linkFlowId);
+    auto linkStatRet = m_linkStatistics.find (linkFlowId);
 
-  if (linkStatRet == m_linkStatistics.end ()) // Link statistics entry not found, create it
-    {
-      LinkStatistic linkStatistic;
-      linkStatistic.timeFirstTx = Simulator::Now ();
-      linkStatistic.timeLastTx = Simulator::Now ();
-      linkStatistic.packetsTransmitted++;
-      linkStatistic.bytesTransmitted += packetSize;
-      m_linkStatistics.insert ({linkFlowId, linkStatistic});
+    if (linkStatRet == m_linkStatistics.end ()) { // Link statistics entry not found, create it
+        LinkStatistic linkStatistic;
+        linkStatistic.timeFirstTx = Simulator::Now ();
+        linkStatistic.timeLastTx = Simulator::Now ();
+        linkStatistic.packetsTransmitted++;
+        linkStatistic.bytesTransmitted += packetSize;
+        m_linkStatistics.insert ({linkFlowId, linkStatistic});
+    } else { // Update the link statistics entry
+        LinkStatistic &linkStatistic = linkStatRet->second;
+        linkStatistic.timeLastTx = Simulator::Now ();
+        linkStatistic.packetsTransmitted++;
+        linkStatistic.bytesTransmitted += packetSize;
     }
-  else // Update the link statistics entry
-    {
-      LinkStatistic &linkStatistic = linkStatRet->second;
-      linkStatistic.timeLastTx = Simulator::Now ();
-      linkStatistic.packetsTransmitted++;
-      linkStatistic.bytesTransmitted += packetSize;
-    }
 }
 
-// Flow
-// SwitchBase::ParsePacket (Ptr<const Packet> packet, uint16_t protocol, bool allowIcmpPackets)
-// {
-//   Ptr<Packet> recvPacket = packet->Copy (); // Copy the packet for parsing purposes
-//   Flow flow;
+void SwitchBase::LogQueueEntries (Ptr<NetDevice> port) {
+    Ptr<PointToPointNetDevice> p2pDevice = port->GetObject<PointToPointNetDevice> ();
+    Ptr<Queue<Packet>> queue = p2pDevice->GetQueue ();
 
-//   if (protocol == Ipv4L3Protocol::PROT_NUMBER) // Packet is IP
-//     {
-//       Ipv4Header ipHeader;
-//       uint8_t ipProtocol (0);
+    uint32_t numOfPackets (queue->GetNPackets ());
+    uint32_t numOfBytes (queue->GetNBytes ());
 
-//       if (recvPacket->PeekHeader (ipHeader)) // Parsing IP Header
-//         {
-//           ipProtocol = ipHeader.GetProtocol ();
-//           flow.srcIpAddr = ipHeader.GetSource ().Get ();
-//           flow.dstIpAddr = ipHeader.GetDestination ().Get ();
-//           recvPacket->RemoveHeader (ipHeader); // Removing the IP header
-//         }
+    auto ret = m_netDeviceLinkTable.find (port);
+    NS_ABORT_MSG_IF (ret == m_netDeviceLinkTable.end (), "LinkId not found from NetDevice");
 
-//       if (ipProtocol == UdpL4Protocol::PROT_NUMBER) // UDP Packet
-//         {
-//           UdpHeader udpHeader;
-//           if (recvPacket->PeekHeader (udpHeader))
-//             {
-//               flow.dstPortNumber = udpHeader.GetDestinationPort ();
-//               flow.SetProtocol (Flow::Protocol::Udp);
-//             }
-//         }
-//       else if (ipProtocol == TcpL4Protocol::PROT_NUMBER) // TCP Packet
-//         {
-//           TcpHeader tcpHeader;
-//           if (recvPacket->PeekHeader (tcpHeader))
-//             {
-//               flow.dstPortNumber = tcpHeader.GetDestinationPort ();
-//               flow.SetProtocol (Flow::Protocol::Tcp);
-//             }
-//         }
-//       else if (ipProtocol == Icmpv4L4Protocol::PROT_NUMBER && allowIcmpPackets) // ICMP Packet
-//         {
-//           Icmpv4Header icmpHeader;
-//           if (recvPacket->PeekHeader (icmpHeader))
-//             {
-//               flow.SetProtocol (Flow::Protocol::Icmp);
-//               switch (icmpHeader.GetType ())
-//                 {
-//                 case Icmpv4Header::Type_e::ICMPV4_ECHO:
-//                   NS_LOG_INFO ("ICMP Echo message received at Switch " << m_id);
-//                   break;
-//                 case Icmpv4Header::Type_e::ICMPV4_ECHO_REPLY:
-//                   NS_LOG_INFO ("ICMP Echo reply message received at Switch " << m_id);
-//                   break;
-//                 case Icmpv4Header::Type_e::ICMPV4_DEST_UNREACH:
-//                   NS_LOG_INFO ("ICMP Destination Unreachable message received at Switch " << m_id);
-//                   break;
-//                 case Icmpv4Header::Type_e::ICMPV4_TIME_EXCEEDED:
-//                   NS_LOG_INFO ("ICMP Time exceeded message received at Switch " << m_id);
-//                   break;
-//                 default:
-//                   NS_ABORT_MSG ("ICMP unidentified message received at Switch " << m_id);
-//                   break;
-//                 }
-//             }
-//         }
-//       else
-//         NS_ABORT_MSG ("Unknown packet type received. Packet Type " << std::to_string (ipProtocol));
-//     }
-//   else
-//     NS_ABORT_MSG ("Non-IP Packet received. Protocol value " << protocol);
+    QueueResults &queueResults (m_switchQueueResults[ret->second /*link id*/]);
 
-//   return flow;
-// }
+    if (numOfPackets > queueResults.peakNumOfPackets) {
+        queueResults.peakNumOfPackets = numOfPackets;
+    }
 
-void
-SwitchBase::LogQueueEntries (Ptr<NetDevice> port)
-{
-  Ptr<PointToPointNetDevice> p2pDevice = port->GetObject<PointToPointNetDevice> ();
-  Ptr<Queue<Packet>> queue = p2pDevice->GetQueue ();
-
-  uint32_t numOfPackets (queue->GetNPackets ());
-  uint32_t numOfBytes (queue->GetNBytes ());
-
-  auto ret = m_netDeviceLinkTable.find (port);
-  NS_ABORT_MSG_IF (ret == m_netDeviceLinkTable.end (), "LinkId not found from NetDevice");
-
-  QueueResults &queueResults (m_switchQueueResults[ret->second /*link id*/]);
-
-  if (numOfPackets > queueResults.peakNumOfPackets)
-    queueResults.peakNumOfPackets = numOfPackets;
-  if (numOfBytes > queueResults.peakNumOfBytes)
-    queueResults.peakNumOfBytes = numOfBytes;
+    if (numOfBytes > queueResults.peakNumOfBytes) {
+        queueResults.peakNumOfBytes = numOfBytes;
+    }
 }
