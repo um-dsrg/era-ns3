@@ -1,5 +1,5 @@
-#ifndef ROUTING_HELPER_H
-#define ROUTING_HELPER_H
+#ifndef routing_helper_h
+#define routing_helper_h
 
 #include <map>
 #include <tinyxml2.h>
@@ -14,26 +14,18 @@
 #include "flow.h"
 
 template <class SwitchType>
-class RoutingHelper
-{
+class RoutingHelper {
 public:
-  RoutingHelper ();
-  void BuildRoutingTable (const std::map<id_t, Flow> &flows,
-                          const std::map<id_t, Ptr<NetDevice>> &transmitOnLink);
+    RoutingHelper ();
+    void BuildRoutingTable (const std::map<id_t, Flow> &flows,
+                            const std::map<id_t, Ptr<NetDevice>> &transmitOnLink);
 
 private:
-  NS_LOG_TEMPLATE_DECLARE; //!< Logging
-  // private:
-  // void ParseIncomingFlows (std::map<std::pair<NodeId_t, FlowId_t>, double> &incomingFlow,
-  //                          tinyxml2::XMLNode *rootNode);
-  // inline uint32_t GetIpAddress (NodeId_t nodeId, ns3::NodeContainer &nodes);
-
-  // std::map<NodeId_t, SwitchType> &m_switchMap;
+    NS_LOG_TEMPLATE_DECLARE; /**< Logging component. */
 };
 
 template <class SwitchType>
-RoutingHelper<SwitchType>::RoutingHelper () : NS_LOG_TEMPLATE_DEFINE ("RoutingHelper")
-{
+RoutingHelper<SwitchType>::RoutingHelper () : NS_LOG_TEMPLATE_DEFINE ("RoutingHelper") {
 }
 
 template <class SwitchType>
@@ -85,4 +77,4 @@ void RoutingHelper<SwitchType>::BuildRoutingTable (const std::map<id_t, Flow> &f
     }
 }
 
-#endif /* ROUTING_HELPER_H */
+#endif /* routing_helper_h */
