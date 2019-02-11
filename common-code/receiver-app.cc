@@ -39,11 +39,10 @@ ReceiverApp::~ReceiverApp() {
 }
 
 double ReceiverApp::GetMeanRxGoodput() {
-    // FIXME: When logging output the flow id.
     auto durationInSeconds = double{(m_lastRxPacket - m_firstRxPacket).GetSeconds()};
     auto currentGoodPut = double{((m_totalRecvBytes * 8) / durationInSeconds) /
                                  1'000'000};
-    NS_LOG_INFO("The flow's good put is: " << currentGoodPut << "Mbps");
+    return currentGoodPut;
 }
 
 void ReceiverApp::StartApplication() {
