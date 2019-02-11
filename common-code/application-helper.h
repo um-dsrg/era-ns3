@@ -1,8 +1,8 @@
 #ifndef application_helper_h
 #define application_helper_h
 
-#include <tinyxml2.h>
 #include <map>
+#include <tinyxml2.h>
 
 #include "ns3/ipv4.h"
 #include "ns3/node-container.h"
@@ -14,18 +14,21 @@
 #include "topology-builder.h"
 
 
-class ApplicationHelper
-{
+class ApplicationHelper {
 public:
-//  ApplicationHelper (bool ignoreOptimalDataRates);
 
-  void InstallApplicationsOnTerminals (const Flow::FlowContainer& flows,
-                                       const Terminal::TerminalContainer& terminals);
+    using applicationContainer_t = std::map<id_t, ns3::Ptr<ns3::Application>>;
+
+    void InstallApplicationsOnTerminals (const Flow::FlowContainer& flows,
+                                         const Terminal::TerminalContainer& terminals);
+
+    const applicationContainer_t& GetTransmitterApps() const;
+    const applicationContainer_t& GetReceiverApps() const;
 
 private:
-    ns3::ApplicationContainer m_transmitterApplications;
-    ns3::ApplicationContainer m_receiverApplications;
-    
+    applicationContainer_t m_transmitterApplications;
+    applicationContainer_t m_receiverApplications;
+
 //  void InstallApplicationOnTerminals (ApplicationMonitor &applicationMonitor,
 //                                      ns3::NodeContainer &allNodes, uint32_t nPacketsPerFlow,
 //                                      tinyxml2::XMLNode *rootNode);

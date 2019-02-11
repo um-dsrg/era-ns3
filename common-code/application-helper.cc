@@ -1,13 +1,13 @@
-#include "ns3/core-module.h"
-#include "ns3/inet-socket-address.h"
-#include "ns3/on-off-helper.h"
-#include "ns3/uinteger.h"
 #include "ns3/string.h"
+#include "ns3/uinteger.h"
+#include "ns3/core-module.h"
+#include "ns3/on-off-helper.h"
 #include "ns3/packet-sink-helper.h"
+#include "ns3/inet-socket-address.h"
 
-#include "application-helper.h"
-#include "transmitter-app.h"
 #include "receiver-app.h"
+#include "transmitter-app.h"
+#include "application-helper.h"
 
 using namespace ns3;
 using namespace tinyxml2;
@@ -26,15 +26,23 @@ void ApplicationHelper::InstallApplicationsOnTerminals(const Flow::FlowContainer
         flow.srcNode->GetNode()->AddApplication(transmitterApp);
         transmitterApp->SetStartTime(Seconds(1.0));
         transmitterApp->SetStopTime(Seconds(10.0));
-        m_transmitterApplications.Add(transmitterApp);
+        m_transmitterApplications.emplace(flow.id, transmitterApp);
 
         // Install the receiver
         Ptr<ReceiverApp> receiverApp = CreateObject<ReceiverApp>(flow);
         flow.dstNode->GetNode()->AddApplication(receiverApp);
         receiverApp->SetStartTime(Seconds(0.0));
         receiverApp->SetStopTime(Seconds(10.0));
-        m_receiverApplications.Add(receiverApp);
+        m_receiverApplications.emplace(flow.id, receiverApp);
     }
+}
+
+const ApplicationHelper::applicationContainer_t& ApplicationHelper::GetTransmitterApps() const {
+    return m_transmitterApplications;
+}
+
+const ApplicationHelper::applicationContainer_t& ApplicationHelper::GetReceiverApps() const {
+    return m_receiverApplications;
 }
 
 //ApplicationHelper::ApplicationHelper (bool ignoreOptimalDataRates)
