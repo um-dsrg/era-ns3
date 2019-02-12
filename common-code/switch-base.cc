@@ -24,9 +24,9 @@ SwitchBase::~SwitchBase () {
 
 /**
  @brief Insert a reference to the NetDevice and the link id that is connected with that device.
-
+ 
  In this function a net device and the link id connected to it are stored.
-
+ 
  @param linkId The link id.
  @param device A pointer to the net device.
  */
@@ -34,16 +34,16 @@ void SwitchBase::InsertNetDevice (id_t linkId, Ptr<NetDevice> device) {
     auto ret = m_linkNetDeviceTable.insert ({linkId, device});
     NS_ABORT_MSG_IF (ret.second == false, "The Link ID " << linkId << " is already stored in node's " << m_id <<
                      " Link->NetDevice map");
-
+    
     m_netDeviceLinkTable.insert ({device, linkId});
     m_switchQueueResults.insert ({linkId, QueueResults ()}); // Pre-populating the map with empty values
 }
 
 /**
  @brief Returns a pointer to the queue connected to the link id.
-
+ 
  Returns a pointer to the queue that is connected with that particular link id
-
+ 
  @param linkId The link id.
  @return The queue connected to that link id.
  */
@@ -51,7 +51,7 @@ Ptr<Queue<Packet>> SwitchBase::GetQueueFromLinkId (id_t linkId) const {
     auto ret = m_linkNetDeviceTable.find (linkId);
     NS_ABORT_MSG_IF (ret == m_linkNetDeviceTable.end (),
                      "The port connecting link id: " << linkId << " was not found");
-
+    
     Ptr<NetDevice> port = ret->second;
     Ptr<PointToPointNetDevice> p2pDevice = port->GetObject<PointToPointNetDevice> ();
     return p2pDevice->GetQueue ();
@@ -69,11 +69,11 @@ void SwitchBase::LogLinkStatistics (Ptr<NetDevice> port, id_t flowId, uint32_t p
     auto linkRet = m_netDeviceLinkTable.find (port);
     NS_ABORT_MSG_IF (linkRet == m_netDeviceLinkTable.end (), "The Link connected to the net device"
                      "was not found");
-
+    
     LinkFlowId linkFlowId (linkRet->second, flowId);
-
+    
     auto linkStatRet = m_linkStatistics.find (linkFlowId);
-
+    
     if (linkStatRet == m_linkStatistics.end ()) { // Link statistics entry not found, create it
         LinkStatistic linkStatistic;
         linkStatistic.timeFirstTx = Simulator::Now ();
@@ -92,19 +92,19 @@ void SwitchBase::LogLinkStatistics (Ptr<NetDevice> port, id_t flowId, uint32_t p
 void SwitchBase::LogQueueEntries (Ptr<NetDevice> port) {
     Ptr<PointToPointNetDevice> p2pDevice = port->GetObject<PointToPointNetDevice> ();
     Ptr<Queue<Packet>> queue = p2pDevice->GetQueue ();
-
+    
     uint32_t numOfPackets (queue->GetNPackets ());
     uint32_t numOfBytes (queue->GetNBytes ());
-
+    
     auto ret = m_netDeviceLinkTable.find (port);
     NS_ABORT_MSG_IF (ret == m_netDeviceLinkTable.end (), "LinkId not found from NetDevice");
-
+    
     QueueResults &queueResults (m_switchQueueResults[ret->second /*link id*/]);
-
+    
     if (numOfPackets > queueResults.peakNumOfPackets) {
         queueResults.peakNumOfPackets = numOfPackets;
     }
-
+    
     if (numOfBytes > queueResults.peakNumOfBytes) {
         queueResults.peakNumOfBytes = numOfBytes;
     }

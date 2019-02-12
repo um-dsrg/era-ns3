@@ -1,22 +1,20 @@
-#ifndef CUSTOM_DEVICE_H
-#define CUSTOM_DEVICE_H
+#ifndef custom_device_h
+#define custom_device_h
 
 #include "ns3/node.h"
 #include "definitions.h"
 
-class CustomDevice
-{
+class CustomDevice {
 public:
-  id_t GetId ();
-  ns3::Ptr<ns3::Node> GetNode () const;
+    id_t GetId () const;
+    ns3::Ptr<ns3::Node> GetNode () const;
 
 protected:
-  CustomDevice () = default;
-  CustomDevice (id_t id);
-  virtual ~CustomDevice ();
+    CustomDevice (id_t id);
+    virtual ~CustomDevice ();
 
-  id_t m_id{0}; //!< The Device Id taken from the KSP Xml file.
-  ns3::Ptr<ns3::Node> m_node; //!< The Ns3 node linked with this device.
+    id_t m_id{0}; /**< The Device Id taken from the KSP Xml file. */
+    ns3::Ptr<ns3::Node> m_node; /**< The Ns3 node linked with this device. */
 };
 
-#endif // CUSTOM_DEVICE_H
+#endif /* custom_device_h */
