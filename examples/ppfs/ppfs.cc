@@ -33,7 +33,7 @@
 #include "../../common-code/result-manager.h"
 #include "../../common-code/random-generator-manager.h"
 
-#include "ppfs-switch.h"
+#include "sdn-switch.h"
 
 using namespace ns3;
 using namespace tinyxml2;
@@ -108,7 +108,7 @@ int main (int argc, char *argv[]) {
 
     if (verbose) {
         LogComponentEnable ("TopologyBuilder", LOG_LEVEL_ALL);
-        LogComponentEnable ("PpfsSwitch", LOG_LEVEL_ALL);
+        LogComponentEnable ("SdnSwitch", LOG_LEVEL_ALL);
         LogComponentEnable ("SwitchBase", LOG_LEVEL_ALL);
         LogComponentEnable ("ApplicationMonitor", LOG_LEVEL_ALL);
         LogComponentEnable ("ApplicationHelper", LOG_LEVEL_ALL);
@@ -131,7 +131,7 @@ int main (int argc, char *argv[]) {
     NS_ABORT_MSG_IF (rootNode == nullptr, "No root node node found");
 
     // Create the nodes and build the topology
-    TopologyBuilder<PpfsSwitch> topologyBuilder;
+    TopologyBuilder<SdnSwitch> topologyBuilder;
     topologyBuilder.CreateNodes (rootNode);
     auto transmitOnLink{topologyBuilder.BuildNetworkTopology (rootNode)};
     topologyBuilder.AssignIpToTerminals ();
@@ -139,7 +139,7 @@ int main (int argc, char *argv[]) {
 
     // Parse the flows and build the routing table
     auto flows{topologyBuilder.ParseFlows (rootNode)};
-    RoutingHelper<PpfsSwitch> routingHelper;
+    RoutingHelper<SdnSwitch> routingHelper;
     routingHelper.BuildRoutingTable (flows, transmitOnLink);
 
     ApplicationHelper appHelper;

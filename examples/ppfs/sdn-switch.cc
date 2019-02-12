@@ -12,17 +12,17 @@
 #include "ns3/icmpv4-l4-protocol.h"
 #include "ns3/point-to-point-net-device.h"
 
-#include "ppfs-switch.h"
+#include "sdn-switch.h"
 #include "../../common-code/random-generator-manager.h"
 
 using namespace ns3;
 
-NS_LOG_COMPONENT_DEFINE ("PpfsSwitch");
+NS_LOG_COMPONENT_DEFINE ("SdnSwitch");
 
-PpfsSwitch::PpfsSwitch (id_t id) : SwitchBase (id) {
+SdnSwitch::SdnSwitch (id_t id) : SwitchBase (id) {
 }
 
-void PpfsSwitch::AddEntryToRoutingTable (uint32_t srcIp, uint32_t dstIp, portNum_t srcPort,
+void SdnSwitch::AddEntryToRoutingTable (uint32_t srcIp, uint32_t dstIp, portNum_t srcPort,
                                          portNum_t dstPort, FlowProtocol protocol,
                                          Ptr<NetDevice> forwardingPort) {
     RtFlow rtFlow {srcIp, dstIp, srcPort, dstPort, protocol};
@@ -33,17 +33,17 @@ void PpfsSwitch::AddEntryToRoutingTable (uint32_t srcIp, uint32_t dstIp, portNum
     NS_LOG_INFO(rtFlow);
 }
 
-void PpfsSwitch::SetPacketReception() {
+void SdnSwitch::SetPacketReception() {
     uint32_t numOfDevices = m_node->GetNDevices ();
     NS_ASSERT (numOfDevices > 0);
     for (uint32_t currentDevice = 0; currentDevice < numOfDevices; ++currentDevice) {
-        m_node->RegisterProtocolHandler (MakeCallback (&PpfsSwitch::PacketReceived, this),
+        m_node->RegisterProtocolHandler (MakeCallback (&SdnSwitch::PacketReceived, this),
                                          /*all protocols*/ 0, m_node->GetDevice (currentDevice),
                                          /*disable promiscuous mode*/ false);
     }
 }
 
-void PpfsSwitch::PacketReceived(Ptr<NetDevice> incomingPort, Ptr<const Packet> packet, uint16_t protocol,
+void SdnSwitch::PacketReceived(Ptr<NetDevice> incomingPort, Ptr<const Packet> packet, uint16_t protocol,
                                 const Address &src, const Address &dst, NetDevice::PacketType packetType) {
     NS_LOG_INFO("Switch " << m_id << " received a packet at " << Simulator::Now().GetSeconds() << "s");
     auto parsedFlow = ExtractFlowFromPacket(packet, protocol);
@@ -59,7 +59,7 @@ void PpfsSwitch::PacketReceived(Ptr<NetDevice> incomingPort, Ptr<const Packet> p
     }
 }
 
-std::ostream& operator<<(std::ostream& os, const PpfsSwitch::RtFlow& flow)
+std::ostream& operator<<(std::ostream& os, const SdnSwitch::RtFlow& flow)
 {
     os << "Protocol " << static_cast<char> (flow.protocol) << "\n";
     os << "Source IP " << flow.srcIp << "\n";
@@ -69,7 +69,7 @@ std::ostream& operator<<(std::ostream& os, const PpfsSwitch::RtFlow& flow)
     return os;
 }
 
-bool PpfsSwitch::RtFlow::operator< (const RtFlow &other) const {
+bool SdnSwitch::RtFlow::operator< (const RtFlow &other) const {
     if (srcIp == other.srcIp) {
         if (dstIp == other.dstIp) {
             if (srcPort == other.srcPort) {
@@ -85,7 +85,7 @@ bool PpfsSwitch::RtFlow::operator< (const RtFlow &other) const {
     }
 }
 
-PpfsSwitch::RtFlow PpfsSwitch::ExtractFlowFromPacket(Ptr<const Packet> packet, uint16_t protocol) {
+SdnSwitch::RtFlow SdnSwitch::ExtractFlowFromPacket(Ptr<const Packet> packet, uint16_t protocol) {
     Ptr<Packet> receivedPacket = packet->Copy (); // Copy the packet for parsing purposes
     RtFlow flow;
 

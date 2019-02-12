@@ -1,5 +1,5 @@
-#ifndef ppfs_switch_h
-#define ppfs_switch_h
+#ifndef sdn_switch_h
+#define sdn_switch_h
 
 #include <map>
 
@@ -11,9 +11,9 @@
 
 #include "../common-code/switch-base.h"
 
-class PpfsSwitch : public SwitchBase {
+class SdnSwitch : public SwitchBase {
 public:
-    PpfsSwitch (id_t id);
+    SdnSwitch (id_t id);
 
     void AddEntryToRoutingTable (uint32_t srcIp, uint32_t dstIp, portNum_t srcPort, portNum_t dstPort,
                                  FlowProtocol protocol, ns3::Ptr<ns3::NetDevice> forwardingPort);
@@ -48,4 +48,4 @@ private:
     std::map<RtFlow, ns3::Ptr<ns3::NetDevice>> m_routingTable;
 };
 
-#endif /* ppfs_switch_h */
+#endif /* sdn_switch_h */
