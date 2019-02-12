@@ -9,7 +9,7 @@
 #include "ns3/net-device.h"
 #include "ns3/random-variable-stream.h"
 
-#include "../common-code/switch-base.h"
+#include "switch-base.h"
 
 class SdnSwitch : public SwitchBase {
 public:

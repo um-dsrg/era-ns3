@@ -59,8 +59,7 @@ void SdnSwitch::PacketReceived(Ptr<NetDevice> incomingPort, Ptr<const Packet> pa
     }
 }
 
-std::ostream& operator<<(std::ostream& os, const SdnSwitch::RtFlow& flow)
-{
+std::ostream& operator<<(std::ostream& os, const SdnSwitch::RtFlow& flow) {
     os << "Protocol " << static_cast<char> (flow.protocol) << "\n";
     os << "Source IP " << flow.srcIp << "\n";
     os << "Source Port " << flow.srcPort << "\n";
