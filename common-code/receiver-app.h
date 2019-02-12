@@ -13,8 +13,9 @@
 #include "ns3/application.h"
 
 #include "flow.h"
+#include  "application-base.h"
 
-class ReceiverApp : public ns3::Application {
+class ReceiverApp : public ApplicationBase {
 public:
     ReceiverApp(const Flow& flow);
     virtual ~ReceiverApp();
@@ -22,9 +23,9 @@ public:
     double GetMeanRxGoodput();
 
 private:
-    ns3::Ptr<ns3::Socket> CreateSocket(ns3::Ptr<ns3::Node> node, FlowProtocol protocol);
-    virtual void StartApplication();
-    virtual void StopApplication();
+    void StartApplication();
+    void StopApplication();
+
     void HandleAccept(ns3::Ptr<ns3::Socket> socket, const ns3::Address& from);
     void HandleRead(ns3::Ptr<ns3::Socket> socket);
 
@@ -35,7 +36,6 @@ private:
     };
 
     FlowProtocol protocol{FlowProtocol::Undefined};
-    bool m_appRunning {false}; /**< Flag that represents the application's running state. */
     std::vector<PathInformation> m_pathInfoContainer;
 
     /**
@@ -50,17 +50,13 @@ private:
     ns3::Time m_firstRxPacket{0};
     ns3::Time m_lastRxPacket{0};
 
-    id_t m_id{0}; /**< The id of the flow that this application represents. */
-
     /* Buffer related variables */
+    // TODO: Set this to a class to make the code more readable, a class may be worthwhile because we need
+    //to log this
     packetNumber_t m_expectedPacketNum{0};
     void popInOrderPacketsFromQueue();
-    // TODO: Set this to a struct to make the code more readable, a class may be worthwhile because we need
-    //to log this
     typedef std::pair<packetNumber_t, packetSize_t> bufferContents_t;
     std::priority_queue<bufferContents_t, std::vector<bufferContents_t>, std::greater<>> m_recvBuffer;
 };
-
-std::tuple<packetNumber_t, packetSize_t> ExtractPacketDetails(ns3::Ptr<ns3::Packet> packet);
 
 #endif /* receiver_app_h */

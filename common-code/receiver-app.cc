@@ -1,7 +1,5 @@
 #include "ns3/log.h"
 #include "ns3/simulator.h"
-#include "ns3/tcp-socket-factory.h"
-#include "ns3/udp-socket-factory.h"
 #include "ns3/inet-socket-address.h"
 
 #include "mptcp-header.h"
@@ -11,7 +9,9 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE("ReceiverApp");
 
-ReceiverApp::ReceiverApp(const Flow& flow) : protocol(flow.protocol), m_id(flow.id) {
+std::tuple<packetNumber_t, packetSize_t> ExtractPacketDetails(ns3::Ptr<ns3::Packet> packet);
+
+ReceiverApp::ReceiverApp(const Flow& flow) : ApplicationBase(flow.id), protocol(flow.protocol) {
     for (const auto& path : flow.GetDataPaths()) {
         PathInformation pathInfo;
         pathInfo.dstPort = path.dstPort;
@@ -21,16 +21,6 @@ ReceiverApp::ReceiverApp(const Flow& flow) : protocol(flow.protocol), m_id(flow.
                                                         path.dstPort));
 
         m_pathInfoContainer.push_back(pathInfo);
-    }
-}
-
-Ptr<Socket> ReceiverApp::CreateSocket(Ptr<Node> node, FlowProtocol protocol) {
-    if (protocol == FlowProtocol::Tcp) { // Tcp Socket
-        return Socket::CreateSocket(node, TcpSocketFactory::GetTypeId ());
-    } else if (protocol == FlowProtocol::Udp) { // Udp Socket
-        return Socket::CreateSocket(node, UdpSocketFactory::GetTypeId ());
-    } else {
-        NS_ABORT_MSG("Cannot create non TCP/UDP socket");
     }
 }
 
@@ -52,8 +42,7 @@ double ReceiverApp::GetMeanRxGoodput() {
 }
 
 void ReceiverApp::StartApplication() {
-    m_appRunning = true;
-    NS_LOG_INFO("Receiver application started");
+    NS_LOG_INFO("Flow " << m_id << " started reception.");
 
     // Initialise socket connections
     for (const auto& pathInfo : m_pathInfoContainer) {
@@ -73,7 +62,7 @@ void ReceiverApp::StartApplication() {
 }
 
 void ReceiverApp::StopApplication() {
-    NS_LOG_INFO("Receiver stopped");
+    NS_LOG_INFO("Flow " << m_id << " stopped reception.");
 }
 
 void ReceiverApp::HandleAccept (Ptr<Socket> socket, const Address& from) {
@@ -92,7 +81,7 @@ void ReceiverApp::HandleRead(Ptr<Socket> socket) {
             break;
         }
 
-        if (!m_firstPacketReceived) { // Log the time the first packet has been received
+        if (m_firstPacketReceived == false) { // Log the time the first packet has been received
             m_firstPacketReceived = true;
             m_firstRxPacket = Simulator::Now();
         }
@@ -109,9 +98,10 @@ void ReceiverApp::HandleRead(Ptr<Socket> socket) {
         NS_ASSERT(packetNumber >= m_expectedPacketNum);
 
         if (packetNumber == m_expectedPacketNum) {
+            LogPacketTime(packetNumber);
             m_totalRecvBytes += packetSize;
-            m_expectedPacketNum++;
 
+            m_expectedPacketNum++;
             popInOrderPacketsFromQueue();
         } else {
             m_recvBuffer.push(std::make_pair(packetNumber, packetSize));
@@ -125,6 +115,8 @@ void ReceiverApp::popInOrderPacketsFromQueue() {
 
     while (!m_recvBuffer.empty() && topElement->first == m_expectedPacketNum) {
         m_totalRecvBytes += topElement->second;
+        LogPacketTime(m_expectedPacketNum);
+
         m_expectedPacketNum++;
         m_recvBuffer.pop();
         topElement = &m_recvBuffer.top();
