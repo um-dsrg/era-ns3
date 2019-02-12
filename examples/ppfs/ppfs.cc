@@ -17,7 +17,6 @@
 #include <tinyxml2.h>
 #include <map>
 
-// ns3 Includes
 #include "ns3/core-module.h"
 #include "ns3/network-module.h"
 #include "ns3/internet-module.h"
@@ -108,14 +107,15 @@ int main (int argc, char *argv[]) {
     cmdLine.Parse (argc, argv);
 
     if (verbose) {
-        LogComponentEnable ("TopologyBuilder", LOG_LEVEL_INFO);
-        LogComponentEnable ("PpfsSwitch", LOG_LEVEL_INFO);
-        LogComponentEnable ("SwitchBase", LOG_LEVEL_INFO);
-        LogComponentEnable ("ApplicationMonitor", LOG_LEVEL_INFO);
-        LogComponentEnable ("ApplicationHelper", LOG_LEVEL_INFO);
-        LogComponentEnable ("ReceiverApp", LOG_LEVEL_INFO);
-        LogComponentEnable ("TransmitterApp", LOG_LEVEL_INFO);
-        LogComponentEnable ("ResultManager", LOG_LEVEL_INFO);
+        LogComponentEnable ("TopologyBuilder", LOG_LEVEL_ALL);
+        LogComponentEnable ("PpfsSwitch", LOG_LEVEL_ALL);
+        LogComponentEnable ("SwitchBase", LOG_LEVEL_ALL);
+        LogComponentEnable ("ApplicationMonitor", LOG_LEVEL_ALL);
+        LogComponentEnable ("ApplicationHelper", LOG_LEVEL_ALL);
+        LogComponentEnable ("ApplicationBase", LOG_LEVEL_ALL);
+        LogComponentEnable ("ReceiverApp", LOG_LEVEL_ALL);
+        LogComponentEnable ("TransmitterApp", LOG_LEVEL_ALL);
+        LogComponentEnable ("ResultManager", LOG_LEVEL_ALL);
     }
 
     // Setting the seed and run values
@@ -151,9 +151,10 @@ int main (int argc, char *argv[]) {
     Simulator::Run();
     Simulator::Stop();
 
-    ResultManager resManager;
-    resManager.AddGoodputResults(appHelper.GetReceiverApps());
-    resManager.SaveFile("/Users/noel/Documents/Results/ns3/result_ns3.xml");
+    ResultManager resultManager;
+    resultManager.AddGoodputResults(appHelper.GetReceiverApps());
+    resultManager.AddDelayResults(appHelper.GetTransmitterApps(), appHelper.GetReceiverApps());
+    resultManager.SaveFile("/Users/noel/Documents/Results/ns3/result_ns3.xml");
 
     Simulator::Destroy();
 

@@ -1,9 +1,11 @@
 #include <chrono>
 #include <sstream>
 #include <iomanip>
+#include <boost/numeric/conversion/cast.hpp>
 
 #include "receiver-app.h"
 #include "result-manager.h"
+#include "transmitter-app.h"
 
 using namespace tinyxml2;
 
@@ -20,6 +22,8 @@ ResultManager::ResultManager() {
 }
 
 void ResultManager::AddGoodputResults(const ApplicationHelper::applicationContainer_t& receiverApplications) {
+    NS_LOG_INFO("Building the goodput results");
+
     XMLElement* goodputElement = m_xmlDoc.NewElement("Goodput");
 
     for (const auto& receiverApplicationPair : receiverApplications) {
@@ -33,7 +37,52 @@ void ResultManager::AddGoodputResults(const ApplicationHelper::applicationContai
         goodputElement->InsertEndChild(flowElement);
     }
 
+    XMLComment* comment = m_xmlDoc.NewComment("Goodput values are in Mbps");
+    goodputElement->InsertFirstChild(comment);
+
     m_rootNode->InsertEndChild(goodputElement);
+}
+
+void ResultManager::AddDelayResults(const ApplicationHelper::applicationContainer_t &transmitterApplications,
+                                    const ApplicationHelper::applicationContainer_t &receiverApplications) {
+    NS_LOG_INFO("Building the delay results");
+
+    XMLElement* delayElement = m_xmlDoc.NewElement("Delay");
+
+    for (const auto& receiverApplicationPair : receiverApplications) {
+        auto flowId {receiverApplicationPair.first};
+        NS_LOG_DEBUG("Calculating delay for flow " << flowId);
+
+        XMLElement* flowElement = m_xmlDoc.NewElement("Flow");
+        flowElement->SetAttribute("Id", flowId);
+
+        auto receiverApp = DynamicCast<ReceiverApp>(receiverApplicationPair.second);
+        auto transmitterApp = DynamicCast<TransmitterApp>(transmitterApplications.at(flowId));
+
+        const auto& receiverDelayLog {receiverApp->GetDelayLog()};
+        const auto& transmitterDelayLog {transmitterApp->GetDelayLog()};
+
+        for (const auto& delayLogEntry : receiverDelayLog) {
+            auto pktNumber {delayLogEntry.first};
+            NS_LOG_DEBUG("Working on packet " << pktNumber);
+
+            auto recvTime {delayLogEntry.second};
+            auto transmittedTime {transmitterDelayLog.at(pktNumber)};
+            auto delayInMs {(recvTime - transmittedTime).GetMilliSeconds()};
+
+            XMLElement* packetElement = m_xmlDoc.NewElement("Packet");
+            packetElement->SetAttribute("Number", boost::numeric_cast<int64_t>(pktNumber));
+            packetElement->SetAttribute("Delay", delayInMs);
+            flowElement->InsertEndChild(packetElement);
+        }
+
+        delayElement->InsertEndChild(flowElement);
+    }
+
+    XMLComment* comment = m_xmlDoc.NewComment("Delay values are in milliseconds");
+    delayElement->InsertFirstChild(comment);
+
+    m_rootNode->InsertEndChild(delayElement);
 }
 
 void ResultManager::SaveFile(const std::string& path) {

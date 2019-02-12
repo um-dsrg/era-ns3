@@ -11,6 +11,8 @@ public:
     ResultManager();
 
     void AddGoodputResults(const ApplicationHelper::applicationContainer_t& receiverApplications);
+    void AddDelayResults(const ApplicationHelper::applicationContainer_t& transmitterApplications,
+                         const ApplicationHelper::applicationContainer_t& receiverApplications);
     void SaveFile(const std::string& path);
 
 private:
