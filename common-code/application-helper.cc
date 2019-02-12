@@ -24,15 +24,15 @@ void ApplicationHelper::InstallApplicationsOnTerminals(const Flow::FlowContainer
         // Install the transmitter
         Ptr<TransmitterApp> transmitterApp = CreateObject<TransmitterApp>(flow);
         flow.srcNode->GetNode()->AddApplication(transmitterApp);
-        transmitterApp->SetStartTime(Seconds(1.0));
-        transmitterApp->SetStopTime(Seconds(10.0));
+        transmitterApp->SetStartTime(Seconds(0.0));
+        transmitterApp->SetStopTime(Seconds(1.0));
         m_transmitterApplications.emplace(flow.id, transmitterApp);
 
         // Install the receiver
         Ptr<ReceiverApp> receiverApp = CreateObject<ReceiverApp>(flow);
         flow.dstNode->GetNode()->AddApplication(receiverApp);
         receiverApp->SetStartTime(Seconds(0.0));
-        receiverApp->SetStopTime(Seconds(10.0));
+        receiverApp->SetStopTime(Seconds(1.0));
         m_receiverApplications.emplace(flow.id, receiverApp);
     }
 }
