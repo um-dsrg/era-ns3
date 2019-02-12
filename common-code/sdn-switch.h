@@ -13,11 +13,11 @@
 
 class SdnSwitch : public SwitchBase {
 public:
-    SdnSwitch (id_t id);
+    SdnSwitch(id_t id);
 
-    void AddEntryToRoutingTable (uint32_t srcIp, uint32_t dstIp, portNum_t srcPort, portNum_t dstPort,
-                                 FlowProtocol protocol, ns3::Ptr<ns3::NetDevice> forwardingPort);
-    void SetPacketReception ();
+    void AddEntryToRoutingTable(uint32_t srcIp, uint32_t dstIp, portNum_t srcPort, portNum_t dstPort,
+                                FlowProtocol protocol, ns3::Ptr<ns3::NetDevice> forwardingPort);
+    void SetPacketReception();
 
 private:
     void PacketReceived(ns3::Ptr<ns3::NetDevice> incomingPort, ns3::Ptr<const ns3::Packet> packet,
