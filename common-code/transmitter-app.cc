@@ -4,8 +4,6 @@
 #include "ns3/uinteger.h"
 #include "ns3/simulator.h"
 #include "ns3/tcp-socket.h"
-#include "ns3/tcp-socket-factory.h"
-#include "ns3/udp-socket-factory.h"
 
 #include "mptcp-header.h"
 #include "transmitter-app.h"
@@ -15,7 +13,8 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE("TransmitterApp");
 
-TransmitterApp::TransmitterApp(const Flow& flow) : m_dataRate(flow.dataRate), m_packetSize(flow.packetSize) {
+TransmitterApp::TransmitterApp(const Flow& flow) :
+ApplicationBase(flow.id), m_dataRate(flow.dataRate), m_packetSize(flow.packetSize) {
     for (const auto& path : flow.GetDataPaths()) {
         PathInformation pathInfo;
         pathInfo.srcPort = path.srcPort;
@@ -74,16 +73,6 @@ TransmitterApp::TransmitterApp(const Flow& flow) : m_dataRate(flow.dataRate), m_
     m_transmissionInterval = Seconds(transmissionInterval);
 }
 
-Ptr<Socket> TransmitterApp::CreateSocket(Ptr<Node> srcNode, FlowProtocol protocol) {
-    if (protocol == FlowProtocol::Tcp) { // Tcp Socket
-        return Socket::CreateSocket(srcNode, TcpSocketFactory::GetTypeId ());
-    } else if (protocol == FlowProtocol::Udp) { // Udp Socket
-        return Socket::CreateSocket(srcNode, UdpSocketFactory::GetTypeId ());
-    } else {
-        NS_ABORT_MSG("Cannot create non TCP/UDP socket");
-    }
-}
-
 TransmitterApp::~TransmitterApp() {
     for (auto& pathInfoPair : m_pathInfoContainer) {
         auto& pathInfo {pathInfoPair.second};
@@ -92,9 +81,7 @@ TransmitterApp::~TransmitterApp() {
 }
 
 void TransmitterApp::StartApplication() {
-    m_appRunning = true;
-
-    NS_LOG_UNCOND("Transmitter application started");
+    NS_LOG_INFO("Flow " << m_id << " started transmitting.");
 
     // Initialise socket connections
     for (const auto& pathPair : m_pathInfoContainer) {
@@ -116,34 +103,35 @@ void TransmitterApp::StartApplication() {
 }
 
 void TransmitterApp::StopApplication() {
-    NS_LOG_UNCOND("Application stopped");
-
-    m_appRunning = false;
+    NS_LOG_INFO("Flow " << m_id << " stopped transmitting.");
     Simulator::Cancel (m_sendEvent);
 }
 
 void TransmitterApp::TransmitPacket() {
-    if (m_appRunning) {
-        auto randNum = GetRandomNumber();
-        auto transmitPathId = id_t{0};
+    auto randNum = GetRandomNumber();
+    auto transmitPathId = id_t{0};
 
-        for (const auto& pathSplitPair : m_pathSplitRatio) {
-            const auto& splitRatio {pathSplitPair.first};
-            if (randNum <= splitRatio) {
-                transmitPathId = pathSplitPair.second;
-                break;
-            }
+    for (const auto& pathSplitPair : m_pathSplitRatio) {
+        const auto& splitRatio {pathSplitPair.first};
+        if (randNum <= splitRatio) {
+            transmitPathId = pathSplitPair.second;
+            break;
         }
-
-        auto& pathInfo = m_pathInfoContainer.at(transmitPathId);
-
-        MptcpHeader mptcpHeader;
-        mptcpHeader.SetPacketNumber(m_packetNumber++);
-        Ptr<Packet> packet = Create<Packet>(m_packetSize);
-        packet->AddHeader(mptcpHeader);
-        pathInfo.txSocket->Send(packet);
-        m_sendEvent = Simulator::Schedule(m_transmissionInterval, &TransmitterApp::TransmitPacket, this);
     }
+
+    auto& pathInfo = m_pathInfoContainer.at(transmitPathId);
+
+    auto pktNumber {m_packetNumber++};
+
+    MptcpHeader mptcpHeader;
+    mptcpHeader.SetPacketNumber(pktNumber);
+    Ptr<Packet> packet = Create<Packet>(m_packetSize);
+    packet->AddHeader(mptcpHeader);
+    pathInfo.txSocket->Send(packet);
+
+    LogPacketTime(pktNumber);
+
+    m_sendEvent = Simulator::Schedule(m_transmissionInterval, &TransmitterApp::TransmitPacket, this);
 }
 
 inline double TransmitterApp::GetRandomNumber() {
