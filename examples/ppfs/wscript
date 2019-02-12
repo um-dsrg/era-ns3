@@ -11,6 +11,7 @@ def build(bld):
                   '../../common-code/flow.cc',
                   '../../common-code/receiver-app.cc',
                   '../../common-code/transmitter-app.cc',
+                  '../../common-code/application-base.cc',
                   '../../common-code/topology-builder.cc',
                   '../../common-code/routing-helper.cc',
                   '../../common-code/custom-device.cc',
