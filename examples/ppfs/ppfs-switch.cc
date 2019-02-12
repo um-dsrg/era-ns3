@@ -45,7 +45,7 @@ void PpfsSwitch::SetPacketReception() {
 
 void PpfsSwitch::PacketReceived(Ptr<NetDevice> incomingPort, Ptr<const Packet> packet, uint16_t protocol,
                                 const Address &src, const Address &dst, NetDevice::PacketType packetType) {
-    NS_LOG_UNCOND("Switch " << m_id << " received a packet at " << Simulator::Now().GetSeconds() << "s");
+    NS_LOG_INFO("Switch " << m_id << " received a packet at " << Simulator::Now().GetSeconds() << "s");
     auto parsedFlow = ExtractFlowFromPacket(packet, protocol);
 
     try {
