@@ -1,14 +1,14 @@
-#include "ns3/abort.h"
 #include "ns3/log.h"
-#include "ns3/point-to-point-net-device.h"
+#include "ns3/abort.h"
 #include "ns3/simulator.h"
-#include "ns3/ipv4-header.h"
-#include "ns3/ipv4-l3-protocol.h"
 #include "ns3/udp-header.h"
-#include "ns3/udp-l4-protocol.h"
 #include "ns3/tcp-header.h"
+#include "ns3/ipv4-header.h"
 #include "ns3/tcp-l4-protocol.h"
+#include "ns3/udp-l4-protocol.h"
+#include "ns3/ipv4-l3-protocol.h"
 #include "ns3/icmpv4-l4-protocol.h"
+#include "ns3/point-to-point-net-device.h"
 
 #include "switch-base.h"
 
@@ -22,90 +22,94 @@ SwitchBase::SwitchBase (id_t id) : CustomDevice (id) {
 SwitchBase::~SwitchBase () {
 }
 
-/**
- @brief Insert a reference to the NetDevice and the link id that is connected with that device.
- 
- In this function a net device and the link id connected to it are stored.
- 
- @param linkId The link id.
- @param device A pointer to the net device.
- */
-void SwitchBase::InsertNetDevice (id_t linkId, Ptr<NetDevice> device) {
-    auto ret = m_linkNetDeviceTable.insert ({linkId, device});
-    NS_ABORT_MSG_IF (ret.second == false, "The Link ID " << linkId << " is already stored in node's " << m_id <<
-                     " Link->NetDevice map");
-    
-    m_netDeviceLinkTable.insert ({device, linkId});
-    m_switchQueueResults.insert ({linkId, QueueResults ()}); // Pre-populating the map with empty values
+SwitchBase::RtFlow::RtFlow(uint32_t srcIp, uint32_t dstIp, portNum_t srcPort, portNum_t dstPort,
+                           FlowProtocol protocol) :
+srcIp{srcIp}, dstIp{dstIp}, srcPort{srcPort}, dstPort{dstPort}, protocol{protocol}
+{
 }
 
-/**
- @brief Returns a pointer to the queue connected to the link id.
- 
- Returns a pointer to the queue that is connected with that particular link id
- 
- @param linkId The link id.
- @return The queue connected to that link id.
- */
-Ptr<Queue<Packet>> SwitchBase::GetQueueFromLinkId (id_t linkId) const {
-    auto ret = m_linkNetDeviceTable.find (linkId);
-    NS_ABORT_MSG_IF (ret == m_linkNetDeviceTable.end (),
-                     "The port connecting link id: " << linkId << " was not found");
-    
-    Ptr<NetDevice> port = ret->second;
-    Ptr<PointToPointNetDevice> p2pDevice = port->GetObject<PointToPointNetDevice> ();
-    return p2pDevice->GetQueue ();
-}
-
-const std::map<id_t, SwitchBase::QueueResults>& SwitchBase::GetQueueResults () const {
-    return m_switchQueueResults;
-}
-
-const std::map<SwitchBase::LinkFlowId, LinkStatistic>& SwitchBase::GetLinkStatistics () const {
-    return m_linkStatistics;
-}
-
-void SwitchBase::LogLinkStatistics (Ptr<NetDevice> port, id_t flowId, uint32_t packetSize) {
-    auto linkRet = m_netDeviceLinkTable.find (port);
-    NS_ABORT_MSG_IF (linkRet == m_netDeviceLinkTable.end (), "The Link connected to the net device"
-                     "was not found");
-    
-    LinkFlowId linkFlowId (linkRet->second, flowId);
-    
-    auto linkStatRet = m_linkStatistics.find (linkFlowId);
-    
-    if (linkStatRet == m_linkStatistics.end ()) { // Link statistics entry not found, create it
-        LinkStatistic linkStatistic;
-        linkStatistic.timeFirstTx = Simulator::Now ();
-        linkStatistic.timeLastTx = Simulator::Now ();
-        linkStatistic.packetsTransmitted++;
-        linkStatistic.bytesTransmitted += packetSize;
-        m_linkStatistics.insert ({linkFlowId, linkStatistic});
-    } else { // Update the link statistics entry
-        LinkStatistic &linkStatistic = linkStatRet->second;
-        linkStatistic.timeLastTx = Simulator::Now ();
-        linkStatistic.packetsTransmitted++;
-        linkStatistic.bytesTransmitted += packetSize;
+bool SwitchBase::RtFlow::operator<(const RtFlow &other) const {
+    if (srcIp == other.srcIp) {
+        if (dstIp == other.dstIp) {
+            if (srcPort == other.srcPort) {
+                return dstPort < other.dstPort;
+            } else {
+                return srcPort < other.srcPort;
+            }
+        } else {
+            return dstIp < other.dstIp;
+        }
+    } else {
+        return srcIp < other.srcIp;
     }
 }
 
-void SwitchBase::LogQueueEntries (Ptr<NetDevice> port) {
-    Ptr<PointToPointNetDevice> p2pDevice = port->GetObject<PointToPointNetDevice> ();
-    Ptr<Queue<Packet>> queue = p2pDevice->GetQueue ();
-    
-    uint32_t numOfPackets (queue->GetNPackets ());
-    uint32_t numOfBytes (queue->GetNBytes ());
-    
-    auto ret = m_netDeviceLinkTable.find (port);
-    NS_ABORT_MSG_IF (ret == m_netDeviceLinkTable.end (), "LinkId not found from NetDevice");
-    
-    QueueResults &queueResults (m_switchQueueResults[ret->second /*link id*/]);
-    
-    if (numOfPackets > queueResults.peakNumOfPackets) {
-        queueResults.peakNumOfPackets = numOfPackets;
+std::ostream& operator<<(std::ostream& os, const SwitchBase::RtFlow& flow) {
+    os << "Protocol " << static_cast<char> (flow.protocol) << "\n";
+    os << "Source IP " << flow.srcIp << "\n";
+    os << "Source Port " << flow.srcPort << "\n";
+    os << "Destination IP " << flow.dstIp << "\n";
+    os << "Destination Port " << flow.dstPort << "\n";
+    return os;
+}
+
+SwitchBase::RtFlow SwitchBase::ExtractFlowFromPacket(Ptr<const Packet> packet, uint16_t protocol) {
+    Ptr<Packet> receivedPacket = packet->Copy (); // Copy the packet for parsing purposes
+    RtFlow flow;
+
+    if (protocol == Ipv4L3Protocol::PROT_NUMBER) {
+        Ipv4Header ipHeader;
+        uint8_t ipProtocol (0);
+
+        if (receivedPacket->PeekHeader (ipHeader)) { // Extract source and destination IP
+            ipProtocol = ipHeader.GetProtocol ();
+            flow.srcIp = ipHeader.GetSource().Get();
+            flow.dstIp = ipHeader.GetDestination().Get();
+            receivedPacket->RemoveHeader (ipHeader); // Removing the IP header
+        }
+
+        if (ipProtocol == UdpL4Protocol::PROT_NUMBER) { // UDP Packet
+            UdpHeader udpHeader;
+            if (receivedPacket->PeekHeader (udpHeader)) {
+                flow.srcPort = udpHeader.GetSourcePort();
+                flow.dstPort = udpHeader.GetDestinationPort();
+                flow.protocol = FlowProtocol::Udp;
+            }
+        } else if (ipProtocol == TcpL4Protocol::PROT_NUMBER) { // TCP Packet
+            TcpHeader tcpHeader;
+            if (receivedPacket->PeekHeader (tcpHeader)) {
+                flow.srcPort = tcpHeader.GetSourcePort();
+                flow.dstPort = tcpHeader.GetDestinationPort();
+                flow.protocol = FlowProtocol::Tcp;
+            }
+        } else if (ipProtocol == Icmpv4L4Protocol::PROT_NUMBER) { // ICMP Packet
+            Icmpv4Header icmpHeader;
+            if (receivedPacket->PeekHeader (icmpHeader)) {
+                flow.protocol = FlowProtocol::Icmp;
+                switch (icmpHeader.GetType ()) {
+                    case Icmpv4Header::Type_e::ICMPV4_ECHO:
+                        NS_LOG_INFO ("ICMP Echo message received at Switch " << m_id);
+                        break;
+                    case Icmpv4Header::Type_e::ICMPV4_ECHO_REPLY:
+                        NS_LOG_INFO ("ICMP Echo reply message received at Switch " << m_id);
+                        break;
+                    case Icmpv4Header::Type_e::ICMPV4_DEST_UNREACH:
+                        NS_LOG_INFO ("ICMP Destination Unreachable message received at Switch " << m_id);
+                        break;
+                    case Icmpv4Header::Type_e::ICMPV4_TIME_EXCEEDED:
+                        NS_LOG_INFO ("ICMP Time exceeded message received at Switch " << m_id);
+                        break;
+                    default:
+                        NS_ABORT_MSG ("ICMP unidentified message received at Switch " << m_id);
+                        break;
+                }
+            }
+        } else {
+            NS_ABORT_MSG ("Unknown packet type received. Packet Type " << std::to_string (ipProtocol));
+        }
+    }  else {
+        NS_ABORT_MSG ("Non-IP Packet received. Protocol value " << protocol);
     }
-    
-    if (numOfBytes > queueResults.peakNumOfBytes) {
-        queueResults.peakNumOfBytes = numOfBytes;
-    }
+
+    return flow;
 }
