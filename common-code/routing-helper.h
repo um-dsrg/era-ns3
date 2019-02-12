@@ -4,25 +4,33 @@
 #include <map>
 #include <tinyxml2.h>
 
-#include "ns3/net-device.h"
-#include "ns3/packet.h"
 #include "ns3/node.h"
+#include "ns3/packet.h"
+#include "ns3/net-device.h"
 #include "ns3/node-container.h"
 
-#include "definitions.h"
-#include "topology-builder.h"
 #include "flow.h"
+#include "definitions.h"
+#include "ppfs-switch.h"
+#include "topology-builder.h"
+
+/**
+ RoutingHelper Class Declaration
+ */
 
 template <class SwitchType>
 class RoutingHelper {
+    NS_LOG_TEMPLATE_DECLARE; /**< Logging component. */
+
 public:
     RoutingHelper ();
     void BuildRoutingTable (const std::map<id_t, Flow> &flows,
                             const std::map<id_t, Ptr<NetDevice>> &transmitOnLink);
-
-private:
-    NS_LOG_TEMPLATE_DECLARE; /**< Logging component. */
 };
+
+/**
+ RoutingHelper Class Implementation
+ */
 
 template <class SwitchType>
 RoutingHelper<SwitchType>::RoutingHelper () : NS_LOG_TEMPLATE_DEFINE ("RoutingHelper") {
