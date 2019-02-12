@@ -1,17 +1,16 @@
-#ifndef DEFINITIONS_H
-#define DEFINITIONS_H
+#ifndef definitions_h
+#define definitions_h
 
 #include <cstdint>
 
-// Variable definitions ///////////////////////////////////////////////////////
-typedef uint32_t id_t;
-typedef uint16_t portNum_t;
-typedef double delay_t;
-typedef double dataRate_t;
-typedef uint32_t packetSize_t;
-typedef uint64_t packetNumber_t;
+using id_t = uint32_t;
+using portNum_t = uint16_t;
+using delay_t = double;
+using dataRate_t = double;
+using packetSize_t = uint32_t;
+using packetNumber_t = uint64_t;
+using splitRatio_t = double;
 
-// Enum definitions /////////////////////////////////////////////////////////
 enum class NodeType : char { Switch = 'S', Terminal = 'T' };
 enum class FlowProtocol : char { Tcp = 'T', Udp = 'U', Icmp = 'I', Undefined = 'X' };
 
@@ -29,4 +28,4 @@ struct LinkStatistic /*!< Stores the link statistics */
   }
 };
 
-#endif /* DEFINITIONS_H */
+#endif /* definitions_h */
