@@ -62,23 +62,26 @@ void RoutingHelper<SwitchType>::BuildRoutingTable (const std::map<id_t, Flow> &f
             }
         }
 
-        /* Installing ack paths */
-        for (const auto &path : flow.GetAckPaths()) {
-            NS_LOG_INFO ("Installing routing for Ack Path " << path.id);
+        if (flow.protocol == FlowProtocol::Tcp) { // Install ACK paths only for TCP flows
+            for (const auto &path : flow.GetAckPaths()) {
+                NS_LOG_INFO ("Installing routing for Ack Path " << path.id);
 
-            for (const auto &link : path.GetLinks ()) {
-                NS_LOG_INFO ("Working on Link " << link->id);
+                for (const auto &link : path.GetLinks ()) {
+                    NS_LOG_INFO ("Working on Link " << link->id);
 
-                if (link->srcNodeType == NodeType::Switch) {
-                    auto forwardingPort = transmitOnLink.at (link->id);
-                    SwitchType *switchNode = dynamic_cast<SwitchType *> (link->srcNode);
+                    if (link->srcNodeType == NodeType::Switch) {
+                        auto forwardingPort = transmitOnLink.at (link->id);
+                        SwitchType *switchNode = dynamic_cast<SwitchType *> (link->srcNode);
 
-                    /* The addresses are reversed becuase the ACK flow has the opposite source and destination
-                       details of the data flow. */
-                    switchNode->AddEntryToRoutingTable (flow.dstNode->GetIpAddress().Get(),
-                                                        flow.srcNode->GetIpAddress().Get(),
-                                                        path.srcPort, path.dstPort, flow.protocol,
-                                                        forwardingPort);
+                        /**
+                         The addresses are reversed becuase the ACK flow has the opposite source and destination
+                         details of the data flow.
+                         */
+                        switchNode->AddEntryToRoutingTable (flow.dstNode->GetIpAddress().Get(),
+                                                            flow.srcNode->GetIpAddress().Get(),
+                                                            path.srcPort, path.dstPort, flow.protocol,
+                                                            forwardingPort);
+                    }
                 }
             }
         }
