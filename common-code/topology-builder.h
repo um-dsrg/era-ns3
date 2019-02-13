@@ -42,7 +42,8 @@ public:
     void EnablePacketReceptionOnSwitches ();
 
 private:
-    using PathPortMap = std::map<id_t, std::pair<portNum_t, portNum_t>>; /**< Key: Path ID | Value: source port, destination port */
+    /**< Key: Path ID | Value: source port, destination port */
+    using PathPortMap = std::map<id_t, std::pair<portNum_t, portNum_t>>;
 
     void CreateUniqueNode (id_t nodeId, NodeType nodeType);
     void InstallP2pLinks (const std::vector<Link> &links,
@@ -336,7 +337,10 @@ Flow::FlowContainer TopologyBuilder<SwitchType>::ParseFlows (XMLNode *rootNode) 
         flow.dataRate = ns3::DataRate(std::string{std::to_string(dataRate) + "Mbps"});
 
         auto pathPortMap {AddDataPaths(flow, flowElement)};
-        AddAckPaths(flow, flowElement, pathPortMap);
+
+        if (flow.protocol == FlowProtocol::Tcp) { // Parse ACK paths for TCP flows only
+            AddAckPaths(flow, flowElement, pathPortMap);
+        }
 
         auto ret = flows.emplace (flow.id, flow);
         NS_ABORT_MSG_IF (ret.second == false, "Inserting Flow " << flow.id << " failed");
