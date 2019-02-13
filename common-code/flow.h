@@ -1,5 +1,5 @@
-#ifndef FLOW_H
-#define FLOW_H
+#ifndef flow_h
+#define flow_h
 
 #include <map>
 #include <vector>
@@ -39,7 +39,7 @@ struct Path {
 };
 
 struct Flow {
-    Flow () = default;
+    explicit Flow();
 
     void AddDataPath(const Path& path);
     const std::vector<Path>& GetDataPaths() const;
@@ -62,6 +62,7 @@ struct Flow {
 private:
     std::vector<Path> m_dataPaths; /**< The data paths this flow is using */
     std::vector<Path> m_ackPaths; /**< The ack paths this flow is using */
+    Path m_ackShortestPath;
 };
 
-#endif // FLOW_H
+#endif /* flow_h */

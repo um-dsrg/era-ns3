@@ -44,6 +44,9 @@ std::ostream & operator<< (std::ostream &output, const Path &path) {
  * Flow Implementation
  */
 
+Flow::Flow() : m_ackShortestPath(/* disable auto port number generation */ false) {
+}
+
 void Flow::AddDataPath(const Path& path) {
     m_dataPaths.push_back(path);
 }
