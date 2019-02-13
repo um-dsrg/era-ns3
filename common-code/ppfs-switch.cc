@@ -11,9 +11,8 @@ PpfsSwitch::ForwardingAction::ForwardingAction(splitRatio_t splitRatio, Ptr<NetD
 splitRatio(splitRatio), forwardingPort(forwardingPort) {
 }
 
-// TODO: May need to reverse this so that it's sorted biggest to smallest!
 bool PpfsSwitch::ForwardingAction::operator<(const PpfsSwitch::ForwardingAction &other) const {
-    return splitRatio < other.splitRatio;
+    return splitRatio > other.splitRatio; // To sort in descending order
 }
 
 PpfsSwitch::PpfsSwitch(id_t id) : SwitchBase(id) {
@@ -50,4 +49,25 @@ void PpfsSwitch::PacketReceived(Ptr<NetDevice> incomingPort, Ptr<const Packet> p
                                 uint16_t protocol, const Address &src, const Address &dst,
                                 NetDevice::PacketType packetType) {
     NS_LOG_INFO("Switch " << m_id << " received a packet at " << Simulator::Now().GetSeconds() << "s");
+}
+
+void PpfsSwitch::ReconcileSplitRatios() {
+    for (auto& routingTableEntry : m_routingTable) {
+        auto& forwardingActionList = routingTableEntry.second;
+
+        auto total = splitRatio_t{0.0};
+
+        for (const auto& forwardingAction : forwardingActionList) {
+            total += forwardingAction.splitRatio;
+        }
+
+        /**
+         Sort the forwarding action list in descending order (largest to smallest) and
+         normalise the split ratios such that they total to 1.
+         */
+        std::sort(forwardingActionList.begin(), forwardingActionList.end());
+        for (auto& forwardingAction : forwardingActionList) {
+            forwardingAction.splitRatio = (forwardingAction.splitRatio / total);
+        }
+    }
 }

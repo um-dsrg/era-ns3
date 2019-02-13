@@ -15,7 +15,6 @@ class PpfsSwitch : public SwitchBase {
         ForwardingAction() = default;
         ForwardingAction(splitRatio_t splitRatio, ns3::Ptr<ns3::NetDevice> port);
 
-        // TODO: May need to reverse this so that it's sorted biggest to smallest!
         bool operator< (const ForwardingAction& other) const;
     };
 
@@ -32,6 +31,8 @@ private:
     void PacketReceived(ns3::Ptr<ns3::NetDevice> incomingPort, ns3::Ptr<const ns3::Packet> packet,
                         uint16_t protocol, const ns3::Address &src, const ns3::Address &dst,
                         ns3::NetDevice::PacketType packetType);
+
+    void ReconcileSplitRatios();
 };
 
 #endif /* ppfs_switch_h */
