@@ -33,5 +33,31 @@ void RoutingHelper<PpfsSwitch>::BuildRoutingTable (const std::map<id_t, Flow> &f
                 }
             }
         }
+
+        if (flow.protocol == FlowProtocol::Tcp) { // Install ACK paths only for TCP flows
+            const auto& ackShortestPath = flow.GetAckShortestPath();
+            NS_LOG_INFO ("Installing routing for the Ack Shortest Path");
+
+            for (const auto &link : ackShortestPath.GetLinks ()) {
+                NS_LOG_INFO ("Working on Link " << link->id);
+
+                if (link->srcNodeType == NodeType::Switch) {
+                    auto forwardingPort = transmitOnLink.at (link->id);
+                    PpfsSwitch* switchNode = dynamic_cast<PpfsSwitch*>(link->srcNode);
+
+                    /**
+                     The addresses are reversed becuase the ACK flow has the opposite source and destination
+                     details of the data flow.
+                     */
+                    switchNode->AddEntryToRoutingTable(flow.dstNode->GetIpAddress().Get(),
+                                                       flow.srcNode->GetIpAddress().Get(),
+                                                       ackShortestPath.srcPort,
+                                                       ackShortestPath.dstPort,
+                                                       flow.protocol,
+                                                       1.0, /* Ack flows are not split */
+                                                       forwardingPort);
+                }
+            }
+        }
     }
 }
