@@ -63,6 +63,14 @@ const std::vector<Path>& Flow::GetAckPaths() const {
     return m_ackPaths;
 }
 
+void Flow::AddAckShortestPath(const Path &path) {
+    m_ackShortestPath = path;
+}
+
+const Path& Flow::GetAckShortestPath() const {
+    return m_ackShortestPath;
+}
+
 bool Flow::operator< (const Flow &other) const {
     /*
     * Used by the map to store the keys in order.

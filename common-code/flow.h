@@ -47,6 +47,9 @@ struct Flow {
     void AddAckPath(const Path& path);
     const std::vector<Path>& GetAckPaths() const;
 
+    void AddAckShortestPath(const Path& path);
+    const Path& GetAckShortestPath() const;
+
     bool operator< (const Flow &other) const;
     friend std::ostream &operator<< (std::ostream &output, const Flow &flow);
 
