@@ -51,9 +51,7 @@ void SdnSwitch::PacketReceived(Ptr<NetDevice> incomingPort, Ptr<const Packet> pa
     try {
         auto forwardingNetDevice = m_routingTable.at(parsedFlow);
         auto sendSuccess = forwardingNetDevice->Send(packet->Copy(), dst, protocol);
-        if (!sendSuccess) {
-            NS_LOG_INFO("Warning: Packet transmission failed");
-        }
+        NS_ABORT_MSG_IF(sendSuccess == false, "Switch " << m_id << " failed to forward packet");
     } catch (const std::out_of_range& oor) {
         NS_ABORT_MSG("Routing table Miss on Switch " << m_id << ".\nFlow Details\n" << parsedFlow);
     }
