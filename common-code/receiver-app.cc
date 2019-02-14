@@ -109,7 +109,6 @@ void ReceiverApp::HandleRead(Ptr<Socket> socket) {
     NS_LOG_FUNCTION (this << socket);
     Ptr<Packet> packet;
     Address from;
-    Address localAddress;
 
     while ((packet = socket->RecvFrom (from))) {
         if (packet->GetSize () == 0) { //EOF
