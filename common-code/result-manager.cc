@@ -6,6 +6,8 @@
 #include "receiver-app.h"
 #include "result-manager.h"
 #include "transmitter-app.h"
+#include "single-path-receiver.h"
+#include "single-path-transmitter.h"
 
 using namespace tinyxml2;
 
@@ -28,7 +30,12 @@ void ResultManager::AddGoodputResults(const ApplicationHelper::applicationContai
 
     for (const auto& receiverApplicationPair : receiverApplications) {
         auto flowId {receiverApplicationPair.first};
-        auto receiverApp = DynamicCast<ReceiverApp>(receiverApplicationPair.second);
+
+        Ptr<ApplicationBase> receiverApp;
+        receiverApp = DynamicCast<ReceiverApp>(receiverApplicationPair.second);
+        if (receiverApp == nullptr) {
+            receiverApp = DynamicCast<SinglePathReceiver>(receiverApplicationPair.second);
+        }
 
         XMLElement* flowElement = m_xmlDoc.NewElement("Flow");
         flowElement->SetAttribute("Id", flowId);
@@ -56,8 +63,17 @@ void ResultManager::AddDelayResults(const ApplicationHelper::applicationContaine
         XMLElement* flowElement = m_xmlDoc.NewElement("Flow");
         flowElement->SetAttribute("Id", flowId);
 
-        auto receiverApp = DynamicCast<ReceiverApp>(receiverApplicationPair.second);
-        auto transmitterApp = DynamicCast<TransmitterApp>(transmitterApplications.at(flowId));
+        Ptr<ApplicationBase> receiverApp;
+        receiverApp = DynamicCast<ReceiverApp>(receiverApplicationPair.second);
+        if (receiverApp == nullptr) {
+            receiverApp = DynamicCast<SinglePathReceiver>(receiverApplicationPair.second);
+        }
+
+        Ptr<ApplicationBase> transmitterApp;
+        transmitterApp = DynamicCast<TransmitterApp>(transmitterApplications.at(flowId));
+        if (transmitterApp == nullptr) {
+            transmitterApp = DynamicCast<SinglePathTransmitterApp>(transmitterApplications.at(flowId));
+        }
 
         const auto& receiverDelayLog {receiverApp->GetDelayLog()};
         const auto& transmitterDelayLog {transmitterApp->GetDelayLog()};

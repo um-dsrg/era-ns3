@@ -13,6 +13,7 @@
 class ApplicationBase : public ns3::Application {
 public:
     const std::map<packetNumber_t, ns3::Time>& GetDelayLog() const;
+    virtual double GetMeanRxGoodput();
 
 protected:
     ApplicationBase(id_t id);

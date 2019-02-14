@@ -33,3 +33,9 @@ void ApplicationBase::LogPacketTime(packetNumber_t packetNumber) {
     NS_LOG_DEBUG("Logging Packet " << packetNumber << " at " << Simulator::Now());
     m_delayLog.emplace(packetNumber, Simulator::Now());
 }
+
+double ApplicationBase::GetMeanRxGoodput() {
+    NS_ABORT_MSG("Error: The GetMeanRxGoodput function from ApplicationBase cannot "
+                 "be used directly");
+    return 0.0;
+}
