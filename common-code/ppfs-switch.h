@@ -3,6 +3,7 @@
 
 #include "ns3/packet.h"
 #include "ns3/net-device.h"
+#include "ns3/random-variable-stream.h"
 
 #include "switch-base.h"
 
@@ -19,6 +20,7 @@ class PpfsSwitch : public SwitchBase {
     };
 
     std::map<RtFlow, std::vector<ForwardingAction>> m_routingTable;
+    ns3::Ptr<ns3::UniformRandomVariable> m_uniformRandomVariable; /**< Random variable */
 
 public:
     PpfsSwitch(id_t id);
