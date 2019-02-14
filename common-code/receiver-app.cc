@@ -9,9 +9,44 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE("ReceiverApp");
 
+/**
+ AggregateBuffer implementation
+ */
+
+AggregateBuffer::AggregateBuffer(packetSize_t packetSize) : m_packetSize(packetSize) {
+}
+
+void AggregateBuffer::AddPacketToBuffer(ns3::Ptr<ns3::Packet> packet) {
+    uint8_t* tmpBuffer = new uint8_t [packet->GetSize()];
+    packet->CopyData(tmpBuffer, packet->GetSize());
+
+    for (auto i = 0; i < packet->GetSize(); ++i) {
+        m_buffer.push_back(tmpBuffer[i]);
+    }
+
+    delete [] tmpBuffer;
+}
+
+std::list<Ptr<Packet>> AggregateBuffer::RetrievePacketFromBuffer() {
+    std::list<Ptr<Packet>> retreivedPackets;
+
+    while (m_buffer.size() >= m_packetSize) {
+        retreivedPackets.emplace_back(Create<Packet>(m_buffer.data(), m_packetSize));
+        m_buffer.erase(m_buffer.begin(), m_buffer.begin() + m_packetSize);
+    }
+
+    return retreivedPackets;
+}
+
+/**
+ ReceiverApp implementation
+ */
 std::tuple<packetNumber_t, packetSize_t> ExtractPacketDetails(ns3::Ptr<ns3::Packet> packet);
 
-ReceiverApp::ReceiverApp(const Flow& flow) : ApplicationBase(flow.id), protocol(flow.protocol) {
+ReceiverApp::ReceiverApp(const Flow& flow) :
+ApplicationBase(flow.id), protocol(flow.protocol), pktSize(flow.packetSize),
+aggregateBuffer(AggregateBuffer(pktSize + MptcpHeader().GetSerializedSize()))
+{
     for (const auto& path : flow.GetDataPaths()) {
         PathInformation pathInfo;
         pathInfo.dstPort = path.dstPort;
@@ -88,24 +123,31 @@ void ReceiverApp::HandleRead(Ptr<Socket> socket) {
 
         m_lastRxPacket = Simulator::Now(); // Log the time the last packet is received
 
-        packetNumber_t packetNumber;
-        packetSize_t packetSize;
-        std::tie(packetNumber, packetSize) = ExtractPacketDetails(packet);
+        aggregateBuffer.AddPacketToBuffer(packet);
 
-        NS_LOG_INFO("Packet Number " << packetNumber << " received");
-        NS_LOG_INFO("Packet size " << packetSize << "bytes");
+        auto retreivedPackets {aggregateBuffer.RetrievePacketFromBuffer()};
 
-        NS_ASSERT(packetNumber >= m_expectedPacketNum);
+        for (auto& retreivedPacket : retreivedPackets) {
+            packetNumber_t packetNumber;
+            packetSize_t packetSize;
+            std::tie(packetNumber, packetSize) = ExtractPacketDetails(retreivedPacket);
 
-        if (packetNumber == m_expectedPacketNum) {
-            LogPacketTime(packetNumber);
-            m_totalRecvBytes += packetSize;
+            NS_LOG_INFO("Packet Number " << packetNumber << " received");
+            NS_LOG_INFO("Packet size " << packetSize << "bytes");
 
-            m_expectedPacketNum++;
-            popInOrderPacketsFromQueue();
-        } else {
-            m_recvBuffer.push(std::make_pair(packetNumber, packetSize));
+            NS_ASSERT(packetNumber >= m_expectedPacketNum);
+
+            if (packetNumber == m_expectedPacketNum) {
+                LogPacketTime(packetNumber);
+                m_totalRecvBytes += packetSize;
+
+                m_expectedPacketNum++;
+                popInOrderPacketsFromQueue();
+            } else {
+                m_recvBuffer.push(std::make_pair(packetNumber, packetSize));
+            }
         }
+
         NS_LOG_INFO("Total Received bytes " << m_totalRecvBytes);
     }
 }
