@@ -10,6 +10,7 @@ def build(bld):
                   '../../common-code/mptcp-header.cc',
                   '../../common-code/flow.cc',
                   '../../common-code/receiver-app.cc',
+                  '../../common-code/single-path-receiver.cc',
                   '../../common-code/transmitter-app.cc',
                   '../../common-code/single-path-transmitter.cc',
                   '../../common-code/application-base.cc',

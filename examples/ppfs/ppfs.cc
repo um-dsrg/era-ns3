@@ -113,7 +113,9 @@ int main (int argc, char *argv[]) {
         LogComponentEnable ("ApplicationHelper", LOG_LEVEL_ALL);
         LogComponentEnable ("ApplicationBase", LOG_LEVEL_ALL);
         LogComponentEnable ("ReceiverApp", LOG_LEVEL_ALL);
+        LogComponentEnable ("SinglePathReceiverApp", LOG_LEVEL_ALL);
         LogComponentEnable ("TransmitterApp", LOG_LEVEL_ALL);
+        LogComponentEnable ("SinglePathTransmitterApp", LOG_LEVEL_ALL);
         LogComponentEnable ("ResultManager", LOG_LEVEL_ALL);
     }
 
