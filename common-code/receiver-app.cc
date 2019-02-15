@@ -20,7 +20,7 @@ void AggregateBuffer::AddPacketToBuffer(ns3::Ptr<ns3::Packet> packet) {
     uint8_t* tmpBuffer = new uint8_t [packet->GetSize()];
     packet->CopyData(tmpBuffer, packet->GetSize());
 
-    for (auto i = 0; i < packet->GetSize(); ++i) {
+    for (uint32_t i = 0; i < packet->GetSize(); ++i) {
         m_buffer.push_back(tmpBuffer[i]);
     }
 

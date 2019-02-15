@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include "ns3/log.h"
 #include "ns3/simulator.h"
 #include "random-generator-manager.h"

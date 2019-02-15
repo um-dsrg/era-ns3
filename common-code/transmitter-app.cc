@@ -1,4 +1,5 @@
 #include <math.h>
+#include <algorithm>
 
 #include "ns3/log.h"
 #include "ns3/uinteger.h"
@@ -48,7 +49,7 @@ ApplicationBase(flow.id), m_dataRate(flow.dataRate), m_packetSize(flow.packetSiz
     std::sort(m_pathSplitRatio.begin(), m_pathSplitRatio.end(), std::greater<>());
 
     // Calculate the cumulative split ratio
-    for (auto index = 1; index < m_pathSplitRatio.size(); ++index) {
+    for (size_t index = 1; index < m_pathSplitRatio.size(); ++index) {
         m_pathSplitRatio[index].first += m_pathSplitRatio[index - 1].first;
     }
 
