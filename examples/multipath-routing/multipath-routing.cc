@@ -80,7 +80,6 @@ int main (int argc, char *argv[]) {
 
     // Parse the flows and build the routing table
     auto flows{topologyBuilder.ParseFlows(rootNode)};
-    // TODO Remove the class definition and replace it with a template function only
     RoutingHelper<SdnSwitch> routingHelper;
     routingHelper.BuildRoutingTable(flows, transmitOnLink);
 
