@@ -77,7 +77,7 @@ int main (int argc, char *argv[]) {
     NS_ABORT_MSG_IF(rootNode == nullptr, "No root node node found");
 
     // Create the nodes and build the topology
-    TopologyBuilderBase* topologyBuilder;
+    TopologyBuilderBase* topologyBuilder{nullptr};
     if(useSdnSwitches) {
         topologyBuilder = new TopologyBuilder<SdnSwitch>;
     } else if (usePpfsSwitches) {
@@ -91,7 +91,7 @@ int main (int argc, char *argv[]) {
 
     // Parse the flows and build the routing table
     auto flows{topologyBuilder->ParseFlows(rootNode)};
-    RoutingHelperBase* routingHelper;
+    RoutingHelperBase* routingHelper{nullptr};
 
     if(useSdnSwitches) {
         routingHelper = new RoutingHelper<SdnSwitch>;
