@@ -18,7 +18,6 @@ def build(bld):
                   '../../common-code/custom-device.cc',
                   '../../common-code/terminal.cc',
                   '../../common-code/application-helper.cc',
-                  '../../common-code/application-monitor.cc',
                   '../../common-code/result-manager.cc',
                   '../../common-code/random-generator-manager.cc',
                   '../../common-code/switch-base.cc',

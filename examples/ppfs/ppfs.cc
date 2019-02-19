@@ -30,7 +30,6 @@
 #include "../../common-code/result-manager.h"
 #include "../../common-code/topology-builder.h"
 #include "../../common-code/application-helper.h"
-#include "../../common-code/application-monitor.h"
 #include "../../common-code/random-generator-manager.h"
 
 using namespace ns3;
