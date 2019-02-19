@@ -25,12 +25,25 @@
 using namespace ns3;
 using namespace tinyxml2;
 
+class TopologyBuilderBase {
+public:
+    virtual ~TopologyBuilderBase() {}
+
+    virtual const Terminal::TerminalContainer&  GetTerminals() = 0;
+    virtual void CreateNodes (XMLNode *rootNode) = 0;
+    virtual std::map<id_t, Ptr<NetDevice>> BuildNetworkTopology (XMLNode *rootNode) = 0;
+    virtual void AssignIpToTerminals () = 0;
+    virtual Flow::FlowContainer ParseFlows (XMLNode *rootNode) = 0;
+    virtual void EnablePacketReceptionOnSwitches () = 0;
+
+};
+
 /**
  * Definition of the TopologyBuilder class
  */
 
 template <class SwitchType>
-class TopologyBuilder {
+class TopologyBuilder : public TopologyBuilderBase {
 public:
     TopologyBuilder ();
 
