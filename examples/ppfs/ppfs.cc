@@ -28,7 +28,6 @@
 #include "../../common-code/sdn-switch.h"
 #include "../../common-code/routing-helper.h"
 #include "../../common-code/result-manager.h"
-#include "../../common-code/animation-helper.h"
 #include "../../common-code/topology-builder.h"
 #include "../../common-code/application-helper.h"
 #include "../../common-code/application-monitor.h"

@@ -1,4 +1,3 @@
-## -*- Mode: python; py-indent-offset: 4; indent-tabs-mode: nil; coding: utf-8; -*-
 def build(bld):
     def set_properties(obj):
         obj.use = obj.ns3_module_dependencies
@@ -20,7 +19,6 @@ def build(bld):
                   '../../common-code/terminal.cc',
                   '../../common-code/application-helper.cc',
                   '../../common-code/application-monitor.cc',
-                  '../../common-code/animation-helper.cc',
                   '../../common-code/result-manager.cc',
                   '../../common-code/random-generator-manager.cc',
                   '../../common-code/switch-base.cc',
