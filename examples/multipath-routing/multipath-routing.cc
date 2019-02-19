@@ -20,6 +20,8 @@ int main (int argc, char *argv[]) {
 
     bool verbose{false};
     bool enablePcap{false};
+    bool usePpfsSwitches{false};
+    bool useSdnSwitches{false};
 
     uint32_t initRun{1};
     uint32_t seedValue{1};
@@ -43,8 +45,11 @@ int main (int argc, char *argv[]) {
     cmdLine.AddValue("run", "The initial run value. Default of 1.", initRun);
     cmdLine.AddValue("seed", "The seed used by the random number generator. Default of 1.", seedValue);
     cmdLine.AddValue("enablePcap", "Enable PCAP tracing on all devices", enablePcap);
-    // TODO Add whether to use the PPFS switch or not
+    cmdLine.AddValue("usePpfsSwitches", "Enable the use of PPFS switches", usePpfsSwitches);
+    cmdLine.AddValue("useSdnSwitches", "Enable the use of SDN switches", useSdnSwitches);
     cmdLine.Parse (argc, argv);
+
+    NS_ABORT_MSG_IF((usePpfsSwitches == false && useSdnSwitches == false), "No switch type is defined");
 
     if (verbose) {
         LogComponentEnable("SdnSwitch", LOG_LEVEL_ALL);
@@ -67,24 +72,36 @@ int main (int argc, char *argv[]) {
     // Parse the XML file
     XMLDocument xmlInputFile;
     XMLError error = xmlInputFile.LoadFile(inputFile.c_str());
-    NS_ABORT_MSG_IF (error != XML_SUCCESS, "Could not load LOG FILE");
+    NS_ABORT_MSG_IF(error != XML_SUCCESS, "Could not load LOG FILE");
     XMLNode *rootNode = xmlInputFile.LastChild();
-    NS_ABORT_MSG_IF (rootNode == nullptr, "No root node node found");
+    NS_ABORT_MSG_IF(rootNode == nullptr, "No root node node found");
 
     // Create the nodes and build the topology
-    TopologyBuilder<SdnSwitch> topologyBuilder;
-    topologyBuilder.CreateNodes(rootNode);
-    auto transmitOnLink{topologyBuilder.BuildNetworkTopology(rootNode)};
-    topologyBuilder.AssignIpToTerminals();
-    topologyBuilder.EnablePacketReceptionOnSwitches();
+    TopologyBuilderBase* topologyBuilder;
+    if(useSdnSwitches) {
+        topologyBuilder = new TopologyBuilder<SdnSwitch>;
+    } else if (usePpfsSwitches) {
+        topologyBuilder = new TopologyBuilder<PpfsSwitch>;
+    }
+    // TopologyBuilder<SdnSwitch> topologyBuilder;
+    topologyBuilder->CreateNodes(rootNode);
+    auto transmitOnLink{topologyBuilder->BuildNetworkTopology(rootNode)};
+    topologyBuilder->AssignIpToTerminals();
+    topologyBuilder->EnablePacketReceptionOnSwitches();
 
     // Parse the flows and build the routing table
-    auto flows{topologyBuilder.ParseFlows(rootNode)};
-    RoutingHelper<SdnSwitch> routingHelper;
-    routingHelper.BuildRoutingTable(flows, transmitOnLink);
+    auto flows{topologyBuilder->ParseFlows(rootNode)};
+    RoutingHelperBase* routingHelper;
+
+    if(useSdnSwitches) {
+        routingHelper = new RoutingHelper<SdnSwitch>;
+    } else if(usePpfsSwitches) {
+        routingHelper = new RoutingHelper<PpfsSwitch>;
+    }
+    routingHelper->BuildRoutingTable(flows, transmitOnLink);
 
     ApplicationHelper appHelper;
-    appHelper.InstallApplicationsOnTerminals(flows, topologyBuilder.GetTerminals());
+    appHelper.InstallApplicationsOnTerminals(flows, topologyBuilder->GetTerminals());
 
     if(enablePcap) {
         PointToPointHelper myHelper;
@@ -107,6 +124,9 @@ int main (int argc, char *argv[]) {
     flowMonHelper.SerializeToXmlFile(flowMonitorOutpuFile, false, false);
 
     Simulator::Destroy();
+
+    delete routingHelper;
+    delete topologyBuilder;
 
     return 0;
 }
