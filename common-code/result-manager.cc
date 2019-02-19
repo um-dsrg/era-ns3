@@ -87,7 +87,7 @@ void ResultManager::AddDelayResults(const ApplicationHelper::applicationContaine
             auto delayInMs {(recvTime - transmittedTime).GetMilliSeconds()};
 
             XMLElement* packetElement = m_xmlDoc.NewElement("Packet");
-            packetElement->SetAttribute("Number", boost::numeric_cast<int64_t>(pktNumber));
+            packetElement->SetAttribute("Number", boost::numeric_cast<unsigned int>(pktNumber));
             packetElement->SetAttribute("Delay", delayInMs);
             flowElement->InsertEndChild(packetElement);
         }

@@ -68,7 +68,7 @@ ApplicationBase(flow.id), m_dataRate(flow.dataRate), m_packetSize(flow.packetSiz
     // Calculate the transmission interval
     double pktSizeBits = static_cast<double>(m_packetSize * 8);
     double transmissionInterval = pktSizeBits / static_cast<double>(m_dataRate.GetBitRate());
-    NS_ABORT_MSG_IF(transmissionInterval <= 0 || isnan(transmissionInterval),
+    NS_ABORT_MSG_IF(transmissionInterval <= 0 || std::isnan(transmissionInterval),
                     "The transmission interval cannot be less than or equal to 0 OR nan. "
                     "Transmission interval: " << transmissionInterval);
     m_transmissionInterval = Seconds(transmissionInterval);
