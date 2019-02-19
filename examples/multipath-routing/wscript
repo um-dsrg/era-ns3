@@ -1,0 +1,28 @@
+def build(bld):
+    def set_properties(obj):
+        obj.use = obj.ns3_module_dependencies
+        obj.install_path = None
+
+    all_modules = [mod[len("ns3-"):] for mod in bld.env['NS3_ENABLED_MODULES']]
+    obj = bld.create_ns3_program('multipath_routing', all_modules)
+    obj.source = ['multipath-routing.cc',
+                  '../../common-code/flow.cc',
+                  '../../common-code/terminal.cc',
+                  '../../common-code/sdn-switch.cc',
+                  '../../common-code/switch-base.cc',
+                  '../../common-code/ppfs-switch.cc',
+                  '../../common-code/mptcp-header.cc',
+                  '../../common-code/receiver-app.cc',
+                  '../../common-code/custom-device.cc',
+                  '../../common-code/routing-helper.cc',
+                  '../../common-code/result-manager.cc',
+                  '../../common-code/transmitter-app.cc',
+                  '../../common-code/application-base.cc',
+                  '../../common-code/topology-builder.cc',
+                  '../../common-code/application-helper.cc',
+                  '../../common-code/single-path-receiver.cc',
+                  '../../common-code/single-path-transmitter.cc',
+                  '../../common-code/random-generator-manager.cc']
+
+    obj.env.append_value('LIB', ['tinyxml2'])  # Adding the tinyxml2 library
+    set_properties(obj)
