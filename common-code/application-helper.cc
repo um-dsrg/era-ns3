@@ -18,13 +18,14 @@ NS_LOG_COMPONENT_DEFINE ("ApplicationHelper");
 
 
 void ApplicationHelper::InstallApplicationsOnTerminals(const Flow::FlowContainer &flows,
-                                                       const Terminal::TerminalContainer &terminals) {
+                                                       const Terminal::TerminalContainer &terminals,
+                                                       bool usePpfsSwitches)
+{
     for (const auto& flowPair : flows) {
         NS_LOG_INFO("Installing flow " << flowPair.first);
         const auto& flow {flowPair.second};
 
-        // TODO: Add an item here where if PPFS is enabled
-        if (flow.GetDataPaths().size() == 1) {
+        if (flow.GetDataPaths().size() == 1 || usePpfsSwitches == true) {
             // Install the single path transmitter
             Ptr<SinglePathTransmitterApp> singlePathTransmitter = CreateObject<SinglePathTransmitterApp>(flow);
             flow.srcNode->GetNode()->AddApplication(singlePathTransmitter);

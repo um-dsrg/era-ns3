@@ -101,7 +101,7 @@ int main (int argc, char *argv[]) {
     routingHelper->BuildRoutingTable(flows, transmitOnLink);
 
     ApplicationHelper appHelper;
-    appHelper.InstallApplicationsOnTerminals(flows, topologyBuilder->GetTerminals());
+    appHelper.InstallApplicationsOnTerminals(flows, topologyBuilder->GetTerminals(), usePpfsSwitches);
 
     if(enablePcap) {
         PointToPointHelper myHelper;

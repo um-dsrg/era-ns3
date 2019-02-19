@@ -20,7 +20,8 @@ public:
     using applicationContainer_t = std::map<id_t, ns3::Ptr<ns3::Application>>;
 
     void InstallApplicationsOnTerminals (const Flow::FlowContainer& flows,
-                                         const Terminal::TerminalContainer& terminals);
+                                         const Terminal::TerminalContainer& terminals,
+                                         bool usePpfsSwitches);
 
     const applicationContainer_t& GetTransmitterApps() const;
     const applicationContainer_t& GetReceiverApps() const;
