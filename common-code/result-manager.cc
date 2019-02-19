@@ -84,18 +84,18 @@ void ResultManager::AddDelayResults(const ApplicationHelper::applicationContaine
 
             auto recvTime {delayLogEntry.second};
             auto transmittedTime {transmitterDelayLog.at(pktNumber)};
-            auto delayInMs {(recvTime - transmittedTime).GetMilliSeconds()};
+            auto delayInNs {(recvTime - transmittedTime).GetNanoSeconds()};
 
             XMLElement* packetElement = m_xmlDoc.NewElement("Packet");
             packetElement->SetAttribute("Number", boost::numeric_cast<unsigned int>(pktNumber));
-            packetElement->SetAttribute("Delay", delayInMs);
+            packetElement->SetAttribute("Delay", boost::numeric_cast<unsigned int>(delayInNs));
             flowElement->InsertEndChild(packetElement);
         }
 
         delayElement->InsertEndChild(flowElement);
     }
 
-    XMLComment* comment = m_xmlDoc.NewComment("Delay values are in milliseconds");
+    XMLComment* comment = m_xmlDoc.NewComment("Delay values are in nanoseconds");
     delayElement->InsertFirstChild(comment);
 
     m_rootNode->InsertEndChild(delayElement);
