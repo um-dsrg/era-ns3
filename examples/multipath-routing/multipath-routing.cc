@@ -64,7 +64,6 @@ int main (int argc, char *argv[]) {
         LogComponentEnable("ApplicationBase", LOG_LEVEL_ALL);
         LogComponentEnable("TopologyBuilder", LOG_LEVEL_ALL);
         LogComponentEnable("ApplicationHelper", LOG_LEVEL_ALL);
-        LogComponentEnable("ApplicationMonitor", LOG_LEVEL_ALL);
         LogComponentEnable("SinglePathReceiverApp", LOG_LEVEL_ALL);
         LogComponentEnable("SinglePathTransmitterApp", LOG_LEVEL_ALL);
     }
