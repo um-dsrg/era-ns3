@@ -1,7 +1,5 @@
 #include "ns3/log.h"
 #include "ns3/simulator.h"
-#include "ns3/tcp-header.h"
-#include "ns3/udp-header.h"
 #include "ns3/ipv4-header.h"
 #include "ns3/tcp-socket-factory.h"
 #include "ns3/udp-socket-factory.h"
@@ -48,9 +46,9 @@ packetSize_t ApplicationBase::CalculateHeaderSize(FlowProtocol protocol) {
 
     // Add TCP/UDP header size
     if(protocol == FlowProtocol::Tcp) {
-        headerSize += TcpHeader().GetSerializedSize();
+        headerSize += 32; // 20 bytes header + 12 bytes options
     } else if(protocol == FlowProtocol::Udp) {
-        headerSize += UdpHeader().GetSerializedSize();
+        headerSize += 8; // 8 bytes udp header
     } else {
         NS_ABORT_MSG("Unknown protocol. Protocol " << static_cast<char>(protocol));
     }
