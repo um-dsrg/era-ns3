@@ -14,8 +14,7 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE("TransmitterApp");
 
-TransmitterApp::TransmitterApp(const Flow& flow) :
-ApplicationBase(flow.id), m_dataRate(flow.dataRate), m_packetSize(flow.packetSize) {
+TransmitterApp::TransmitterApp(const Flow& flow) : ApplicationBase(flow.id) {
     for (const auto& path : flow.GetDataPaths()) {
         PathInformation pathInfo;
         pathInfo.srcPort = path.srcPort;
@@ -27,19 +26,28 @@ ApplicationBase(flow.id), m_dataRate(flow.dataRate), m_packetSize(flow.packetSiz
                                              " for flow " << flow.id);
 
         // Calculate the split ratio at path level
-        m_pathSplitRatio.push_back(std::make_pair((path.dataRate.GetBitRate() / flow.dataRate.GetBitRate()),
-                                                  path.id));
+        auto splitRatio {path.dataRate.GetBitRate() /
+                         static_cast<double>(flow.dataRate.GetBitRate())};
+
+        m_pathSplitRatio.push_back(std::make_pair(splitRatio, path.id));
+        NS_LOG_INFO("Path " << path.id <<
+                    " | Flow Data Rate (bps): " << flow.dataRate <<
+                    " | Path Data Rate (bps): " << path.dataRate <<
+                    " | Split Ratio: " << splitRatio);
 
         if (flow.protocol == FlowProtocol::Tcp) {
             auto tcpSocket = ns3::DynamicCast<ns3::TcpSocket>(pathInfo.txSocket);
             ns3::UintegerValue segmentSize;
             tcpSocket->GetAttribute("SegmentSize", segmentSize);
-            auto pktSizeInclHdrs {flow.packetSize + MptcpHeader().GetSerializedSize()};
+            auto pktSizeInclMptcpHdr {m_dataPacketSize + MptcpHeader().GetSerializedSize()};
 
-            if (pktSizeInclHdrs > segmentSize.Get()) {
-                NS_ABORT_MSG("The packet size for Flow " << flow.id << " is larger than the MSS.\n"
-                             "Flow packet size (excl. Header): " << flow.packetSize << "\n" <<
-                             "Flow packet size (incl. Header): " << pktSizeInclHdrs << "\n" <<
+            if (pktSizeInclMptcpHdr > segmentSize.Get()) {
+                NS_ABORT_MSG("The packet size for Flow " << flow.id <<
+                             " is larger than the MSS.\n" <<
+                             "Flow packet size (excl. Header): " <<
+                             flow.packetSize << "\n" <<
+                             "Flow packet size (incl. Header): " <<
+                             pktSizeInclMptcpHdr << "\n" <<
                              "Maximum Segment Size: " << segmentSize.Get());
             }
         }
@@ -65,9 +73,15 @@ ApplicationBase(flow.id), m_dataRate(flow.dataRate), m_packetSize(flow.packetSiz
                     "The final split ratio is not equal to 1. Split Ratio: " <<
                     m_pathSplitRatio.back().first);
 
+    // Set the data packet size
+    SetDataPacketSize(flow);
+
+    // Set the application's good put rate in bps
+    SetApplicationGoodputRate(flow);
+
     // Calculate the transmission interval
-    double pktSizeBits = static_cast<double>(m_packetSize * 8);
-    double transmissionInterval = pktSizeBits / static_cast<double>(m_dataRate.GetBitRate());
+    double pktSizeBits = static_cast<double>(m_dataPacketSize * 8);
+    double transmissionInterval = pktSizeBits / m_dataRateBps;
     NS_ABORT_MSG_IF(transmissionInterval <= 0 || std::isnan(transmissionInterval),
                     "The transmission interval cannot be less than or equal to 0 OR nan. "
                     "Transmission interval: " << transmissionInterval);
@@ -126,13 +140,39 @@ void TransmitterApp::TransmitPacket() {
 
     MptcpHeader mptcpHeader;
     mptcpHeader.SetPacketNumber(pktNumber);
-    Ptr<Packet> packet = Create<Packet>(m_packetSize);
+    Ptr<Packet> packet = Create<Packet>(m_dataPacketSize);
     packet->AddHeader(mptcpHeader);
     pathInfo.txSocket->Send(packet);
 
     LogPacketTime(pktNumber);
 
     m_sendEvent = Simulator::Schedule(m_transmissionInterval, &TransmitterApp::TransmitPacket, this);
+}
+
+void TransmitterApp::SetDataPacketSize(const Flow& flow) {
+    m_dataPacketSize = flow.packetSize - CalculateHeaderSize(flow.protocol);
+
+    NS_LOG_INFO("Packet size including headers is: " << flow.packetSize << "bytes\n" <<
+                "Packet size excluding headers is: " << m_dataPacketSize <<"bytes");
+}
+
+void TransmitterApp::SetApplicationGoodputRate(const Flow& flow) {
+    auto pktSizeExclHdr {flow.packetSize - CalculateHeaderSize(flow.protocol)};
+
+    m_dataRateBps = (pktSizeExclHdr * flow.dataRate.GetBitRate()) /
+                    static_cast<double>(flow.packetSize);
+
+    NS_LOG_INFO("Flow throughput: " << flow.dataRate << "\n" <<
+                "Flow goodput: " << m_dataRateBps << "bps");
+}
+
+packetSize_t TransmitterApp::CalculateHeaderSize(FlowProtocol protocol) {
+    auto headerSize = ApplicationBase::CalculateHeaderSize(protocol);
+
+    // Add the MultiStream TCP header
+    headerSize += MptcpHeader().GetSerializedSize();
+
+    return headerSize;
 }
 
 inline double TransmitterApp::GetRandomNumber() {

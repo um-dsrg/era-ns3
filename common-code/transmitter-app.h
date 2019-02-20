@@ -25,6 +25,11 @@ private:
     void StartApplication();
     void StopApplication();
     void TransmitPacket();
+
+    void SetDataPacketSize(const Flow& flow);
+    void SetApplicationGoodputRate(const Flow& flow);
+
+    packetSize_t CalculateHeaderSize(FlowProtocol protocol);
     inline double GetRandomNumber();
 
     struct PathInformation {
@@ -33,9 +38,9 @@ private:
         ns3::Address dstAddress; /**< The path's destination address. */
     };
 
-    ns3::DataRate m_dataRate; /**< Application's data rate. */
+    double m_dataRateBps; /**< Application's bit rate in bps. */
     ns3::Time m_transmissionInterval; /**< The time between packet transmissions. */
-    packetSize_t m_packetSize {0}; /**< The packet size in bytes. */
+    packetSize_t m_dataPacketSize {0}; /**< The data packet size in bytes. */
     packetNumber_t m_packetNumber {0}; /**< The number of the packet currently transmitted. */
 
     std::map<id_t, PathInformation> m_pathInfoContainer; /**< Path Id | Path Information */
