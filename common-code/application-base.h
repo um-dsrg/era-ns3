@@ -23,6 +23,7 @@ protected:
 
     ns3::Ptr<ns3::Socket> CreateSocket(ns3::Ptr<ns3::Node> srcNode, FlowProtocol protocol);
     void LogPacketTime(packetNumber_t packetNumber);
+    virtual packetSize_t CalculateHeaderSize(FlowProtocol protocol);
 
     std::map<packetNumber_t, ns3::Time> m_delayLog;
     id_t m_id{0}; /**< The id of the flow that this application represents. */

@@ -1,5 +1,8 @@
 #include "ns3/log.h"
 #include "ns3/simulator.h"
+#include "ns3/tcp-header.h"
+#include "ns3/udp-header.h"
+#include "ns3/ipv4-header.h"
 #include "ns3/tcp-socket-factory.h"
 #include "ns3/udp-socket-factory.h"
 
@@ -38,4 +41,25 @@ double ApplicationBase::GetMeanRxGoodput() {
     NS_ABORT_MSG("Error: The GetMeanRxGoodput function from ApplicationBase cannot "
                  "be used directly");
     return 0.0;
+}
+
+packetSize_t ApplicationBase::CalculateHeaderSize(FlowProtocol protocol) {
+    packetSize_t headerSize {0};
+
+    // Add TCP/UDP header size
+    if(protocol == FlowProtocol::Tcp) {
+        headerSize += TcpHeader().GetSerializedSize();
+    } else if(protocol == FlowProtocol::Udp) {
+        headerSize += UdpHeader().GetSerializedSize();
+    } else {
+        NS_ABORT_MSG("Unknown protocol. Protocol " << static_cast<char>(protocol));
+    }
+
+    // Add Ip header size
+    headerSize += Ipv4Header().GetSerializedSize();
+
+    // Add Point To Point size
+    headerSize += 2;
+
+    return headerSize;
 }
