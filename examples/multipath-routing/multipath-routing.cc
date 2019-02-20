@@ -76,7 +76,7 @@ int main (int argc, char *argv[]) {
     // Parse the XML file
     XMLDocument xmlInputFile;
     XMLError error = xmlInputFile.LoadFile(inputFile.c_str());
-    NS_ABORT_MSG_IF(error != XML_SUCCESS, "Could not load LOG FILE");
+    NS_ABORT_MSG_IF(error != XML_SUCCESS, "Could not load input file. File path: " << inputFile);
     XMLNode *rootNode = xmlInputFile.LastChild();
     NS_ABORT_MSG_IF(rootNode == nullptr, "No root node node found");
 
