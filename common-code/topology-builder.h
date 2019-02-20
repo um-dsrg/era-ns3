@@ -346,7 +346,7 @@ Flow::FlowContainer TopologyBuilder<SwitchType>::ParseFlows (XMLNode *rootNode) 
         flow.protocol = static_cast<FlowProtocol> (*flowElement->Attribute ("Protocol"));
         flowElement->QueryAttribute("PacketSize", &flow.packetSize);
         double dataRate;
-        flowElement->QueryAttribute("DataRate", &dataRate);
+        flowElement->QueryAttribute("AllocatedDataRate", &dataRate);
         flow.dataRate = ns3::DataRate(std::string{std::to_string(dataRate) + "Mbps"});
 
         auto pathPortMap {AddDataPaths(flow, flowElement)};
