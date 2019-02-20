@@ -119,6 +119,9 @@ int main (int argc, char *argv[]) {
     FlowMonitorHelper flowMonHelper;
     flowMonHelper.InstallAll();
 
+    // Set the simulation stop time
+    Simulator::Stop(Time(stopTime));
+
     Simulator::Run();
     Simulator::Stop();
 
