@@ -29,7 +29,7 @@ void SdnSwitch::AddEntryToRoutingTable (uint32_t srcIp, uint32_t dstIp, portNum_
     auto ret = m_routingTable.emplace (rtFlow, forwardingPort);
     NS_ABORT_MSG_IF (ret.second == false, "Unable to add routing table entry in Switch " << m_id);
 
-    NS_LOG_INFO("Add entry in PPFS Switch " << m_id);
+    NS_LOG_INFO("Add entry in SDN Switch " << m_id);
     NS_LOG_INFO(rtFlow);
 }
 
