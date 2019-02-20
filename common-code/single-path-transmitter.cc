@@ -9,16 +9,21 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE("SinglePathTransmitterApp");
 
-SinglePathTransmitterApp::SinglePathTransmitterApp(const Flow& flow) :
-ApplicationBase(flow.id), m_dataRate(flow.dataRate), m_packetSize(flow.packetSize) {
+SinglePathTransmitterApp::SinglePathTransmitterApp(const Flow& flow) : ApplicationBase(flow.id) {
     auto path = flow.GetDataPaths().front();
     srcPort = path.srcPort;
     txSocket = CreateSocket(flow.srcNode->GetNode(), flow.protocol);
     dstAddress = Address(InetSocketAddress(flow.dstNode->GetIpAddress(), path.dstPort));
 
+    // Set the data packet size
+    SetDataPacketSize(flow);
+
+    // Set the application's good put rate in bps
+    SetApplicationGoodputRate(flow);
+
     // Calculate the transmission interval
-    double pktSizeBits = static_cast<double>(m_packetSize * 8);
-    double transmissionInterval = pktSizeBits / static_cast<double>(m_dataRate.GetBitRate());
+    double pktSizeBits = static_cast<double>(m_dataPacketSize * 8);
+    double transmissionInterval = pktSizeBits / m_dataRateBps;
     NS_ABORT_MSG_IF(transmissionInterval <= 0 || std::isnan(transmissionInterval),
                     "The transmission interval cannot be less than or equal to 0 OR nan. "
                     "Transmission interval: " << transmissionInterval);
@@ -50,11 +55,22 @@ void SinglePathTransmitterApp::StopApplication() {
 }
 
 void SinglePathTransmitterApp::TransmitPacket() {
-    Ptr<Packet> packet = Create<Packet>(m_packetSize);
+    Ptr<Packet> packet = Create<Packet>(m_dataPacketSize);
     txSocket->Send(packet);
 
     LogPacketTime(m_packetNumber);
     m_packetNumber++;
 
     m_sendEvent = Simulator::Schedule(m_transmissionInterval, &SinglePathTransmitterApp::TransmitPacket, this);
+}
+
+void SinglePathTransmitterApp::SetDataPacketSize(const Flow& flow) {
+    m_dataPacketSize = flow.packetSize - CalculateHeaderSize(flow.protocol);
+}
+
+void SinglePathTransmitterApp::SetApplicationGoodputRate(const Flow& flow) {
+    auto pktSizeExclHdr {flow.packetSize - CalculateHeaderSize(flow.protocol)};
+
+    m_dataRateBps = (pktSizeExclHdr * flow.dataRate.GetBitRate()) /
+                    static_cast<double>(flow.packetSize);
 }

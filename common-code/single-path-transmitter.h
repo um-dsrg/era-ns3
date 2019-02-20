@@ -13,10 +13,10 @@
 #include "application-base.h"
 
 class SinglePathTransmitterApp : public ApplicationBase {
-    
-    ns3::DataRate m_dataRate; /**< Application's data rate. */
+
+    double m_dataRateBps; /**< Application's bit rate in bps. */
     ns3::Time m_transmissionInterval; /**< The time between packet transmissions. */
-    packetSize_t m_packetSize {0}; /**< The packet size in bytes. */
+    packetSize_t m_dataPacketSize {0}; /**< The data packet size in bytes. */
     ns3::EventId m_sendEvent; /**< The Event Id of the pending TransmitPacket event. */
     packetNumber_t m_packetNumber {0};
 
@@ -32,6 +32,9 @@ private:
     void StartApplication();
     void StopApplication();
     void TransmitPacket();
+
+    void SetDataPacketSize(const Flow& flow);
+    void SetApplicationGoodputRate(const Flow& flow);
 };
 
 #endif /* single_path_transmitter_h */
