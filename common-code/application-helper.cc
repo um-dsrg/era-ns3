@@ -30,28 +30,24 @@ void ApplicationHelper::InstallApplicationsOnTerminals(const Flow::FlowContainer
             Ptr<SinglePathTransmitterApp> singlePathTransmitter = CreateObject<SinglePathTransmitterApp>(flow);
             flow.srcNode->GetNode()->AddApplication(singlePathTransmitter);
             singlePathTransmitter->SetStartTime(Seconds(0.0));
-            singlePathTransmitter->SetStopTime(Seconds(1.0));
             m_transmitterApplications.emplace(flow.id, singlePathTransmitter);
 
             // Install the single path receiver
             Ptr<SinglePathReceiver> singlePathReceiverApp = CreateObject<SinglePathReceiver>(flow);
             flow.dstNode->GetNode()->AddApplication(singlePathReceiverApp);
             singlePathReceiverApp->SetStartTime(Seconds(0.0));
-            singlePathReceiverApp->SetStopTime(Seconds(1.0));
             m_receiverApplications.emplace(flow.id, singlePathReceiverApp);
         } else {
             // Install the multipath transmitter
             Ptr<TransmitterApp> transmitterApp = CreateObject<TransmitterApp>(flow);
             flow.srcNode->GetNode()->AddApplication(transmitterApp);
             transmitterApp->SetStartTime(Seconds(0.0));
-            transmitterApp->SetStopTime(Seconds(1.0));
             m_transmitterApplications.emplace(flow.id, transmitterApp);
 
             // Install the multipath receiver
             Ptr<ReceiverApp> receiverApp = CreateObject<ReceiverApp>(flow);
             flow.dstNode->GetNode()->AddApplication(receiverApp);
             receiverApp->SetStartTime(Seconds(0.0));
-            receiverApp->SetStopTime(Seconds(1.0));
             m_receiverApplications.emplace(flow.id, receiverApp);
         }
     }
