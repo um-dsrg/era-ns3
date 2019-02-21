@@ -25,7 +25,7 @@ void ApplicationHelper::InstallApplicationsOnTerminals(const Flow::FlowContainer
         NS_LOG_INFO("Installing flow " << flowPair.first);
         const auto& flow {flowPair.second};
 
-        if (flow.GetDataPaths().size() == 1 || usePpfsSwitches == true) {
+        if (flow.GetDataPaths().size() == 1 || usePpfsSwitches) {
             // Install the single path transmitter
             Ptr<SinglePathTransmitterApp> singlePathTransmitter = CreateObject<SinglePathTransmitterApp>(flow);
             flow.srcNode->GetNode()->AddApplication(singlePathTransmitter);
