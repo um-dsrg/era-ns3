@@ -5,6 +5,8 @@ NS_LOG_COMPONENT_DEFINE("RoutingHelper");
 template <>
 void RoutingHelper<SdnSwitch>::BuildRoutingTable (const std::map<id_t, Flow> &flows,
                                                   const std::map<id_t, Ptr<NetDevice>> &transmitOnLink) {
+    NS_LOG_INFO("Building the Routing Table for the SDN Switches");
+
     for(const auto &flowPair : flows) {
 
         const auto &flow{flowPair.second};
@@ -57,7 +59,7 @@ void RoutingHelper<SdnSwitch>::BuildRoutingTable (const std::map<id_t, Flow> &fl
 template <>
 void RoutingHelper<PpfsSwitch>::BuildRoutingTable (const std::map<id_t, Flow> &flows,
                                                    const std::map<id_t, Ptr<NetDevice>> &transmitOnLink) {
-    NS_LOG_INFO("Building the Routing Table for the PPFS Switch");
+    NS_LOG_INFO("Building the Routing Table for the PPFS Switches");
 
     for(const auto &flowPair : flows) {
 
