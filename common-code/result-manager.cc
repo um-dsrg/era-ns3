@@ -88,7 +88,7 @@ void ResultManager::AddDelayResults(const ApplicationHelper::applicationContaine
 
             XMLElement* packetElement = m_xmlDoc.NewElement("Packet");
             packetElement->SetAttribute("Number", boost::numeric_cast<unsigned int>(pktNumber));
-            packetElement->SetAttribute("Delay", boost::numeric_cast<unsigned int>(delayInNs));
+            packetElement->SetAttribute("Delay", boost::numeric_cast<double>(delayInNs));
             flowElement->InsertEndChild(packetElement);
         }
 
