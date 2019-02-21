@@ -71,3 +71,7 @@ Ns3.xcodeproj/
 
 # Sublime
 *.sublime-workspace
+
+# CLion
+.idea/
+cmake-build-debug/
