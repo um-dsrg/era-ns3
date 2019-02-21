@@ -33,14 +33,15 @@ int main (int argc, char *argv[]) {
     std::string stopTime{""};
     std::string inputFile{""};
     std::string outputFile{""};
-    std::string flowMonitorOutpuFile{""};
+    std::string flowMonitorOutputFile{""};
 
     // Set the command line parameters
     CommandLine cmdLine;
     cmdLine.AddValue("verbose", "When set, output the log values", verbose);
     cmdLine.AddValue("input", "The path to the input file", inputFile);
     cmdLine.AddValue("output", "The path where to store the result file", outputFile);
-    cmdLine.AddValue("flowMonitorOutput", "The path where to store the generated flow monitor file", flowMonitorOutpuFile);
+    cmdLine.AddValue("flowMonitorOutput", "The path where to store the generated flow monitor file",
+                     flowMonitorOutputFile);
     cmdLine.AddValue("stopTime",
                      "When set, the value in this string will represent the time"
                      "at which the simulation will stop. Time can be in the format of "
@@ -58,8 +59,10 @@ int main (int argc, char *argv[]) {
 
     if (verbose) {
         LogComponentEnable("SdnSwitch", LOG_LEVEL_ALL);
+        LogComponentEnable("PpfsSwitch", LOG_LEVEL_ALL);
         LogComponentEnable("SwitchBase", LOG_LEVEL_ALL);
         LogComponentEnable("ReceiverApp", LOG_LEVEL_ALL);
+        LogComponentEnable("RoutingHelper", LOG_LEVEL_ALL);
         LogComponentEnable("ResultManager", LOG_LEVEL_ALL);
         LogComponentEnable("TransmitterApp", LOG_LEVEL_ALL);
         LogComponentEnable("ApplicationBase", LOG_LEVEL_ALL);
@@ -90,7 +93,7 @@ int main (int argc, char *argv[]) {
     } else if (usePpfsSwitches) {
         topologyBuilder = new TopologyBuilder<PpfsSwitch>;
     }
-    // TopologyBuilder<SdnSwitch> topologyBuilder;
+
     topologyBuilder->CreateNodes(rootNode);
     auto transmitOnLink{topologyBuilder->BuildNetworkTopology(rootNode)};
     topologyBuilder->AssignIpToTerminals();
@@ -106,6 +109,8 @@ int main (int argc, char *argv[]) {
         routingHelper = new RoutingHelper<PpfsSwitch>;
     }
     routingHelper->BuildRoutingTable(flows, transmitOnLink);
+
+    topologyBuilder->ReconcileRoutingTables(); // Reconcile the routing tables. Useful only for PPFS switches
 
     ApplicationHelper appHelper;
     appHelper.InstallApplicationsOnTerminals(flows, topologyBuilder->GetTerminals(), usePpfsSwitches);
@@ -123,7 +128,8 @@ int main (int argc, char *argv[]) {
     Simulator::Stop(Time(stopTime));
 
     // Set the buffer size
-    Config::Set("/NodeList/*/DeviceList/*/$ns3::PointToPointNetDevice/TxQueue/$ns3::DropTailQueue<Packet>/MaxSize", QueueSizeValue(QueueSize("1000000p")));
+    Config::Set("/NodeList/*/DeviceList/*/$ns3::PointToPointNetDevice/TxQueue/$ns3::DropTailQueue<Packet>/MaxSize",
+                QueueSizeValue(QueueSize("1000000p")));
 
     Simulator::Run();
     Simulator::Stop();
@@ -131,10 +137,10 @@ int main (int argc, char *argv[]) {
     ResultManager resultManager;
     resultManager.AddGoodputResults(appHelper.GetReceiverApps());
     resultManager.AddDelayResults(appHelper.GetTransmitterApps(), appHelper.GetReceiverApps());
-    resultManager.SaveFile(outputFile.c_str());
+    resultManager.SaveFile(outputFile);
 
     // Save the flow monitor result file
-    flowMonHelper.SerializeToXmlFile(flowMonitorOutpuFile, false, false);
+    flowMonHelper.SerializeToXmlFile(flowMonitorOutputFile, false, false);
 
     Simulator::Destroy();
 
