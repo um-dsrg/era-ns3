@@ -17,9 +17,9 @@ ApplicationBase(flow.id), protocol(flow.protocol) {
 }
 
 SinglePathReceiver::~SinglePathReceiver() {
-    rxListenSocket = 0;
+    rxListenSocket = nullptr;
     for (auto& acceptedSocket : m_rxAcceptedSockets) {
-        acceptedSocket = 0;
+        acceptedSocket = nullptr;
     }
 }
 
@@ -59,7 +59,6 @@ void SinglePathReceiver::HandleAccept(Ptr<Socket> socket, const Address& from) {
 }
 
 void SinglePathReceiver::HandleRead(Ptr<Socket> socket) {
-    NS_LOG_FUNCTION (this << socket);
     Ptr<Packet> packet;
     Address from;
 
@@ -68,7 +67,7 @@ void SinglePathReceiver::HandleRead(Ptr<Socket> socket) {
             break;
         }
 
-        if (m_firstPacketReceived == false) { // Log the time the first packet has been received
+        if (!m_firstPacketReceived) { // Log the time the first packet has been received
             m_firstPacketReceived = true;
             m_firstRxPacket = Simulator::Now();
         }
