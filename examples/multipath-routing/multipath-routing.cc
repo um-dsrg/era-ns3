@@ -4,6 +4,7 @@
 
 #include "ns3/config.h"
 #include "ns3/boolean.h"
+#include "ns3/queue-size.h"
 #include "ns3/command-line.h"
 #include "ns3/flow-monitor-helper.h"
 #include "ns3/point-to-point-helper.h"
@@ -120,6 +121,9 @@ int main (int argc, char *argv[]) {
 
     // Set the simulation stop time
     Simulator::Stop(Time(stopTime));
+
+    // Set the buffer size
+    Config::Set("/NodeList/*/DeviceList/*/$ns3::PointToPointNetDevice/TxQueue/$ns3::DropTailQueue<Packet>/MaxSize", QueueSizeValue(QueueSize("1000000p")));
 
     Simulator::Run();
     Simulator::Stop();
