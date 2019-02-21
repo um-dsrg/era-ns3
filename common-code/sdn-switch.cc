@@ -45,13 +45,14 @@ void SdnSwitch::SetPacketReception() {
 
 void SdnSwitch::PacketReceived(Ptr<NetDevice> incomingPort, Ptr<const Packet> packet, uint16_t protocol,
                                 const Address &src, const Address &dst, NetDevice::PacketType packetType) {
-    NS_LOG_INFO("Switch " << m_id << " received a packet at " << Simulator::Now().GetSeconds() << "s");
+    NS_LOG_INFO("Switch " << m_id << " received a packet at " << Simulator::Now());
     auto parsedFlow = ExtractFlowFromPacket(packet, protocol);
 
     try {
         auto forwardingNetDevice = m_routingTable.at(parsedFlow);
         auto sendSuccess = forwardingNetDevice->Send(packet->Copy(), dst, protocol);
         NS_ABORT_MSG_IF(sendSuccess == false, "Switch " << m_id << " failed to forward packet");
+        NS_LOG_INFO("Switch " << m_id << " forwarded a packet at " << Simulator::Now());
     } catch (const std::out_of_range& oor) {
         NS_ABORT_MSG("Routing table Miss on Switch " << m_id << ".\nFlow Details\n" << parsedFlow);
     }
