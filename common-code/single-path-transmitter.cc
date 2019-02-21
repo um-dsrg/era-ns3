@@ -22,7 +22,7 @@ SinglePathTransmitterApp::SinglePathTransmitterApp(const Flow& flow) : Applicati
     SetApplicationGoodputRate(flow);
 
     // Calculate the transmission interval
-    double pktSizeBits = static_cast<double>(m_dataPacketSize * 8);
+    auto pktSizeBits = static_cast<double>(m_dataPacketSize * 8);
     double transmissionInterval = pktSizeBits / m_dataRateBps;
     NS_ABORT_MSG_IF(transmissionInterval <= 0 || std::isnan(transmissionInterval),
                     "The transmission interval cannot be less than or equal to 0 OR nan. "
@@ -31,7 +31,7 @@ SinglePathTransmitterApp::SinglePathTransmitterApp(const Flow& flow) : Applicati
 }
 
 SinglePathTransmitterApp::~SinglePathTransmitterApp() {
-    txSocket = 0;
+    txSocket = nullptr;
 }
 
 void SinglePathTransmitterApp::StartApplication() {

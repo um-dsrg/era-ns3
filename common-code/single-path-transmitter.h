@@ -25,7 +25,7 @@ class SinglePathTransmitterApp : public ApplicationBase {
     ns3::Address dstAddress; /**< The path's destination address. */
 
 public:
-    SinglePathTransmitterApp (const Flow& flow);
+    explicit SinglePathTransmitterApp (const Flow& flow);
     ~SinglePathTransmitterApp();
 
 private:
