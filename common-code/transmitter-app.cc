@@ -145,6 +145,9 @@ void TransmitterApp::TransmitPacket() {
     pathInfo.txSocket->Send(packet);
 
     LogPacketTime(pktNumber);
+    NS_LOG_INFO("Flow " << m_id << " sent packet " << pktNumber <<
+                " on path " << transmitPathId <<
+                " at " << Simulator::Now());
 
     m_sendEvent = Simulator::Schedule(m_transmissionInterval, &TransmitterApp::TransmitPacket, this);
 }
