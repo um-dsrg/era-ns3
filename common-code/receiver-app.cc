@@ -38,15 +38,21 @@ std::list<Ptr<Packet>> AggregateBuffer::RetrievePacketFromBuffer() {
     return retreivedPackets;
 }
 
+void AggregateBuffer::SetPacketSize(packetSize_t packetSize) {
+    m_packetSize = packetSize;
+    NS_LOG_INFO("The aggregate buffer packet size is: " << m_packetSize);
+}
+
 /**
  ReceiverApp implementation
  */
 std::tuple<packetNumber_t, packetSize_t> ExtractPacketDetails(ns3::Ptr<ns3::Packet> packet);
 
-ReceiverApp::ReceiverApp(const Flow& flow) :
-ApplicationBase(flow.id), protocol(flow.protocol), pktSize(flow.packetSize),
-aggregateBuffer(AggregateBuffer(pktSize + MptcpHeader().GetSerializedSize()))
-{
+ReceiverApp::ReceiverApp(const Flow& flow) : ApplicationBase(flow.id), protocol(flow.protocol) {
+
+    SetDataPacketSize(flow);
+    aggregateBuffer.SetPacketSize(m_dataPacketSize + MptcpHeader().GetSerializedSize());
+
     for (const auto& path : flow.GetDataPaths()) {
         PathInformation pathInfo;
         pathInfo.dstPort = path.dstPort;
@@ -100,13 +106,31 @@ void ReceiverApp::StopApplication() {
     NS_LOG_INFO("Flow " << m_id << " stopped reception.");
 }
 
+packetSize_t ReceiverApp::CalculateHeaderSize(FlowProtocol protocol) {
+    auto headerSize = ApplicationBase::CalculateHeaderSize(protocol);
+
+    // Add the MultiStream TCP header
+    headerSize += MptcpHeader().GetSerializedSize();
+
+    return headerSize;
+}
+
+void ReceiverApp::SetDataPacketSize(const Flow& flow) {
+    m_dataPacketSize = flow.packetSize - CalculateHeaderSize(flow.protocol);
+
+    NS_LOG_INFO("Packet size including headers is: " << flow.packetSize << "bytes\n" <<
+                "Packet size excluding headers is: " << m_dataPacketSize <<"bytes");
+}
+
+
 void ReceiverApp::HandleAccept (Ptr<Socket> socket, const Address& from) {
     socket->SetRecvCallback(MakeCallback(&ReceiverApp::HandleRead, this));
     m_rxAcceptedSockets.push_back(socket);
 }
 
 void ReceiverApp::HandleRead(Ptr<Socket> socket) {
-    NS_LOG_FUNCTION (this << socket);
+    NS_LOG_INFO("Flow " << m_id << " received some packets.");
+
     Ptr<Packet> packet;
     Address from;
 

@@ -22,8 +22,10 @@ class AggregateBuffer {
     std::vector<uint8_t> m_buffer;
 
 public:
-    AggregateBuffer() = delete;
+    AggregateBuffer() = default;
     AggregateBuffer(packetSize_t packetSize);
+
+    void SetPacketSize(packetSize_t packetSize);
 
     void AddPacketToBuffer (ns3::Ptr<ns3::Packet> packet);
     std::list<ns3::Ptr<ns3::Packet>> RetrievePacketFromBuffer();
@@ -39,7 +41,7 @@ class ReceiverApp : public ApplicationBase {
     std::vector<PathInformation> m_pathInfoContainer;
 
     FlowProtocol protocol{FlowProtocol::Undefined};
-    packetSize_t pktSize{0};
+    packetSize_t m_dataPacketSize{0}; /**< The data packet size in bytes. */
     AggregateBuffer aggregateBuffer;
 
     /**
@@ -63,6 +65,9 @@ public:
 private:
     void StartApplication();
     void StopApplication();
+
+    packetSize_t CalculateHeaderSize(FlowProtocol protocol);
+    void SetDataPacketSize(const Flow& flow);
 
     void HandleAccept(ns3::Ptr<ns3::Socket> socket, const ns3::Address& from);
     void HandleRead(ns3::Ptr<ns3::Socket> socket);
