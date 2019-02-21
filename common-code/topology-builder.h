@@ -22,6 +22,7 @@
 #include "definitions.h"
 #include "custom-device.h"
 
+
 using namespace ns3;
 using namespace tinyxml2;
 
@@ -35,6 +36,7 @@ public:
     virtual void AssignIpToTerminals () = 0;
     virtual Flow::FlowContainer ParseFlows (XMLNode *rootNode) = 0;
     virtual void EnablePacketReceptionOnSwitches () = 0;
+    virtual void ReconcileRoutingTables() = 0;
 
 };
 
@@ -53,6 +55,7 @@ public:
     void AssignIpToTerminals ();
     Flow::FlowContainer ParseFlows (XMLNode *rootNode);
     void EnablePacketReceptionOnSwitches ();
+    void ReconcileRoutingTables();
 
 private:
     /**< Key: Path ID | Value: source port, destination port */

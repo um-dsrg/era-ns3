@@ -1,3 +1,4 @@
+#include "sdn-switch.h"
 #include "ppfs-switch.h"
 #include "topology-builder.h"
 
@@ -71,11 +72,26 @@ void TopologyBuilder<PpfsSwitch>::AddAckPaths(Flow& flow, XMLElement* flowElemen
     flow.AddAckShortestPath(ackPath);
 }
 
+template <>
+void TopologyBuilder<SdnSwitch>::ReconcileRoutingTables() {
+}
+
+template <>
+void TopologyBuilder<PpfsSwitch>::ReconcileRoutingTables() {
+    NS_LOG_INFO("Reconciling the routing tables.\n"
+                "NOTE This function should only be invoked for PPFS switches");
+
+    for (auto& switchPair : m_switches) {
+        auto& switchObject {switchPair.second};
+        switchObject.ReconcileSplitRatios();
+    }
+}
+
 /**
  Shuffles the XML Link elements in place.
 
  @param linkElements[in,out] Vector of link elements.
  */
 void ShuffleLinkElements (std::vector<XMLElement *> &linkElements) {
-    std::random_shuffle (linkElements.begin (), linkElements.end ());
+    std::random_shuffle(linkElements.begin (), linkElements.end ());
 }
