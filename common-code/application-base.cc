@@ -1,5 +1,6 @@
 #include "ns3/log.h"
 #include "ns3/simulator.h"
+#include "ns3/ppp-header.h"
 #include "ns3/ipv4-header.h"
 #include "ns3/tcp-socket-factory.h"
 #include "ns3/udp-socket-factory.h"
@@ -57,7 +58,7 @@ packetSize_t ApplicationBase::CalculateHeaderSize(FlowProtocol protocol) {
     headerSize += Ipv4Header().GetSerializedSize();
 
     // Add Point To Point size
-    headerSize += 2;
+    headerSize += PppHeader().GetSerializedSize();
 
     return headerSize;
 }
