@@ -25,6 +25,7 @@ bool PpfsSwitch::ForwardingAction::operator<(const PpfsSwitch::ForwardingAction 
 /**
  PpfsSwitch implementation
  */
+
 PpfsSwitch::PpfsSwitch(id_t id) : SwitchBase(id) {
     m_uniformRandomVariable = RandomGeneratorManager::CreateUniformRandomVariable(0.0, 1.0);
 }
@@ -32,41 +33,44 @@ PpfsSwitch::PpfsSwitch(id_t id) : SwitchBase(id) {
 void PpfsSwitch::AddEntryToRoutingTable(uint32_t srcIp, uint32_t dstIp, portNum_t srcPort, portNum_t dstPort,
                                         FlowProtocol protocol, splitRatio_t splitRatio,
                                         ns3::Ptr<ns3::NetDevice> forwardingPort) {
-    NS_LOG_INFO("Adding entry to the routing table");
 
+    NS_LOG_INFO("Switch " << m_id << ": Adding entry to routing table");
     RtFlow rtFlow {srcIp, dstIp, srcPort, dstPort, protocol};
 
     if (m_routingTable.find(rtFlow) == m_routingTable.end()) { // New entry
         std::vector<ForwardingAction> forwardingActionList;
         forwardingActionList.emplace_back(ForwardingAction(splitRatio, forwardingPort));
         m_routingTable.emplace(rtFlow, forwardingActionList);
+        NS_LOG_INFO("Adding new flow entry.\nFlow: " << rtFlow << "\nSplit Ratio: " << splitRatio);
     } else { // Update existing entry
         auto& forwardingActionList {m_routingTable.at(rtFlow)};
         forwardingActionList.emplace_back(ForwardingAction(splitRatio, forwardingPort));
+        NS_LOG_INFO("Updating existing entry.\nFlow: " << rtFlow << "\nSplit Ratio: " << splitRatio);
     }
 }
 
 void PpfsSwitch::SetPacketReception() {
     uint32_t numOfDevices = m_node->GetNDevices ();
     NS_ASSERT (numOfDevices > 0);
+
     for (uint32_t currentDevice = 0; currentDevice < numOfDevices; ++currentDevice) {
-        m_node->RegisterProtocolHandler (MakeCallback (&PpfsSwitch::PacketReceived, this),
-                                         /* all protocols */ 0, m_node->GetDevice (currentDevice),
-                                         /* disable promiscuous mode */ false);
+        m_node->RegisterProtocolHandler(MakeCallback (&PpfsSwitch::PacketReceived, this),
+                                        /* all protocols */ 0, m_node->GetDevice (currentDevice),
+                                        /* disable promiscuous mode */ false);
     }
 }
 
 void PpfsSwitch::PacketReceived(Ptr<NetDevice> incomingPort, Ptr<const Packet> packet,
                                 uint16_t protocol, const Address &src, const Address &dst,
                                 NetDevice::PacketType packetType) {
-    NS_LOG_INFO("Switch " << m_id << " received a packet at " << Simulator::Now().GetSeconds() << "s");
+    NS_LOG_INFO("Switch " << m_id << ": Received a packet at " << Simulator::Now().GetSeconds() << "s");
     auto parsedFlow = ExtractFlowFromPacket(packet, protocol);
 
     try {
         auto& forwardingActionList = m_routingTable.at(parsedFlow);
 
         auto randNum = m_uniformRandomVariable->GetValue();
-        auto forwardingNetDevice = ns3::Ptr<ns3::NetDevice>{0};
+        auto forwardingNetDevice = ns3::Ptr<ns3::NetDevice>{nullptr};
 
         for (const auto& forwardingAction : forwardingActionList) {
             if (randNum <= forwardingAction.splitRatio) {
@@ -75,17 +79,31 @@ void PpfsSwitch::PacketReceived(Ptr<NetDevice> incomingPort, Ptr<const Packet> p
             }
         }
 
+        NS_ABORT_MSG_IF(forwardingNetDevice == nullptr,
+                        "Switch " << m_id << ": Failed to find the forwarding port");
         auto sendSuccess = forwardingNetDevice->Send(packet->Copy(), dst, protocol);
         NS_ABORT_MSG_IF(sendSuccess == false, "Switch " << m_id << " failed to forward packet");
     } catch (const std::out_of_range& oor) {
         NS_ABORT_MSG("Routing table Miss on Switch " << m_id << ".\nFlow Details\n" << parsedFlow);
     }
-
 }
 
 void PpfsSwitch::ReconcileSplitRatios() {
+    NS_LOG_INFO("Switch " << m_id << ": Reconciling routing table");
+
     for (auto& routingTableEntry : m_routingTable) {
+
         auto& forwardingActionList = routingTableEntry.second;
+
+        NS_LOG_INFO("Working on Flow\n--------------------\n" << routingTableEntry.first <<
+                    "--------------------\n"
+                    "Split ratios before reconciliation:\n"
+                    "--------------------");
+
+        for (const auto& forwardingAction : forwardingActionList) {
+            NS_LOG_INFO("Spilt Ratio: " << forwardingAction.splitRatio);
+        }
+        NS_LOG_INFO("--------------------");
 
         auto total = splitRatio_t{0.0};
 
@@ -102,9 +120,20 @@ void PpfsSwitch::ReconcileSplitRatios() {
             forwardingAction.splitRatio = (forwardingAction.splitRatio / total);
         }
 
+        // Convert to cumulative split ratios
+        for (size_t i = 1; i < forwardingActionList.size(); ++i) {
+            forwardingActionList[i].splitRatio += forwardingActionList[i-1].splitRatio;
+        }
+
         if (Abs(forwardingActionList.back().splitRatio - 1.0) <= 1e-5) {
             forwardingActionList.back().splitRatio = 1.0;
         }
+
+        NS_LOG_INFO("Split ratios after reconciliation:\n--------------------");
+        for (const auto& forwardingAction : forwardingActionList) {
+            NS_LOG_INFO("Spilt Ratio: " << forwardingAction.splitRatio);
+        }
+        NS_LOG_INFO("--------------------");
 
         NS_ABORT_MSG_IF(forwardingActionList.back().splitRatio != 1.0,
                         "Switch: " << m_id << "\n" <<
