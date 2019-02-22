@@ -1,7 +1,9 @@
 #include <math.h>
 #include <algorithm>
+#include <boost/numeric/conversion/cast.hpp>
 
 #include "ns3/log.h"
+#include "ns3/socket.h"
 #include "ns3/uinteger.h"
 #include "ns3/simulator.h"
 #include "ns3/tcp-socket.h"
@@ -57,8 +59,10 @@ TransmitterApp::TransmitterApp(const Flow& flow) : ApplicationBase(flow.id) {
     std::sort(m_pathSplitRatio.begin(), m_pathSplitRatio.end(), std::greater<>());
 
     // Calculate the cumulative split ratio
+    NS_LOG_INFO("Path: " << m_pathSplitRatio[0].second << " Split Ratio: " << m_pathSplitRatio[0].first);
     for (size_t index = 1; index < m_pathSplitRatio.size(); ++index) {
         m_pathSplitRatio[index].first += m_pathSplitRatio[index - 1].first;
+        NS_LOG_INFO("Path: " << m_pathSplitRatio[index].second << " Split Ratio: " << m_pathSplitRatio[index].first);
     }
 
     // Setup the random number generator
@@ -96,7 +100,7 @@ TransmitterApp::~TransmitterApp() {
 }
 
 void TransmitterApp::StartApplication() {
-    NS_LOG_INFO("Flow " << m_id << " started transmitting.");
+    NS_LOG_INFO("Flow " << m_id << " started transmitting on multiple paths");
 
     // Initialise socket connections
     for (const auto& pathPair : m_pathInfoContainer) {
@@ -142,7 +146,67 @@ void TransmitterApp::TransmitPacket() {
     mptcpHeader.SetPacketNumber(pktNumber);
     Ptr<Packet> packet = Create<Packet>(m_dataPacketSize);
     packet->AddHeader(mptcpHeader);
-    pathInfo.txSocket->Send(packet);
+    auto numBytesSent = pathInfo.txSocket->Send(packet);
+
+    if (numBytesSent == -1) {
+        std::stringstream ss;
+        ss << "Packet " << pktNumber << " failed to transmit. Packet size " << packet->GetSize() << "\n";
+        auto error = pathInfo.txSocket->GetErrno();
+
+        switch (error) {
+            case Socket::SocketErrno::ERROR_NOTERROR:
+                ss << "ERROR_NOTERROR";
+                break;
+            case Socket::SocketErrno::ERROR_ISCONN:
+                ss << "ERROR_ISCONN";
+                break;
+            case Socket::SocketErrno::ERROR_NOTCONN:
+                ss << "ERROR_NOTCONN";
+                break;
+            case Socket::SocketErrno::ERROR_MSGSIZE:
+                ss << "ERROR_MSGSIZE";
+                break;
+            case Socket::SocketErrno::ERROR_AGAIN:
+                ss << "ERROR_AGAIN";
+                break;
+            case Socket::SocketErrno::ERROR_SHUTDOWN:
+                ss << "ERROR_SHUTDOWN";
+                break;
+            case Socket::SocketErrno::ERROR_OPNOTSUPP:
+                ss << "ERROR_OPNOTSUPP";
+                break;
+            case Socket::SocketErrno::ERROR_AFNOSUPPORT:
+                ss << "ERROR_AFNOSUPPORT";
+                break;
+            case Socket::SocketErrno::ERROR_INVAL:
+                ss << "ERROR_INVAL";
+                break;
+            case Socket::SocketErrno::ERROR_BADF:
+                ss << "ERROR_BADF";
+                break;
+            case Socket::SocketErrno::ERROR_NOROUTETOHOST:
+                ss << "ERROR_NOROUTETOHOST";
+                break;
+            case Socket::SocketErrno::ERROR_NODEV:
+                ss << "ERROR_NODEV";
+                break;
+            case Socket::SocketErrno::ERROR_ADDRNOTAVAIL:
+                ss << "ERROR_ADDRNOTAVAIL";
+                break;
+            case Socket::SocketErrno::ERROR_ADDRINUSE:
+                ss << "ERROR_ADDRINUSE";
+                break;
+            case Socket::SocketErrno::SOCKET_ERRNO_LAST:
+                ss << "SOCKET_ERRNO_LAST";
+                break;
+        }
+
+        NS_ABORT_MSG(ss.str());
+    }
+
+    NS_ABORT_MSG_IF(boost::numeric_cast<uint32_t>(numBytesSent) != packet->GetSize(),
+                    "Packet " << pktNumber << " was not transmitted all. Packet Size: " << packet->GetSize() << " " <<
+                    "Transmitted bytes " << numBytesSent);
 
     LogPacketTime(pktNumber);
     NS_LOG_INFO("Flow " << m_id << " sent packet " << pktNumber <<
