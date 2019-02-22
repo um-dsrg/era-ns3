@@ -129,7 +129,7 @@ void ReceiverApp::HandleAccept (Ptr<Socket> socket, const Address& from) {
 }
 
 void ReceiverApp::HandleRead(Ptr<Socket> socket) {
-    NS_LOG_INFO("Flow " << m_id << " received some packets.");
+    NS_LOG_INFO("Flow " << m_id << " received some packets at " << Simulator::Now());
 
     Ptr<Packet> packet;
     Address from;
@@ -139,7 +139,7 @@ void ReceiverApp::HandleRead(Ptr<Socket> socket) {
             break;
         }
 
-        if (m_firstPacketReceived == false) { // Log the time the first packet has been received
+        if (!m_firstPacketReceived) { // Log the time the first packet has been received
             m_firstPacketReceived = true;
             m_firstRxPacket = Simulator::Now();
         }
@@ -148,43 +148,50 @@ void ReceiverApp::HandleRead(Ptr<Socket> socket) {
 
         aggregateBuffer.AddPacketToBuffer(packet);
 
-        auto retreivedPackets {aggregateBuffer.RetrievePacketFromBuffer()};
+        auto retrievedPackets {aggregateBuffer.RetrievePacketFromBuffer()};
 
-        for (auto& retreivedPacket : retreivedPackets) {
+        for (auto& retrievedPacket : retrievedPackets) {
             packetNumber_t packetNumber;
             packetSize_t packetSize;
-            std::tie(packetNumber, packetSize) = ExtractPacketDetails(retreivedPacket);
+            std::tie(packetNumber, packetSize) = ExtractPacketDetails(retrievedPacket);
 
-            NS_LOG_INFO("Packet Number " << packetNumber << " received");
-            NS_LOG_INFO("Packet size " << packetSize << "bytes");
+            NS_LOG_INFO("Expected packet number: " << m_expectedPacketNum);
+            NS_LOG_INFO("Packet " << packetNumber << " received at " << Simulator::Now() <<
+                        " data packet size " << packetSize << "bytes");
 
             NS_ASSERT(packetNumber >= m_expectedPacketNum);
 
             if (packetNumber == m_expectedPacketNum) {
                 LogPacketTime(packetNumber);
                 m_totalRecvBytes += packetSize;
+                NS_LOG_INFO("The expected packet is received. Total Received bytes " << m_totalRecvBytes);
 
                 m_expectedPacketNum++;
                 popInOrderPacketsFromQueue();
             } else {
+                NS_LOG_INFO("Packet " << packetNumber << " stored in the buffer");
                 m_recvBuffer.push(std::make_pair(packetNumber, packetSize));
             }
         }
-
-        NS_LOG_INFO("Total Received bytes " << m_totalRecvBytes);
     }
 }
 
 void ReceiverApp::popInOrderPacketsFromQueue() {
     bufferContents_t const * topElement = &m_recvBuffer.top();
 
+    NS_LOG_INFO("Checking contents of the buffer. Expected packet number: " << m_expectedPacketNum);
+
     while (!m_recvBuffer.empty() && topElement->first == m_expectedPacketNum) {
         m_totalRecvBytes += topElement->second;
         LogPacketTime(m_expectedPacketNum);
 
+        NS_LOG_INFO("Retrieved packet " << topElement->first << " from the buffer.\n" <<
+                    "Total received bytes: " << m_totalRecvBytes << "\n");
+
         m_expectedPacketNum++;
         m_recvBuffer.pop();
         topElement = &m_recvBuffer.top();
+        NS_LOG_INFO("Expected packet number: " << m_expectedPacketNum);
     }
 }
 

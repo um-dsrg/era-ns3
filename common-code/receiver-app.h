@@ -23,7 +23,7 @@ class AggregateBuffer {
 
 public:
     AggregateBuffer() = default;
-    AggregateBuffer(packetSize_t packetSize);
+    explicit AggregateBuffer(packetSize_t packetSize);
 
     void SetPacketSize(packetSize_t packetSize);
 
@@ -73,8 +73,7 @@ private:
     void HandleRead(ns3::Ptr<ns3::Socket> socket);
 
     /* Buffer related variables */
-    // TODO: Set this to a class to make the code more readable, a class may be worthwhile because we need
-    //to log this
+    // TODO: Set this to a class to make the code more readable, a class may be worthwhile because we need to log this
     packetNumber_t m_expectedPacketNum{0};
     void popInOrderPacketsFromQueue();
     typedef std::pair<packetNumber_t, packetSize_t> bufferContents_t;
