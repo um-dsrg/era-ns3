@@ -32,7 +32,6 @@ Ptr<Socket> ApplicationBase::CreateSocket(Ptr<Node> srcNode, FlowProtocol protoc
 }
 
 void ApplicationBase::LogPacketTime(packetNumber_t packetNumber) {
-    NS_LOG_DEBUG("Logging Packet " << packetNumber << " at " << Simulator::Now());
     m_delayLog.emplace(packetNumber, Simulator::Now());
 }
 
