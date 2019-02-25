@@ -13,6 +13,7 @@ SinglePathTransmitterApp::SinglePathTransmitterApp(const Flow& flow) : Applicati
     auto path = flow.GetDataPaths().front();
     srcPort = path.srcPort;
     txSocket = CreateSocket(flow.srcNode->GetNode(), flow.protocol);
+    txSocket->SetSendCallback(MakeCallback(&SinglePathTransmitterApp::TxBufferAvailable, this));
     dstAddress = Address(InetSocketAddress(flow.dstNode->GetIpAddress(), path.dstPort));
 
     // Set the data packet size
@@ -46,7 +47,7 @@ void SinglePathTransmitterApp::StartApplication() {
         NS_ABORT_MSG("Failed to connect socket");
     }
 
-    TransmitPacket();
+    SchedulePacketTransmission();
 }
 
 void SinglePathTransmitterApp::StopApplication() {
@@ -54,72 +55,87 @@ void SinglePathTransmitterApp::StopApplication() {
     Simulator::Cancel (m_sendEvent);
 }
 
-void SinglePathTransmitterApp::TransmitPacket() {
-    Ptr<Packet> packet = Create<Packet>(m_dataPacketSize);
-    auto numBytesSent = txSocket->Send(packet);
+void SinglePathTransmitterApp::SchedulePacketTransmission() {
+    m_txBuffer.emplace_back(m_packetNumber++);
+    SendPackets(txSocket);
+    m_sendEvent = Simulator::Schedule(m_transmissionInterval, &SinglePathTransmitterApp::SchedulePacketTransmission, this);
+}
 
-    if (numBytesSent == -1) {
-        std::stringstream ss;
-        ss << "Packet " << m_packetNumber << " failed to transmit. Packet size " << packet->GetSize() << "\n";
-        auto error = txSocket->Send(packet);
+void SinglePathTransmitterApp::TxBufferAvailable(ns3::Ptr<ns3::Socket> socket, uint32_t txSpace) {
+    if (txSpace >= m_dataPacketSize) {
+        SendPackets(socket);
+    }
+}
 
-        switch (error) {
-            case Socket::SocketErrno::ERROR_NOTERROR:
-                ss << "ERROR_NOTERROR";
-                break;
-            case Socket::SocketErrno::ERROR_ISCONN:
-                ss << "ERROR_ISCONN";
-                break;
-            case Socket::SocketErrno::ERROR_NOTCONN:
-                ss << "ERROR_NOTCONN";
-                break;
-            case Socket::SocketErrno::ERROR_MSGSIZE:
-                ss << "ERROR_MSGSIZE";
-                break;
-            case Socket::SocketErrno::ERROR_AGAIN:
-                ss << "ERROR_AGAIN";
-                break;
-            case Socket::SocketErrno::ERROR_SHUTDOWN:
-                ss << "ERROR_SHUTDOWN";
-                break;
-            case Socket::SocketErrno::ERROR_OPNOTSUPP:
-                ss << "ERROR_OPNOTSUPP";
-                break;
-            case Socket::SocketErrno::ERROR_AFNOSUPPORT:
-                ss << "ERROR_AFNOSUPPORT";
-                break;
-            case Socket::SocketErrno::ERROR_INVAL:
-                ss << "ERROR_INVAL";
-                break;
-            case Socket::SocketErrno::ERROR_BADF:
-                ss << "ERROR_BADF";
-                break;
-            case Socket::SocketErrno::ERROR_NOROUTETOHOST:
-                ss << "ERROR_NOROUTETOHOST";
-                break;
-            case Socket::SocketErrno::ERROR_NODEV:
-                ss << "ERROR_NODEV";
-                break;
-            case Socket::SocketErrno::ERROR_ADDRNOTAVAIL:
-                ss << "ERROR_ADDRNOTAVAIL";
-                break;
-            case Socket::SocketErrno::ERROR_ADDRINUSE:
-                ss << "ERROR_ADDRINUSE";
-                break;
-            case Socket::SocketErrno::SOCKET_ERRNO_LAST:
-                ss << "SOCKET_ERRNO_LAST";
-                break;
-            default:
-                ss << "UNKNOWN ERROR!";
+void SinglePathTransmitterApp::SendPackets(ns3::Ptr<ns3::Socket> socket) {
+    while(socket->GetTxAvailable() >= m_dataPacketSize && !m_txBuffer.empty()) {
+        auto packetNumber = m_txBuffer.front();
+        NS_LOG_INFO("Flow " << m_id << " transmitting packet " << packetNumber << " at " << Simulator::Now());
+
+        Ptr<Packet> packet = Create<Packet>(m_dataPacketSize);
+        auto numBytesSent = txSocket->Send(packet);
+
+        if (numBytesSent == -1) {
+            std::stringstream ss;
+            ss << "Packet " << packetNumber << " failed to transmit. Packet size " << packet->GetSize() << "\n";
+            auto error = txSocket->Send(packet);
+
+            switch (error) {
+                case Socket::SocketErrno::ERROR_NOTERROR:
+                    ss << "ERROR_NOTERROR";
+                    break;
+                case Socket::SocketErrno::ERROR_ISCONN:
+                    ss << "ERROR_ISCONN";
+                    break;
+                case Socket::SocketErrno::ERROR_NOTCONN:
+                    ss << "ERROR_NOTCONN";
+                    break;
+                case Socket::SocketErrno::ERROR_MSGSIZE:
+                    ss << "ERROR_MSGSIZE";
+                    break;
+                case Socket::SocketErrno::ERROR_AGAIN:
+                    ss << "ERROR_AGAIN";
+                    break;
+                case Socket::SocketErrno::ERROR_SHUTDOWN:
+                    ss << "ERROR_SHUTDOWN";
+                    break;
+                case Socket::SocketErrno::ERROR_OPNOTSUPP:
+                    ss << "ERROR_OPNOTSUPP";
+                    break;
+                case Socket::SocketErrno::ERROR_AFNOSUPPORT:
+                    ss << "ERROR_AFNOSUPPORT";
+                    break;
+                case Socket::SocketErrno::ERROR_INVAL:
+                    ss << "ERROR_INVAL";
+                    break;
+                case Socket::SocketErrno::ERROR_BADF:
+                    ss << "ERROR_BADF";
+                    break;
+                case Socket::SocketErrno::ERROR_NOROUTETOHOST:
+                    ss << "ERROR_NOROUTETOHOST";
+                    break;
+                case Socket::SocketErrno::ERROR_NODEV:
+                    ss << "ERROR_NODEV";
+                    break;
+                case Socket::SocketErrno::ERROR_ADDRNOTAVAIL:
+                    ss << "ERROR_ADDRNOTAVAIL";
+                    break;
+                case Socket::SocketErrno::ERROR_ADDRINUSE:
+                    ss << "ERROR_ADDRINUSE";
+                    break;
+                case Socket::SocketErrno::SOCKET_ERRNO_LAST:
+                    ss << "SOCKET_ERRNO_LAST";
+                    break;
+                default:
+                    ss << "UNKNOWN ERROR!";
+            }
+
+            NS_ABORT_MSG(ss.str());
         }
 
-        NS_ABORT_MSG(ss.str());
+        LogPacketTime(packetNumber);
+        m_txBuffer.pop_front();
     }
-
-    LogPacketTime(m_packetNumber);
-    m_packetNumber++;
-
-    m_sendEvent = Simulator::Schedule(m_transmissionInterval, &SinglePathTransmitterApp::TransmitPacket, this);
 }
 
 void SinglePathTransmitterApp::SetDataPacketSize(const Flow& flow) {

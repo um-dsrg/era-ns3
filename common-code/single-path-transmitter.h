@@ -1,6 +1,8 @@
 #ifndef single_path_transmitter_h
 #define single_path_transmitter_h
 
+#include <list>
+
 #include "ns3/nstime.h"
 #include "ns3/socket.h"
 #include "ns3/event-id.h"
@@ -23,6 +25,7 @@ class SinglePathTransmitterApp : public ApplicationBase {
     portNum_t srcPort;
     ns3::Ptr<ns3::Socket> txSocket; /**< The socket to transmit data on the given path. */
     ns3::Address dstAddress; /**< The path's destination address. */
+    std::list<packetNumber_t> m_txBuffer; /**< Socket level transmit buffer */
 
 public:
     explicit SinglePathTransmitterApp (const Flow& flow);
@@ -31,7 +34,10 @@ public:
 private:
     void StartApplication();
     void StopApplication();
-    void TransmitPacket();
+
+    void SchedulePacketTransmission();
+    void TxBufferAvailable(ns3::Ptr<ns3::Socket> socket, uint32_t txSpace);
+    void SendPackets(ns3::Ptr<ns3::Socket> socket);
 
     void SetDataPacketSize(const Flow& flow);
     void SetApplicationGoodputRate(const Flow& flow);
