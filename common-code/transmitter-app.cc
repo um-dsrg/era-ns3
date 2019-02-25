@@ -21,17 +21,21 @@ TransmitterApp::TransmitterApp(const Flow& flow) : ApplicationBase(flow.id) {
         PathInformation pathInfo;
         pathInfo.srcPort = path.srcPort;
         pathInfo.txSocket = CreateSocket(flow.srcNode->GetNode(), flow.protocol);
+        pathInfo.txSocket->SetSendCallback(MakeCallback(&TransmitterApp::TxBufferAvailable, this));
         pathInfo.dstAddress = Address(InetSocketAddress(flow.dstNode->GetIpAddress(), path.dstPort));
 
+        // Create entry in the socket transmit buffer
+        m_socketTxBuffer.emplace(pathInfo.txSocket, std::list<packetNumber_t>());
+
         auto ret =  m_pathInfoContainer.emplace(path.id, pathInfo);
-        NS_ABORT_MSG_IF(ret.second == false, "Trying to insert duplicate path: " << path.id <<
-                                             " for flow " << flow.id);
+        NS_ABORT_MSG_IF(!ret.second, "Trying to insert duplicate path: " << path.id <<
+                                     " for flow " << flow.id);
 
         // Calculate the split ratio at path level
         auto splitRatio {path.dataRate.GetBitRate() /
                          static_cast<double>(flow.dataRate.GetBitRate())};
 
-        m_pathSplitRatio.push_back(std::make_pair(splitRatio, path.id));
+        m_pathSplitRatio.emplace_back(std::make_pair(splitRatio, path.id));
         NS_LOG_INFO("Path " << path.id <<
                     " | Flow Data Rate (bps): " << flow.dataRate <<
                     " | Path Data Rate (bps): " << path.dataRate <<
@@ -84,8 +88,8 @@ TransmitterApp::TransmitterApp(const Flow& flow) : ApplicationBase(flow.id) {
     SetApplicationGoodputRate(flow);
 
     // Calculate the transmission interval
-    double pktSizeBits = static_cast<double>(m_dataPacketSize * 8);
-    double transmissionInterval = pktSizeBits / m_dataRateBps;
+    auto pktSizeBits = static_cast<double>(m_dataPacketSize * 8);
+    auto transmissionInterval = double{pktSizeBits / m_dataRateBps};
     NS_ABORT_MSG_IF(transmissionInterval <= 0 || std::isnan(transmissionInterval),
                     "The transmission interval cannot be less than or equal to 0 OR nan. "
                     "Transmission interval: " << transmissionInterval);
@@ -118,7 +122,7 @@ void TransmitterApp::StartApplication() {
         }
     }
 
-    TransmitPacket();
+    SchedulePacketTransmission();
 }
 
 void TransmitterApp::StopApplication() {
@@ -126,94 +130,116 @@ void TransmitterApp::StopApplication() {
     Simulator::Cancel (m_sendEvent);
 }
 
-void TransmitterApp::TransmitPacket() {
+void TransmitterApp::SchedulePacketTransmission() {
     auto randNum = GetRandomNumber();
     auto transmitPathId = id_t{0};
+    bool transmitPathFound {false};
 
     for (const auto& pathSplitPair : m_pathSplitRatio) {
         const auto& splitRatio {pathSplitPair.first};
         if (randNum <= splitRatio) {
             transmitPathId = pathSplitPair.second;
+            transmitPathFound = true;
             break;
         }
     }
 
-    auto& pathInfo = m_pathInfoContainer.at(transmitPathId);
+    NS_ABORT_MSG_IF(!transmitPathFound, "Flow " << m_id << " failed to find a transmit path."
+                                        "Generated random number: " << randNum);
+    NS_LOG_INFO("Flow " << m_id << " trying to send packets on path " << transmitPathId <<
+                " at " << Simulator::Now());
+    auto& txSocket {m_pathInfoContainer.at(transmitPathId).txSocket};
+    m_socketTxBuffer.at(txSocket).emplace_back(m_packetNumber++); // Add packet to the socket's transmit buffer
 
-    auto pktNumber {m_packetNumber++};
+    SendPackets(txSocket); // Transmit the packets
+    m_sendEvent = Simulator::Schedule(m_transmissionInterval, &TransmitterApp::SchedulePacketTransmission, this);
+}
 
-    MptcpHeader mptcpHeader;
-    mptcpHeader.SetPacketNumber(pktNumber);
-    Ptr<Packet> packet = Create<Packet>(m_dataPacketSize);
-    packet->AddHeader(mptcpHeader);
-    auto numBytesSent = pathInfo.txSocket->Send(packet);
+void TransmitterApp::TxBufferAvailable(ns3::Ptr<ns3::Socket> socket, uint32_t txSpace) {
+    NS_LOG_INFO("Transmit buffer is available");
+    if (txSpace >= (m_dataPacketSize + MptcpHeader().GetSerializedSize())) {
+        SendPackets(socket);
+    }
+}
 
-    if (numBytesSent == -1) {
-        std::stringstream ss;
-        ss << "Packet " << pktNumber << " failed to transmit. Packet size " << packet->GetSize() << "\n";
-        auto error = pathInfo.txSocket->GetErrno();
+void TransmitterApp::SendPackets(Ptr<Socket> socket) {
+    auto& packetsToTransmit {m_socketTxBuffer.at(socket)};
 
-        switch (error) {
-            case Socket::SocketErrno::ERROR_NOTERROR:
-                ss << "ERROR_NOTERROR";
-                break;
-            case Socket::SocketErrno::ERROR_ISCONN:
-                ss << "ERROR_ISCONN";
-                break;
-            case Socket::SocketErrno::ERROR_NOTCONN:
-                ss << "ERROR_NOTCONN";
-                break;
-            case Socket::SocketErrno::ERROR_MSGSIZE:
-                ss << "ERROR_MSGSIZE";
-                break;
-            case Socket::SocketErrno::ERROR_AGAIN:
-                ss << "ERROR_AGAIN";
-                break;
-            case Socket::SocketErrno::ERROR_SHUTDOWN:
-                ss << "ERROR_SHUTDOWN";
-                break;
-            case Socket::SocketErrno::ERROR_OPNOTSUPP:
-                ss << "ERROR_OPNOTSUPP";
-                break;
-            case Socket::SocketErrno::ERROR_AFNOSUPPORT:
-                ss << "ERROR_AFNOSUPPORT";
-                break;
-            case Socket::SocketErrno::ERROR_INVAL:
-                ss << "ERROR_INVAL";
-                break;
-            case Socket::SocketErrno::ERROR_BADF:
-                ss << "ERROR_BADF";
-                break;
-            case Socket::SocketErrno::ERROR_NOROUTETOHOST:
-                ss << "ERROR_NOROUTETOHOST";
-                break;
-            case Socket::SocketErrno::ERROR_NODEV:
-                ss << "ERROR_NODEV";
-                break;
-            case Socket::SocketErrno::ERROR_ADDRNOTAVAIL:
-                ss << "ERROR_ADDRNOTAVAIL";
-                break;
-            case Socket::SocketErrno::ERROR_ADDRINUSE:
-                ss << "ERROR_ADDRINUSE";
-                break;
-            case Socket::SocketErrno::SOCKET_ERRNO_LAST:
-                ss << "SOCKET_ERRNO_LAST";
-                break;
+    while(socket->GetTxAvailable() >= (m_dataPacketSize + MptcpHeader().GetSerializedSize()) && !packetsToTransmit.empty()) {
+
+        auto packetNumber = packetsToTransmit.front();
+
+        MptcpHeader mptcpHeader;
+        mptcpHeader.SetPacketNumber(packetNumber);
+        Ptr<Packet> packet = Create<Packet>(m_dataPacketSize);
+        packet->AddHeader(mptcpHeader);
+
+        auto numBytesSent = socket->Send(packet);
+
+        if (numBytesSent == -1) {
+            std::stringstream ss;
+            ss << "Packet " << packetNumber << " failed to transmit. Packet size " << packet->GetSize() << "\n";
+            auto error = socket->GetErrno();
+
+            switch (error) {
+                case Socket::SocketErrno::ERROR_NOTERROR:
+                    ss << "ERROR_NOTERROR";
+                    break;
+                case Socket::SocketErrno::ERROR_ISCONN:
+                    ss << "ERROR_ISCONN";
+                    break;
+                case Socket::SocketErrno::ERROR_NOTCONN:
+                    ss << "ERROR_NOTCONN";
+                    break;
+                case Socket::SocketErrno::ERROR_MSGSIZE:
+                    ss << "ERROR_MSGSIZE";
+                    break;
+                case Socket::SocketErrno::ERROR_AGAIN:
+                    ss << "ERROR_AGAIN";
+                    break;
+                case Socket::SocketErrno::ERROR_SHUTDOWN:
+                    ss << "ERROR_SHUTDOWN";
+                    break;
+                case Socket::SocketErrno::ERROR_OPNOTSUPP:
+                    ss << "ERROR_OPNOTSUPP";
+                    break;
+                case Socket::SocketErrno::ERROR_AFNOSUPPORT:
+                    ss << "ERROR_AFNOSUPPORT";
+                    break;
+                case Socket::SocketErrno::ERROR_INVAL:
+                    ss << "ERROR_INVAL";
+                    break;
+                case Socket::SocketErrno::ERROR_BADF:
+                    ss << "ERROR_BADF";
+                    break;
+                case Socket::SocketErrno::ERROR_NOROUTETOHOST:
+                    ss << "ERROR_NOROUTETOHOST";
+                    break;
+                case Socket::SocketErrno::ERROR_NODEV:
+                    ss << "ERROR_NODEV";
+                    break;
+                case Socket::SocketErrno::ERROR_ADDRNOTAVAIL:
+                    ss << "ERROR_ADDRNOTAVAIL";
+                    break;
+                case Socket::SocketErrno::ERROR_ADDRINUSE:
+                    ss << "ERROR_ADDRINUSE";
+                    break;
+                case Socket::SocketErrno::SOCKET_ERRNO_LAST:
+                    ss << "SOCKET_ERRNO_LAST";
+                    break;
+            }
+
+            NS_ABORT_MSG(ss.str());
         }
 
-        NS_ABORT_MSG(ss.str());
+        NS_ABORT_MSG_IF(boost::numeric_cast<uint32_t>(numBytesSent) != packet->GetSize(),
+                        "Packet " << packetNumber << " was not transmitted all. Packet Size: " << packet->GetSize() << " " <<
+                        "Transmitted bytes " << numBytesSent);
+
+        LogPacketTime(packetNumber);
+        NS_LOG_INFO("Flow " << m_id << " sent packet " << packetNumber << " at " << Simulator::Now());
+        packetsToTransmit.pop_front();
     }
-
-    NS_ABORT_MSG_IF(boost::numeric_cast<uint32_t>(numBytesSent) != packet->GetSize(),
-                    "Packet " << pktNumber << " was not transmitted all. Packet Size: " << packet->GetSize() << " " <<
-                    "Transmitted bytes " << numBytesSent);
-
-    LogPacketTime(pktNumber);
-    NS_LOG_INFO("Flow " << m_id << " sent packet " << pktNumber <<
-                " on path " << transmitPathId <<
-                " at " << Simulator::Now());
-
-    m_sendEvent = Simulator::Schedule(m_transmissionInterval, &TransmitterApp::TransmitPacket, this);
 }
 
 void TransmitterApp::SetDataPacketSize(const Flow& flow) {
