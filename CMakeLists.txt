@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 
-include_directories("$ENV{HOME}/Repositories/Ns3/build")
+include_directories("$ENV{HOME}/Repositories/Ns3/build/debug")
 
 file(GLOB_RECURSE ns3_source_list "src/*.cc" "src/*.h")
 file(GLOB_RECURSE ns3_examples_list "examples/*.cc" "examples/*.h")
