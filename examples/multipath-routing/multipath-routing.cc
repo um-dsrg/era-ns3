@@ -83,9 +83,6 @@ int main (int argc, char *argv[]) {
     XMLNode *rootNode = xmlInputFile.LastChild();
     NS_ABORT_MSG_IF(rootNode == nullptr, "No root node node found");
 
-    // Configure the transmission buffer
-    Config::SetDefault ("ns3::TcpSocket::SndBufSize", UintegerValue(4294967295));
-
     // Configure Selective Acknowledgements
     Config::SetDefault ("ns3::TcpSocketBase::Sack", BooleanValue (useSack));
 
