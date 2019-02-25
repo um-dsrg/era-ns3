@@ -19,12 +19,12 @@
 
 class TransmitterApp : public ApplicationBase {
 public:
-    TransmitterApp (const Flow& flow);
+    explicit TransmitterApp (const Flow& flow);
     virtual ~TransmitterApp();
 
 private:
-    void StartApplication();
-    void StopApplication();
+    void StartApplication() override;
+    void StopApplication() override;
 
     void SchedulePacketTransmission();
     void TxBufferAvailable(ns3::Ptr<ns3::Socket> socket, uint32_t txSpace);
@@ -42,7 +42,7 @@ private:
         ns3::Address dstAddress; /**< The path's destination address. */
     };
 
-    double m_dataRateBps; /**< Application's bit rate in bps. */
+    double m_dataRateBps {0}; /**< Application's bit rate in bps. */
     ns3::Time m_transmissionInterval; /**< The time between packet transmissions. */
     packetSize_t m_dataPacketSize {0}; /**< The data packet size in bytes. */
     packetNumber_t m_packetNumber {0}; /**< The number of the packet currently transmitted. */
@@ -51,7 +51,7 @@ private:
     std::vector<std::pair<double, id_t>> m_pathSplitRatio; /**< Split Ratio | Path Id */
     ns3::EventId m_sendEvent; /**< The Event Id of the pending TransmitPacket event */
     ns3::Ptr<ns3::UniformRandomVariable> m_uniformRandomVariable; /**< Random variable */
-    std::map<ns3::Ptr<ns3::Socket>, std::list<packetNumber_t >> m_socketTxBuffer; /**< Socket level transmit buffer */
+    std::map<ns3::Ptr<ns3::Socket>, std::list<packetNumber_t>> m_socketTxBuffer; /**< Socket level transmit buffer */
 };
 
 #endif /* transmitter_app_h */

@@ -156,7 +156,6 @@ void TransmitterApp::SchedulePacketTransmission() {
 }
 
 void TransmitterApp::TxBufferAvailable(ns3::Ptr<ns3::Socket> socket, uint32_t txSpace) {
-    NS_LOG_INFO("Transmit buffer is available");
     if (txSpace >= (m_dataPacketSize + MptcpHeader().GetSerializedSize())) {
         SendPackets(socket);
     }
