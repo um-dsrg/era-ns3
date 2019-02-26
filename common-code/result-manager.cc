@@ -3,6 +3,8 @@
 #include <iomanip>
 #include <boost/numeric/conversion/cast.hpp>
 
+#include "sdn-switch.h"
+#include "ppfs-switch.h"
 #include "receiver-app.h"
 #include "result-manager.h"
 #include "transmitter-app.h"
@@ -99,6 +101,14 @@ void ResultManager::AddDelayResults(const ApplicationHelper::applicationContaine
     delayElement->InsertFirstChild(comment);
 
     m_rootNode->InsertEndChild(delayElement);
+}
+
+template <>
+void ResultManager::AddQueueStatistics<SdnSwitch>() {
+}
+
+template <>
+void ResultManager::AddQueueStatistics<PpfsSwitch>() {
 }
 
 void ResultManager::SaveFile(const std::string& path) {

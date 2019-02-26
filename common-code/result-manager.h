@@ -13,6 +13,7 @@ public:
     void AddGoodputResults(const ApplicationHelper::applicationContainer_t& receiverApplications);
     void AddDelayResults(const ApplicationHelper::applicationContainer_t& transmitterApplications,
                          const ApplicationHelper::applicationContainer_t& receiverApplications);
+    template <typename SwitchType> void AddQueueStatistics();
     void SaveFile(const std::string& path);
 
 private:
@@ -21,7 +22,6 @@ private:
     tinyxml2::XMLDocument m_xmlDoc;
     tinyxml2::XMLNode* m_rootNode;
 };
-
 
 //class ResultManager
 //{

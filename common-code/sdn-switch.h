@@ -25,6 +25,11 @@ private:
                         ns3::NetDevice::PacketType packetType);
 
     std::map<RtFlow, ns3::Ptr<ns3::NetDevice>> m_routingTable;
+
+    /**
+     * Store the number of packets in the queue for each net device available on the switch.
+     */
+    std::map<ns3::Ptr<ns3::NetDevice>, std::list<uint32_t>> m_netDeviceQueueLog;
 };
 
 #endif /* sdn_switch_h */

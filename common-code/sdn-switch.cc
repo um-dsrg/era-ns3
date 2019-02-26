@@ -48,10 +48,15 @@ void SdnSwitch::PacketReceived(Ptr<NetDevice> incomingPort, Ptr<const Packet> pa
     NS_LOG_INFO("Switch " << m_id << " received a packet at " << Simulator::Now());
     auto parsedFlow = ExtractFlowFromPacket(packet, protocol);
 
+    // Log the number of packets in the queue
+    Ptr<PointToPointNetDevice> p2pDevice = incomingPort->GetObject<PointToPointNetDevice>();
+    auto& netDevQueueLog {m_netDeviceQueueLog.at(p2pDevice)};
+    netDevQueueLog.emplace_back(p2pDevice->GetQueue()->GetNPackets());
+
     try {
         auto forwardingNetDevice = m_routingTable.at(parsedFlow);
         auto sendSuccess = forwardingNetDevice->Send(packet->Copy(), dst, protocol);
-        NS_ABORT_MSG_IF(sendSuccess == false, "Switch " << m_id << " failed to forward packet");
+        NS_ABORT_MSG_IF(!sendSuccess, "Switch " << m_id << " failed to forward packet");
         NS_LOG_INFO("Switch " << m_id << " forwarded a packet at " << Simulator::Now());
     } catch (const std::out_of_range& oor) {
         NS_ABORT_MSG("Routing table Miss on Switch " << m_id << ".\nFlow Details\n" << parsedFlow);

@@ -37,7 +37,6 @@ public:
     virtual Flow::FlowContainer ParseFlows (XMLNode *rootNode) = 0;
     virtual void EnablePacketReceptionOnSwitches () = 0;
     virtual void ReconcileRoutingTables() = 0;
-
 };
 
 /**
@@ -50,6 +49,7 @@ public:
     TopologyBuilder ();
 
     const Terminal::TerminalContainer&  GetTerminals();
+    const std::map<id_t, SwitchType>& GetSwitches();
     void CreateNodes (XMLNode *rootNode);
     std::map<id_t, Ptr<NetDevice>> BuildNetworkTopology (XMLNode *rootNode);
     void AssignIpToTerminals ();
@@ -89,6 +89,11 @@ TopologyBuilder<SwitchType>::TopologyBuilder () : NS_LOG_TEMPLATE_DEFINE ("Topol
 template <class SwitchType>
 const Terminal::TerminalContainer& TopologyBuilder<SwitchType>::GetTerminals() {
     return m_terminals;
+}
+
+template <class SwitchType>
+const std::map<id_t, SwitchType>& TopologyBuilder<SwitchType>::GetSwitches() {
+    return m_switches;
 }
 
 template <class SwitchType>
