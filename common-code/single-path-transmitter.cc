@@ -11,9 +11,9 @@ NS_LOG_COMPONENT_DEFINE("SinglePathTransmitterApp");
 
 SinglePathTransmitterApp::SinglePathTransmitterApp(const Flow& flow) : ApplicationBase(flow.id) {
     auto path = flow.GetDataPaths().front();
-    srcPort = path.srcPort;
-    txSocket = CreateSocket(flow.srcNode->GetNode(), flow.protocol);
+    srcPort = path.srcPort;txSocket = CreateSocket(flow.srcNode->GetNode(), flow.protocol);
     txSocket->SetSendCallback(MakeCallback(&SinglePathTransmitterApp::TxBufferAvailable, this));
+    txSocket->TraceConnectWithoutContext("RTO", MakeCallback(&SinglePathTransmitterApp::RtoChanged, this));
     dstAddress = Address(InetSocketAddress(flow.dstNode->GetIpAddress(), path.dstPort));
 
     // Set the data packet size
@@ -136,6 +136,12 @@ void SinglePathTransmitterApp::SendPackets(ns3::Ptr<ns3::Socket> socket) {
         LogPacketTime(packetNumber);
         m_txBuffer.pop_front();
     }
+}
+
+void SinglePathTransmitterApp::RtoChanged(ns3::Time oldVal, ns3::Time newVal) {
+    NS_LOG_INFO("RTO value changed for flow " << m_id << ".\n" <<
+                "  Old Value " << oldVal.GetSeconds() << "\n" <<
+                "  New Value: " << newVal.GetSeconds());
 }
 
 void SinglePathTransmitterApp::SetDataPacketSize(const Flow& flow) {

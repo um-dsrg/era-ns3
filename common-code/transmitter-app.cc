@@ -22,6 +22,8 @@ TransmitterApp::TransmitterApp(const Flow& flow) : ApplicationBase(flow.id) {
         pathInfo.srcPort = path.srcPort;
         pathInfo.txSocket = CreateSocket(flow.srcNode->GetNode(), flow.protocol);
         pathInfo.txSocket->SetSendCallback(MakeCallback(&TransmitterApp::TxBufferAvailable, this));
+        pathInfo.txSocket->TraceConnect("RTO", std::to_string(path.id),
+                                        MakeCallback(&TransmitterApp::RtoChanged, this));
         pathInfo.dstAddress = Address(InetSocketAddress(flow.dstNode->GetIpAddress(), path.dstPort));
 
         // Create entry in the socket transmit buffer
@@ -256,6 +258,12 @@ void TransmitterApp::SetApplicationGoodputRate(const Flow& flow) {
 
     NS_LOG_INFO("Flow throughput: " << flow.dataRate << "\n" <<
                 "Flow goodput: " << m_dataRateBps << "bps");
+}
+
+void TransmitterApp::RtoChanged(std::string context, ns3::Time oldVal, ns3::Time newVal) {
+    NS_LOG_INFO("RTO value changed for path " << context << ".\n" <<
+                 "  Old Value " << oldVal.GetSeconds() << "\n" <<
+                 "  New Value: " << newVal.GetSeconds());
 }
 
 packetSize_t TransmitterApp::CalculateHeaderSize(FlowProtocol protocol) {

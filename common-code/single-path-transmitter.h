@@ -29,15 +29,17 @@ class SinglePathTransmitterApp : public ApplicationBase {
 
 public:
     explicit SinglePathTransmitterApp (const Flow& flow);
-    ~SinglePathTransmitterApp();
+    ~SinglePathTransmitterApp() override;
 
 private:
-    void StartApplication();
-    void StopApplication();
+    void StartApplication() override;
+    void StopApplication() override;
 
     void SchedulePacketTransmission();
     void TxBufferAvailable(ns3::Ptr<ns3::Socket> socket, uint32_t txSpace);
     void SendPackets(ns3::Ptr<ns3::Socket> socket);
+
+    void RtoChanged(ns3::Time oldVal, ns3::Time newVal);
 
     void SetDataPacketSize(const Flow& flow);
     void SetApplicationGoodputRate(const Flow& flow);

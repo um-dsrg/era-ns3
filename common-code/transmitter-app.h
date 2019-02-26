@@ -33,6 +33,8 @@ private:
     void SetDataPacketSize(const Flow& flow);
     void SetApplicationGoodputRate(const Flow& flow);
 
+    void RtoChanged(std::string context, ns3::Time oldVal, ns3::Time newVal);
+
     packetSize_t CalculateHeaderSize(FlowProtocol protocol);
     inline double GetRandomNumber();
 
