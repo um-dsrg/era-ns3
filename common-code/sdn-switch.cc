@@ -40,6 +40,7 @@ void SdnSwitch::SetPacketReception() {
         m_node->RegisterProtocolHandler (MakeCallback (&SdnSwitch::PacketReceived, this),
                                          /*all protocols*/ 0, m_node->GetDevice (currentDevice),
                                          /*disable promiscuous mode*/ false);
+        m_netDeviceQueueLog.emplace(m_node->GetDevice(currentDevice), std::list<uint32_t>());
     }
 }
 

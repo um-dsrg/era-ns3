@@ -87,6 +87,45 @@ void TopologyBuilder<PpfsSwitch>::ReconcileRoutingTables() {
     }
 }
 
+template <>
+tinyxml2::XMLElement* TopologyBuilder<SdnSwitch>::GetSwitchQueueLoggingElement(XMLDocument& xmlDocument) {
+    XMLElement* queuesElement = xmlDocument.NewElement("Queue");
+    for (const auto& switchPair : m_switches) {
+        auto switchId {switchPair.first};
+        NS_LOG_INFO("Saving the queue elements of switch " << switchId);
+
+        XMLElement* switchElement = xmlDocument.NewElement("Switch");
+        switchElement->SetAttribute("Id", switchId);
+
+        auto netDevCounter = uint32_t{0};
+        const auto& switchInstance {switchPair.second};
+        for (const auto& devLogPair : switchInstance.m_netDeviceQueueLog) {
+            XMLElement* netDevElement = xmlDocument.NewElement("NetDevice");
+            netDevElement->SetAttribute("Id", netDevCounter);
+
+            auto packetCounter = uint32_t{0};
+            for (const auto& queueSize: devLogPair.second) {
+                XMLElement* sizeElement = xmlDocument.NewElement("Packet");
+                sizeElement->SetAttribute("Packet", packetCounter);
+                sizeElement->SetAttribute("NumPktsInQueue", queueSize);
+
+                packetCounter++;
+                netDevElement->InsertEndChild(sizeElement);
+            }
+
+            netDevCounter++;
+            switchElement->InsertEndChild(netDevElement);
+        }
+        queuesElement->InsertEndChild(switchElement);
+    }
+    return queuesElement;
+}
+
+template <>
+tinyxml2::XMLElement* TopologyBuilder<PpfsSwitch>::GetSwitchQueueLoggingElement(XMLDocument& xmlDocument) {
+    return nullptr;
+}
+
 /**
  Shuffles the XML Link elements in place.
 

@@ -103,12 +103,8 @@ void ResultManager::AddDelayResults(const ApplicationHelper::applicationContaine
     m_rootNode->InsertEndChild(delayElement);
 }
 
-template <>
-void ResultManager::AddQueueStatistics<SdnSwitch>() {
-}
-
-template <>
-void ResultManager::AddQueueStatistics<PpfsSwitch>() {
+void ResultManager::AddQueueStatistics(XMLElement* queueElement) {
+    m_rootNode->InsertEndChild(queueElement);
 }
 
 void ResultManager::SaveFile(const std::string& path) {

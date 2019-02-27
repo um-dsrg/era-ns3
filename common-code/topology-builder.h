@@ -37,6 +37,8 @@ public:
     virtual Flow::FlowContainer ParseFlows (XMLNode *rootNode) = 0;
     virtual void EnablePacketReceptionOnSwitches () = 0;
     virtual void ReconcileRoutingTables() = 0;
+
+    virtual tinyxml2::XMLElement* GetSwitchQueueLoggingElement(tinyxml2::XMLDocument& xmlDocument) = 0;
 };
 
 /**
@@ -56,6 +58,9 @@ public:
     Flow::FlowContainer ParseFlows (XMLNode *rootNode);
     void EnablePacketReceptionOnSwitches ();
     void ReconcileRoutingTables();
+
+    // todo Remove this function from this class and create a switch container
+    tinyxml2::XMLElement* GetSwitchQueueLoggingElement(tinyxml2::XMLDocument& xmlDocument);
 
 private:
     /**< Key: Path ID | Value: source port, destination port */

@@ -19,17 +19,17 @@ public:
                                 FlowProtocol protocol, ns3::Ptr<ns3::NetDevice> forwardingPort);
     void SetPacketReception();
 
+    /**
+     * Store the number of packets in the queue for each net device available on the switch.
+     */
+    std::map<ns3::Ptr<ns3::NetDevice>, std::list<uint32_t>> m_netDeviceQueueLog;
+
 private:
     void PacketReceived(ns3::Ptr<ns3::NetDevice> incomingPort, ns3::Ptr<const ns3::Packet> packet,
                         uint16_t protocol, const ns3::Address &src, const ns3::Address &dst,
                         ns3::NetDevice::PacketType packetType);
 
     std::map<RtFlow, ns3::Ptr<ns3::NetDevice>> m_routingTable;
-
-    /**
-     * Store the number of packets in the queue for each net device available on the switch.
-     */
-    std::map<ns3::Ptr<ns3::NetDevice>, std::list<uint32_t>> m_netDeviceQueueLog;
 };
 
 #endif /* sdn_switch_h */

@@ -137,6 +137,12 @@ int main (int argc, char *argv[]) {
     ResultManager resultManager;
     resultManager.AddGoodputResults(appHelper.GetReceiverApps());
     resultManager.AddDelayResults(appHelper.GetTransmitterApps(), appHelper.GetReceiverApps());
+
+    if (useSdnSwitches) {
+        auto queueElement = topologyBuilder->GetSwitchQueueLoggingElement(resultManager.m_xmlDoc);
+        resultManager.AddQueueStatistics(queueElement);
+    }
+
     resultManager.SaveFile(outputFile);
 
     // Save the flow monitor result file
