@@ -103,13 +103,10 @@ tinyxml2::XMLElement* TopologyBuilder<SdnSwitch>::GetSwitchQueueLoggingElement(X
             XMLElement* netDevElement = xmlDocument.NewElement("NetDevice");
             netDevElement->SetAttribute("Id", netDevCounter);
 
-            auto packetCounter = uint32_t{0};
-            for (const auto& queueSize: devLogPair.second) {
+            for (const auto& queueLogPair: devLogPair.second) {
                 XMLElement* sizeElement = xmlDocument.NewElement("Packet");
-                sizeElement->SetAttribute("Packet", packetCounter);
-                sizeElement->SetAttribute("NumPktsInQueue", queueSize);
-
-                packetCounter++;
+                sizeElement->SetAttribute("NumPktsInQueue", queueLogPair.first);
+                sizeElement->SetAttribute("Time", queueLogPair.second.GetNanoSeconds());
                 netDevElement->InsertEndChild(sizeElement);
             }
 

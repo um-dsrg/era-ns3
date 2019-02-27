@@ -22,7 +22,7 @@ public:
     /**
      * Store the number of packets in the queue for each net device available on the switch.
      */
-    std::map<ns3::Ptr<ns3::NetDevice>, std::list<uint32_t>> m_netDeviceQueueLog;
+    std::map<ns3::Ptr<ns3::NetDevice>, std::list<std::pair<uint32_t, ns3::Time>>> m_netDeviceQueueLog;
 
 private:
     void PacketReceived(ns3::Ptr<ns3::NetDevice> incomingPort, ns3::Ptr<const ns3::Packet> packet,

@@ -40,7 +40,8 @@ void SdnSwitch::SetPacketReception() {
         m_node->RegisterProtocolHandler (MakeCallback (&SdnSwitch::PacketReceived, this),
                                          /*all protocols*/ 0, m_node->GetDevice (currentDevice),
                                          /*disable promiscuous mode*/ false);
-        m_netDeviceQueueLog.emplace(m_node->GetDevice(currentDevice), std::list<uint32_t>());
+        m_netDeviceQueueLog.emplace(m_node->GetDevice(currentDevice),
+                                    std::list<std::pair<uint32_t, Time>>());
     }
 }
 
@@ -52,7 +53,7 @@ void SdnSwitch::PacketReceived(Ptr<NetDevice> incomingPort, Ptr<const Packet> pa
     // Log the number of packets in the queue
     Ptr<PointToPointNetDevice> p2pDevice = incomingPort->GetObject<PointToPointNetDevice>();
     auto& netDevQueueLog {m_netDeviceQueueLog.at(p2pDevice)};
-    netDevQueueLog.emplace_back(p2pDevice->GetQueue()->GetNPackets());
+    netDevQueueLog.emplace_back(p2pDevice->GetQueue()->GetNPackets(), Simulator::Now());
 
     try {
         auto forwardingNetDevice = m_routingTable.at(parsedFlow);
