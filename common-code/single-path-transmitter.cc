@@ -12,7 +12,6 @@ NS_LOG_COMPONENT_DEFINE("SinglePathTransmitterApp");
 SinglePathTransmitterApp::SinglePathTransmitterApp(const Flow& flow) : ApplicationBase(flow.id) {
     auto path = flow.GetDataPaths().front();
     srcPort = path.srcPort;txSocket = CreateSocket(flow.srcNode->GetNode(), flow.protocol);
-    txSocket->SetSendCallback(MakeCallback(&SinglePathTransmitterApp::TxBufferAvailable, this));
     txSocket->TraceConnectWithoutContext("RTO", MakeCallback(&SinglePathTransmitterApp::RtoChanged, this));
     dstAddress = Address(InetSocketAddress(flow.dstNode->GetIpAddress(), path.dstPort));
 
@@ -47,7 +46,7 @@ void SinglePathTransmitterApp::StartApplication() {
         NS_ABORT_MSG("Failed to connect socket");
     }
 
-    SchedulePacketTransmission();
+    TransmitPacket();
 }
 
 void SinglePathTransmitterApp::StopApplication() {
@@ -55,30 +54,17 @@ void SinglePathTransmitterApp::StopApplication() {
     Simulator::Cancel (m_sendEvent);
 }
 
-void SinglePathTransmitterApp::SchedulePacketTransmission() {
-    m_txBuffer.emplace_back(m_packetNumber++);
-    SendPackets(txSocket);
-    m_sendEvent = Simulator::Schedule(m_transmissionInterval, &SinglePathTransmitterApp::SchedulePacketTransmission, this);
-}
+void SinglePathTransmitterApp::TransmitPacket() {
 
-void SinglePathTransmitterApp::TxBufferAvailable(ns3::Ptr<ns3::Socket> socket, uint32_t txSpace) {
-    if (txSpace >= m_dataPacketSize) {
-        SendPackets(socket);
-    }
-}
-
-void SinglePathTransmitterApp::SendPackets(ns3::Ptr<ns3::Socket> socket) {
-    while(socket->GetTxAvailable() >= m_dataPacketSize && !m_txBuffer.empty()) {
-        auto packetNumber = m_txBuffer.front();
-        NS_LOG_INFO("Flow " << m_id << " transmitting packet " << packetNumber << " at " << Simulator::Now());
-
+    if (txSocket->GetTxAvailable() >= m_dataPacketSize) {
+        auto packetNumber = m_packetNumber++;
         Ptr<Packet> packet = Create<Packet>(m_dataPacketSize);
         auto numBytesSent = txSocket->Send(packet);
 
         if (numBytesSent == -1) {
             std::stringstream ss;
             ss << "Packet " << packetNumber << " failed to transmit. Packet size " << packet->GetSize() << "\n";
-            auto error = txSocket->Send(packet);
+            auto error = txSocket->GetErrno();
 
             switch (error) {
                 case Socket::SocketErrno::ERROR_NOTERROR:
@@ -126,16 +112,17 @@ void SinglePathTransmitterApp::SendPackets(ns3::Ptr<ns3::Socket> socket) {
                 case Socket::SocketErrno::SOCKET_ERRNO_LAST:
                     ss << "SOCKET_ERRNO_LAST";
                     break;
-                default:
-                    ss << "UNKNOWN ERROR!";
             }
 
             NS_ABORT_MSG(ss.str());
         }
 
         LogPacketTime(packetNumber);
-        m_txBuffer.pop_front();
+        NS_LOG_INFO("Flow " << m_id << " sent packet " << packetNumber << " at " << Simulator::Now());
     }
+
+    m_sendEvent = Simulator::Schedule(m_transmissionInterval,
+                                      &SinglePathTransmitterApp::TransmitPacket, this);
 }
 
 void SinglePathTransmitterApp::RtoChanged(ns3::Time oldVal, ns3::Time newVal) {

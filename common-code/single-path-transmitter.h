@@ -34,10 +34,7 @@ public:
 private:
     void StartApplication() override;
     void StopApplication() override;
-
-    void SchedulePacketTransmission();
-    void TxBufferAvailable(ns3::Ptr<ns3::Socket> socket, uint32_t txSpace);
-    void SendPackets(ns3::Ptr<ns3::Socket> socket);
+    void TransmitPacket();
 
     void RtoChanged(ns3::Time oldVal, ns3::Time newVal);
 
