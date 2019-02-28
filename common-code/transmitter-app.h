@@ -25,17 +25,14 @@ public:
 private:
     void StartApplication() override;
     void StopApplication() override;
-
-    void SchedulePacketTransmission();
-    void TxBufferAvailable(ns3::Ptr<ns3::Socket> socket, uint32_t txSpace);
-    void SendPackets(ns3::Ptr<ns3::Socket> socket);
+    void TransmitPacket();
 
     void SetDataPacketSize(const Flow& flow);
     void SetApplicationGoodputRate(const Flow& flow);
 
     void RtoChanged(std::string context, ns3::Time oldVal, ns3::Time newVal);
 
-    packetSize_t CalculateHeaderSize(FlowProtocol protocol);
+    packetSize_t CalculateHeaderSize(FlowProtocol protocol) override;
     inline double GetRandomNumber();
 
     struct PathInformation {

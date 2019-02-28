@@ -21,7 +21,6 @@ TransmitterApp::TransmitterApp(const Flow& flow) : ApplicationBase(flow.id) {
         PathInformation pathInfo;
         pathInfo.srcPort = path.srcPort;
         pathInfo.txSocket = CreateSocket(flow.srcNode->GetNode(), flow.protocol);
-        pathInfo.txSocket->SetSendCallback(MakeCallback(&TransmitterApp::TxBufferAvailable, this));
         pathInfo.txSocket->TraceConnect("RTO", std::to_string(path.id),
                                         MakeCallback(&TransmitterApp::RtoChanged, this));
         pathInfo.dstAddress = Address(InetSocketAddress(flow.dstNode->GetIpAddress(), path.dstPort));
@@ -124,7 +123,7 @@ void TransmitterApp::StartApplication() {
         }
     }
 
-    SchedulePacketTransmission();
+    TransmitPacket();
 }
 
 void TransmitterApp::StopApplication() {
@@ -132,7 +131,9 @@ void TransmitterApp::StopApplication() {
     Simulator::Cancel (m_sendEvent);
 }
 
-void TransmitterApp::SchedulePacketTransmission() {
+
+void TransmitterApp::TransmitPacket() {
+
     auto randNum = GetRandomNumber();
     auto transmitPathId = id_t{0};
     bool transmitPathFound {false};
@@ -148,39 +149,24 @@ void TransmitterApp::SchedulePacketTransmission() {
 
     NS_ABORT_MSG_IF(!transmitPathFound, "Flow " << m_id << " failed to find a transmit path."
                                         "Generated random number: " << randNum);
-    NS_LOG_INFO("Flow " << m_id << " trying to send packets on path " << transmitPathId <<
-                " at " << Simulator::Now());
+
+    // Packet transmission
     auto& txSocket {m_pathInfoContainer.at(transmitPathId).txSocket};
-    m_socketTxBuffer.at(txSocket).emplace_back(m_packetNumber++); // Add packet to the socket's transmit buffer
 
-    SendPackets(txSocket); // Transmit the packets
-    m_sendEvent = Simulator::Schedule(m_transmissionInterval, &TransmitterApp::SchedulePacketTransmission, this);
-}
-
-void TransmitterApp::TxBufferAvailable(ns3::Ptr<ns3::Socket> socket, uint32_t txSpace) {
-    if (txSpace >= (m_dataPacketSize + MptcpHeader().GetSerializedSize())) {
-        SendPackets(socket);
-    }
-}
-
-void TransmitterApp::SendPackets(Ptr<Socket> socket) {
-    auto& packetsToTransmit {m_socketTxBuffer.at(socket)};
-
-    while(socket->GetTxAvailable() >= (m_dataPacketSize + MptcpHeader().GetSerializedSize()) && !packetsToTransmit.empty()) {
-
-        auto packetNumber = packetsToTransmit.front();
+    if (txSocket->GetTxAvailable() >= (m_dataPacketSize + MptcpHeader().GetSerializedSize())) {
+        auto packetNumber = m_packetNumber++;
 
         MptcpHeader mptcpHeader;
         mptcpHeader.SetPacketNumber(packetNumber);
         Ptr<Packet> packet = Create<Packet>(m_dataPacketSize);
         packet->AddHeader(mptcpHeader);
 
-        auto numBytesSent = socket->Send(packet);
+        auto numBytesSent = txSocket->Send(packet);
 
         if (numBytesSent == -1) {
             std::stringstream ss;
             ss << "Packet " << packetNumber << " failed to transmit. Packet size " << packet->GetSize() << "\n";
-            auto error = socket->GetErrno();
+            auto error = txSocket->GetErrno();
 
             switch (error) {
                 case Socket::SocketErrno::ERROR_NOTERROR:
@@ -233,14 +219,11 @@ void TransmitterApp::SendPackets(Ptr<Socket> socket) {
             NS_ABORT_MSG(ss.str());
         }
 
-        NS_ABORT_MSG_IF(boost::numeric_cast<uint32_t>(numBytesSent) != packet->GetSize(),
-                        "Packet " << packetNumber << " was not transmitted all. Packet Size: " << packet->GetSize() << " " <<
-                        "Transmitted bytes " << numBytesSent);
-
         LogPacketTime(packetNumber);
         NS_LOG_INFO("Flow " << m_id << " sent packet " << packetNumber << " at " << Simulator::Now());
-        packetsToTransmit.pop_front();
     }
+
+    m_sendEvent = Simulator::Schedule(m_transmissionInterval, &TransmitterApp::TransmitPacket, this);
 }
 
 void TransmitterApp::SetDataPacketSize(const Flow& flow) {
