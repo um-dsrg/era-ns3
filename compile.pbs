@@ -2,7 +2,7 @@
 #
 #PBS -q short
 #
-#PBS -N ns3_compile
+#PBS -N compileNs3
 #
 #PBS -l ncpus=40
 #
