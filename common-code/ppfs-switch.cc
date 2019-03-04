@@ -105,6 +105,26 @@ void PpfsSwitch::ReconcileSplitRatios() {
         }
         NS_LOG_INFO("--------------------");
 
+        // Delete entries with a 0 split ratio value
+        auto predicate = [](const ForwardingAction &fa) { return (fa.splitRatio == 0); };
+        forwardingActionList.erase(std::remove_if(forwardingActionList.begin(),
+                                                  forwardingActionList.end(),
+                                                  predicate),
+                                   forwardingActionList.end());
+
+        NS_LOG_INFO("--------------------\n"
+                    "Split ratios after zero removal:\n"
+                    "--------------------");
+
+        for (const auto& forwardingAction : forwardingActionList) {
+            NS_LOG_INFO("Spilt Ratio: " << forwardingAction.splitRatio);
+        }
+        NS_LOG_INFO("--------------------");
+
+        if (forwardingActionList.empty()) {
+            continue;
+        }
+
         auto total = splitRatio_t{0.0};
 
         for (const auto& forwardingAction : forwardingActionList) {
