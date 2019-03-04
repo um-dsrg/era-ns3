@@ -76,10 +76,13 @@ ReceiverApp::~ReceiverApp() {
 }
 
 double ReceiverApp::GetMeanRxGoodput() {
-    auto durationInSeconds = double{(m_lastRxPacket - m_firstRxPacket).GetSeconds()};
-    auto currentGoodPut = double{((m_totalRecvBytes * 8) / durationInSeconds) /
-                                 1'000'000};
-    return currentGoodPut;
+    if (m_totalRecvBytes == 0) {
+        return 0;
+    } else {
+        auto durationInSeconds = double{(m_lastRxPacket - m_firstRxPacket).GetSeconds ()};
+        auto currentGoodPut = double{((m_totalRecvBytes * 8) / durationInSeconds) / 1'000'000};
+        return currentGoodPut;
+    }
 }
 
 void ReceiverApp::StartApplication() {
