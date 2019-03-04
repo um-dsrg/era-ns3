@@ -11,7 +11,8 @@ NS_LOG_COMPONENT_DEFINE("SinglePathTransmitterApp");
 
 SinglePathTransmitterApp::SinglePathTransmitterApp(const Flow& flow) : ApplicationBase(flow.id) {
     auto path = flow.GetDataPaths().front();
-    srcPort = path.srcPort;txSocket = CreateSocket(flow.srcNode->GetNode(), flow.protocol);
+    srcPort = path.srcPort;
+    txSocket = CreateSocket(flow.srcNode->GetNode(), flow.protocol);
     txSocket->TraceConnectWithoutContext("RTO", MakeCallback(&SinglePathTransmitterApp::RtoChanged, this));
     dstAddress = Address(InetSocketAddress(flow.dstNode->GetIpAddress(), path.dstPort));
 
@@ -35,6 +36,11 @@ SinglePathTransmitterApp::~SinglePathTransmitterApp() {
 }
 
 void SinglePathTransmitterApp::StartApplication() {
+    if (m_dataRateBps <= 1e-5) { // Do not transmit anything if not allocated any data rate
+        NS_LOG_INFO("Flow " << m_id << " did NOT start transmission on a single path");
+        return;
+    }
+
     NS_LOG_INFO("Flow " << m_id << " started transmission on a single path");
 
     InetSocketAddress srcAddr = InetSocketAddress(Ipv4Address::GetAny(), srcPort);
@@ -140,4 +146,6 @@ void SinglePathTransmitterApp::SetApplicationGoodputRate(const Flow& flow) {
 
     m_dataRateBps = (pktSizeExclHdr * flow.dataRate.GetBitRate()) /
                     static_cast<double>(flow.packetSize);
+    NS_LOG_INFO("Flow throughput: " << flow.dataRate << "\n" <<
+                "Flow goodput: " << m_dataRateBps << "bps");
 }

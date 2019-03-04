@@ -17,6 +17,11 @@ using namespace ns3;
 NS_LOG_COMPONENT_DEFINE("TransmitterApp");
 
 TransmitterApp::TransmitterApp(const Flow& flow) : ApplicationBase(flow.id) {
+    if (flow.dataRate.GetBitRate() <= 1e-5) { // Flow was assigned no data rate
+        NS_LOG_INFO("Flow " << m_id << " assigned no data rate.");
+        return;
+    }
+
     for (const auto& path : flow.GetDataPaths()) {
         PathInformation pathInfo;
         pathInfo.srcPort = path.srcPort;
@@ -105,6 +110,11 @@ TransmitterApp::~TransmitterApp() {
 }
 
 void TransmitterApp::StartApplication() {
+    if (m_dataRateBps <= 1e-5) { // Do not transmit anything if not allocated any data rate
+        NS_LOG_INFO("Flow " << m_id << " did NOT start transmission on multiple paths");
+        return;
+    }
+
     NS_LOG_INFO("Flow " << m_id << " started transmitting on multiple paths");
 
     // Initialise socket connections
