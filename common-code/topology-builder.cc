@@ -1,3 +1,5 @@
+#include <boost/numeric/conversion/cast.hpp>
+
 #include "sdn-switch.h"
 #include "ppfs-switch.h"
 #include "topology-builder.h"
@@ -106,7 +108,7 @@ tinyxml2::XMLElement* TopologyBuilder<SdnSwitch>::GetSwitchQueueLoggingElement(X
             for (const auto& queueLogPair: devLogPair.second) {
                 XMLElement* sizeElement = xmlDocument.NewElement("Packet");
                 sizeElement->SetAttribute("NumPktsInQueue", queueLogPair.first);
-                sizeElement->SetAttribute("Time", queueLogPair.second.GetNanoSeconds());
+                sizeElement->SetAttribute("Time", boost::numeric_cast<double>(queueLogPair.second.GetNanoSeconds()));
                 netDevElement->InsertEndChild(sizeElement);
             }
 
