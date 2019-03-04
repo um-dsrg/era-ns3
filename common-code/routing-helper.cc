@@ -10,6 +10,11 @@ void RoutingHelper<SdnSwitch>::BuildRoutingTable (const std::map<id_t, Flow> &fl
     for(const auto &flowPair : flows) {
 
         const auto &flow{flowPair.second};
+        if (flow.dataRate == 0) {
+            NS_LOG_INFO ("Flow " << flow.id << " is not being installed in the routing tables because it was allocated nothing");
+            continue;
+        }
+
         NS_LOG_INFO ("Installing routing for Flow " << flow.id);
 
         /* Installing data paths */
@@ -64,6 +69,10 @@ void RoutingHelper<PpfsSwitch>::BuildRoutingTable (const std::map<id_t, Flow> &f
     for(const auto &flowPair : flows) {
 
         const auto &flow{flowPair.second};
+        if (flow.dataRate == 0) {
+            NS_LOG_INFO ("Flow " << flow.id << " is not being installed in the routing tables because it was allocated nothing");
+            continue;
+        }
         NS_LOG_INFO ("Installing routing for Flow " << flow.id);
 
         auto flowDataRate = double{static_cast<double>(flow.dataRate.GetBitRate())};
