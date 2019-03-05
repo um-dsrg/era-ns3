@@ -25,10 +25,18 @@ public:
 
     const applicationContainer_t& GetTransmitterApps() const;
     const applicationContainer_t& GetReceiverApps() const;
+    const std::map<id_t, std::pair<uint64_t, double>>& GetCompressedDelayLog() const;
+
+    void CompressDelayLog();
 
 private:
     applicationContainer_t m_transmitterApplications;
     applicationContainer_t m_receiverApplications;
+
+    /* Store the per flow compressed delay log */
+    std::map<id_t /* flow id */,
+             std::pair<uint64_t /* number of packets */,
+                       double /* total delay */>> m_flowDelayLog;
 };
 
 #endif /* application_helper_h */

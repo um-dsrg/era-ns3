@@ -103,6 +103,29 @@ void ResultManager::AddDelayResults(const ApplicationHelper::applicationContaine
     m_rootNode->InsertEndChild(delayElement);
 }
 
+void ResultManager::AddDelayResults(const ApplicationHelper& appHelper) {
+    NS_LOG_INFO("Building the compressed delay results");
+
+    XMLElement* delayElement = m_xmlDoc.NewElement("Delay");
+
+    for (const auto& compressedDelayLog : appHelper.GetCompressedDelayLog()) {
+        const auto& flowId = compressedDelayLog.first;
+        const auto& delayLog = compressedDelayLog.second;
+
+        XMLElement* flowElement {m_xmlDoc.NewElement("Flow")};
+        flowElement->SetAttribute("Id", flowId);
+        flowElement->SetAttribute("TotalRxPackets", static_cast<double>(delayLog.first));
+        flowElement->SetAttribute("TotalDelayNs", delayLog.second);
+
+        delayElement->InsertEndChild(flowElement);
+    }
+
+    XMLComment* comment = m_xmlDoc.NewComment("Delay values are in nanoseconds");
+    delayElement->InsertFirstChild(comment);
+
+    m_rootNode->InsertEndChild(delayElement);
+}
+
 void ResultManager::AddQueueStatistics(XMLElement* queueElement) {
     m_rootNode->InsertEndChild(queueElement);
 }

@@ -21,11 +21,12 @@ using namespace tinyxml2;
 
 int main (int argc, char *argv[]) {
 
+    bool useSack{false};
     bool verbose{false};
     bool enablePcap{false};
-    bool useSack{false};
     bool useSdnSwitches{false};
     bool usePpfsSwitches{false};
+    bool perPacketDelayLog{false};
 
     uint32_t initRun{1};
     uint32_t seedValue{1};
@@ -53,6 +54,10 @@ int main (int argc, char *argv[]) {
     cmdLine.AddValue("useSack", "Enable TCP Sack on all sockets", useSack);
     cmdLine.AddValue("usePpfsSwitches", "Enable the use of PPFS switches", usePpfsSwitches);
     cmdLine.AddValue("useSdnSwitches", "Enable the use of SDN switches", useSdnSwitches);
+    cmdLine.AddValue("perPacketDelayLog", "Enable delay logging on a per-packet level. "
+                                          "By default this feature is disabled due to "
+                                          "the high memory requirements.",
+                     perPacketDelayLog);
     cmdLine.Parse (argc, argv);
 
     NS_ABORT_MSG_IF((usePpfsSwitches == false && useSdnSwitches == false), "No switch type is defined");
@@ -131,12 +136,20 @@ int main (int argc, char *argv[]) {
     Config::Set("/NodeList/*/DeviceList/*/$ns3::PointToPointNetDevice/TxQueue/$ns3::DropTailQueue<Packet>/MaxSize",
                 QueueSizeValue(QueueSize("1000000p")));
 
+    if (!perPacketDelayLog) { // Compress the delay log every 500ms
+        Simulator::Schedule(Time("500ms"), &ApplicationHelper::CompressDelayLog, &appHelper);
+    }
+
     Simulator::Run();
     Simulator::Stop();
 
     ResultManager resultManager;
     resultManager.AddGoodputResults(appHelper.GetReceiverApps());
-    resultManager.AddDelayResults(appHelper.GetTransmitterApps(), appHelper.GetReceiverApps());
+    if (perPacketDelayLog) {
+        resultManager.AddDelayResults(appHelper.GetTransmitterApps(), appHelper.GetReceiverApps());
+    } else {
+        resultManager.AddDelayResults(appHelper);
+    }
 
     if (useSdnSwitches) {
         auto queueElement = topologyBuilder->GetSwitchQueueLoggingElement(resultManager.m_xmlDoc);

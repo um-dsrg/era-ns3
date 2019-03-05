@@ -15,6 +15,8 @@ public:
     const std::map<packetNumber_t, ns3::Time>& GetDelayLog() const;
     virtual double GetMeanRxGoodput();
 
+    std::map<packetNumber_t, ns3::Time> m_delayLog;
+
 protected:
     ApplicationBase(id_t id);
     virtual ~ApplicationBase();
@@ -25,7 +27,6 @@ protected:
     void LogPacketTime(packetNumber_t packetNumber);
     virtual packetSize_t CalculateHeaderSize(FlowProtocol protocol);
 
-    std::map<packetNumber_t, ns3::Time> m_delayLog;
     id_t m_id{0}; /**< The id of the flow that this application represents. */
 };
 
