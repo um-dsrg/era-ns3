@@ -151,10 +151,10 @@ int main (int argc, char *argv[]) {
         resultManager.AddDelayResults(appHelper);
     }
 
-    if (useSdnSwitches) {
-        auto queueElement = topologyBuilder->GetSwitchQueueLoggingElement(resultManager.m_xmlDoc);
-        resultManager.AddQueueStatistics(queueElement);
-    }
+    // if (useSdnSwitches) {
+    //     auto queueElement = topologyBuilder->GetSwitchQueueLoggingElement(resultManager.m_xmlDoc);
+    //     resultManager.AddQueueStatistics(queueElement);
+    // }
 
     resultManager.SaveFile(outputFile);
 

@@ -51,9 +51,9 @@ void SdnSwitch::PacketReceived(Ptr<NetDevice> incomingPort, Ptr<const Packet> pa
     auto parsedFlow = ExtractFlowFromPacket(packet, protocol);
 
     // Log the number of packets in the queue
-    Ptr<PointToPointNetDevice> p2pDevice = incomingPort->GetObject<PointToPointNetDevice>();
-    auto& netDevQueueLog {m_netDeviceQueueLog.at(p2pDevice)};
-    netDevQueueLog.emplace_back(p2pDevice->GetQueue()->GetNPackets(), Simulator::Now());
+    // Ptr<PointToPointNetDevice> p2pDevice = incomingPort->GetObject<PointToPointNetDevice>();
+    // auto& netDevQueueLog {m_netDeviceQueueLog.at(p2pDevice)};
+    // netDevQueueLog.emplace_back(p2pDevice->GetQueue()->GetNPackets(), Simulator::Now());
 
     try {
         auto forwardingNetDevice = m_routingTable.at(parsedFlow);
