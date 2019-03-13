@@ -1,0 +1,16 @@
+{
+    "files.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/CVS": true,
+        "**/.DS_Store": true,
+        // Custom Excludes
+        "doc/": true,
+        "utils/": true,
+        "waf.bat": true,
+        "contrib/": true,
+        "bindings/": true,
+        "waf-tools/": true,
+    }
+}
