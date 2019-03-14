@@ -6,7 +6,8 @@
         {
             "label": "Build",
             "type": "shell",
-            "command": "./waf",
+            "command": "${workspaceFolder}/waf",
+            "args": ["build"],
             "group": {
                 "kind": "build",
                 "isDefault": true

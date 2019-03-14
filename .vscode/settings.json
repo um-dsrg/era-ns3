@@ -12,5 +12,6 @@
         "contrib/": true,
         "bindings/": true,
         "waf-tools/": true,
+        ".waf*": true
     }
 }
