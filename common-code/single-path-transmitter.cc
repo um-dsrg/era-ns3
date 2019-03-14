@@ -35,6 +35,10 @@ SinglePathTransmitterApp::~SinglePathTransmitterApp() {
     txSocket = nullptr;
 }
 
+double SinglePathTransmitterApp::GetTxGoodput() {
+    return m_dataRateBps / 1000000;
+}
+
 void SinglePathTransmitterApp::StartApplication() {
     if (m_dataRateBps <= 1e-5) { // Do not transmit anything if not allocated any data rate
         NS_LOG_INFO("Flow " << m_id << " did NOT start transmission on a single path");

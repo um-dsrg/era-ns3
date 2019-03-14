@@ -144,7 +144,7 @@ int main (int argc, char *argv[]) {
     Simulator::Stop();
 
     ResultManager resultManager;
-    resultManager.AddGoodputResults(appHelper.GetReceiverApps());
+    resultManager.AddGoodputResults(flows, appHelper.GetTransmitterApps(), appHelper.GetReceiverApps());
     if (perPacketDelayLog) {
         resultManager.AddDelayResults(appHelper.GetTransmitterApps(), appHelper.GetReceiverApps());
     } else {

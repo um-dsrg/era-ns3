@@ -25,7 +25,9 @@ ResultManager::ResultManager() {
     }
 }
 
-void ResultManager::AddGoodputResults(const ApplicationHelper::applicationContainer_t& receiverApplications) {
+void ResultManager::AddGoodputResults(const Flow::FlowContainer& flows,
+                                      const ApplicationHelper::applicationContainer_t& transmitterApplications,
+                                      const ApplicationHelper::applicationContainer_t& receiverApplications) {
     NS_LOG_INFO("Building the goodput results");
 
     XMLElement* goodputElement = m_xmlDoc.NewElement("Goodput");
@@ -39,8 +41,21 @@ void ResultManager::AddGoodputResults(const ApplicationHelper::applicationContai
             receiverApp = DynamicCast<SinglePathReceiver>(receiverApplicationPair.second);
         }
 
+        Ptr<ApplicationBase> transmitterApp;
+        transmitterApp = DynamicCast<TransmitterApp>(transmitterApplications.at(flowId));
+        if (transmitterApp == nullptr) {
+            transmitterApp = DynamicCast<SinglePathTransmitterApp>(transmitterApplications.at(flowId));
+            NS_LOG_INFO("Transmitter app of type SinglePathTransmitter");
+        } else {
+            NS_LOG_INFO("Transmitter app of type MultipathTransmitter");
+        }
+
+        const auto& flow {flows.at(flowId)};
+
         XMLElement* flowElement = m_xmlDoc.NewElement("Flow");
         flowElement->SetAttribute("Id", flowId);
+        flowElement->SetAttribute("TxThroughput", (flow.dataRate.GetBitRate() / 1000000.0));
+        flowElement->SetAttribute("TxGoodput", transmitterApp->GetTxGoodput());
         flowElement->SetAttribute("MeanRxGoodPut", receiverApp->GetMeanRxGoodput());
 
         goodputElement->InsertEndChild(flowElement);

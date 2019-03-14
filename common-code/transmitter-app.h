@@ -22,6 +22,8 @@ public:
     explicit TransmitterApp (const Flow& flow);
     virtual ~TransmitterApp();
 
+    double GetTxGoodput();
+
 private:
     void StartApplication() override;
     void StopApplication() override;

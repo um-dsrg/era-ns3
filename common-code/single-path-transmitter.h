@@ -31,6 +31,8 @@ public:
     explicit SinglePathTransmitterApp (const Flow& flow);
     ~SinglePathTransmitterApp() override;
 
+    double GetTxGoodput();
+
 private:
     void StartApplication() override;
     void StopApplication() override;

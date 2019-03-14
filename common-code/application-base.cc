@@ -41,6 +41,12 @@ double ApplicationBase::GetMeanRxGoodput() {
     return 0.0;
 }
 
+double ApplicationBase::GetTxGoodput() {
+    NS_ABORT_MSG("Error: The GetTxGoodput function from ApplicationBase cannot "
+                 "be used directly");
+    return 0.0;
+}
+
 packetSize_t ApplicationBase::CalculateHeaderSize(FlowProtocol protocol) {
     packetSize_t headerSize {0};
 

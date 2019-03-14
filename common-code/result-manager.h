@@ -4,13 +4,16 @@
 #include <string>
 #include <tinyxml2.h>
 
+#include "flow.h"
 #include "application-helper.h"
 
 class ResultManager {
 public:
     ResultManager();
 
-    void AddGoodputResults(const ApplicationHelper::applicationContainer_t& receiverApplications);
+    void AddGoodputResults(const Flow::FlowContainer& flows,
+                           const ApplicationHelper::applicationContainer_t& transmitterApplications,
+                           const ApplicationHelper::applicationContainer_t& receiverApplications);
     void AddDelayResults(const ApplicationHelper::applicationContainer_t& transmitterApplications,
                          const ApplicationHelper::applicationContainer_t& receiverApplications);
     void AddDelayResults(const ApplicationHelper& appHelper);
