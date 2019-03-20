@@ -5,26 +5,27 @@
 #include <tinyxml2.h>
 
 #include "flow.h"
-#include "application-helper.h"
+#include "app-container.h"
 
-class ResultManager {
+class ResultManager
+{
 public:
-    ResultManager();
+  ResultManager ();
 
-    void AddGoodputResults(const Flow::FlowContainer& flows,
-                           const ApplicationHelper::applicationContainer_t& transmitterApplications,
-                           const ApplicationHelper::applicationContainer_t& receiverApplications);
-    void AddDelayResults(const ApplicationHelper::applicationContainer_t& transmitterApplications,
-                         const ApplicationHelper::applicationContainer_t& receiverApplications);
-    void AddDelayResults(const ApplicationHelper& appHelper);
-    void AddQueueStatistics(tinyxml2::XMLElement* queueElement);
-    void SaveFile(const std::string& path);
+  void AddGoodputResults (const Flow::FlowContainer &flows,
+                          const AppContainer::applicationContainer_t &transmitterApplications,
+                          const AppContainer::applicationContainer_t &receiverApplications);
+  void AddDelayResults (const AppContainer::applicationContainer_t &transmitterApplications,
+                        const AppContainer::applicationContainer_t &receiverApplications);
+  void AddDelayResults (const AppContainer &appHelper);
+  void AddQueueStatistics (tinyxml2::XMLElement *queueElement);
+  void SaveFile (const std::string &path);
 
-    // todo Put back to private
-    tinyxml2::XMLDocument m_xmlDoc;
+  // todo Put back to private
+  tinyxml2::XMLDocument m_xmlDoc;
 
 private:
-    void InsertTimeStamp();
-    tinyxml2::XMLNode* m_rootNode;
+  void InsertTimeStamp ();
+  tinyxml2::XMLNode *m_rootNode;
 };
 #endif /* result_manager_h */

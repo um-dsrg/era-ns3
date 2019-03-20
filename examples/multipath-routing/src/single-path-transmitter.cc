@@ -7,149 +7,152 @@
 
 using namespace ns3;
 
-NS_LOG_COMPONENT_DEFINE("SinglePathTransmitterApp");
+NS_LOG_COMPONENT_DEFINE ("SinglePathTransmitterApp");
 
-SinglePathTransmitterApp::SinglePathTransmitterApp(const Flow& flow) : ApplicationBase(flow.id) {
-    auto path = flow.GetDataPaths().front();
-    srcPort = path.srcPort;
-    txSocket = CreateSocket(flow.srcNode->GetNode(), flow.protocol);
-    txSocket->TraceConnectWithoutContext("RTO", MakeCallback(&SinglePathTransmitterApp::RtoChanged, this));
-    dstAddress = Address(InetSocketAddress(flow.dstNode->GetIpAddress(), path.dstPort));
+SinglePathTransmitterApp::SinglePathTransmitterApp (const Flow &flow) : TransmitterBase (flow.id)
+{
+  auto path = flow.GetDataPaths ().front ();
+  srcPort = path.srcPort;
+  txSocket = CreateSocket (flow.srcNode->GetNode (), flow.protocol);
+  txSocket->TraceConnectWithoutContext ("RTO",
+                                        MakeCallback (&SinglePathTransmitterApp::RtoChanged, this));
+  dstAddress = Address (InetSocketAddress (flow.dstNode->GetIpAddress (), path.dstPort));
 
-    // Set the data packet size
-    SetDataPacketSize(flow);
+  // Set the data packet size
+  SetDataPacketSize (flow);
 
-    // Set the application's good put rate in bps
-    SetApplicationGoodputRate(flow);
+  // Set the application's good put rate in bps
+  SetApplicationGoodputRate (flow);
 
-    // Calculate the transmission interval
-    auto pktSizeBits = static_cast<double>(m_dataPacketSize * 8);
-    double transmissionInterval = pktSizeBits / m_dataRateBps;
-    NS_ABORT_MSG_IF(transmissionInterval <= 0 || std::isnan(transmissionInterval),
-                    "The transmission interval cannot be less than or equal to 0 OR nan. "
-                    "Transmission interval: " << transmissionInterval);
-    m_transmissionInterval = Seconds(transmissionInterval);
+  // Calculate the transmission interval
+  auto pktSizeBits = static_cast<double> (m_dataPacketSize * 8);
+  double transmissionInterval = pktSizeBits / m_dataRateBps;
+  NS_ABORT_MSG_IF (transmissionInterval <= 0 || std::isnan (transmissionInterval),
+                   "The transmission interval cannot be less than or equal to 0 OR nan. "
+                   "Transmission interval: "
+                       << transmissionInterval);
+  m_transmissionInterval = Seconds (transmissionInterval);
 }
 
-SinglePathTransmitterApp::~SinglePathTransmitterApp() {
-    txSocket = nullptr;
+SinglePathTransmitterApp::~SinglePathTransmitterApp ()
+{
+  txSocket = nullptr;
 }
 
-double SinglePathTransmitterApp::GetTxGoodput() {
-    return m_dataRateBps / 1000000;
-}
-
-void SinglePathTransmitterApp::StartApplication() {
-    if (m_dataRateBps <= 1e-5) { // Do not transmit anything if not allocated any data rate
-        NS_LOG_INFO("Flow " << m_id << " did NOT start transmission on a single path");
-        return;
+void
+SinglePathTransmitterApp::StartApplication ()
+{
+  if (m_dataRateBps <= 1e-5)
+    { // Do not transmit anything if not allocated any data rate
+      NS_LOG_INFO ("Flow " << m_id << " did NOT start transmission on a single path");
+      return;
     }
 
-    NS_LOG_INFO("Flow " << m_id << " started transmission on a single path");
+  NS_LOG_INFO ("Flow " << m_id << " started transmission on a single path");
 
-    InetSocketAddress srcAddr = InetSocketAddress(Ipv4Address::GetAny(), srcPort);
-    if (txSocket->Bind(srcAddr) == -1) {
-        NS_ABORT_MSG("Failed to bind socket");
+  InetSocketAddress srcAddr = InetSocketAddress (Ipv4Address::GetAny (), srcPort);
+  if (txSocket->Bind (srcAddr) == -1)
+    {
+      NS_ABORT_MSG ("Failed to bind socket");
     }
 
-    if (txSocket->Connect(dstAddress) == -1) {
-        NS_ABORT_MSG("Failed to connect socket");
+  if (txSocket->Connect (dstAddress) == -1)
+    {
+      NS_ABORT_MSG ("Failed to connect socket");
     }
 
-    TransmitPacket();
+  TransmitPacket ();
 }
 
-void SinglePathTransmitterApp::StopApplication() {
-    NS_LOG_INFO("Flow " << m_id << " stopped transmitting.");
-    Simulator::Cancel (m_sendEvent);
+void
+SinglePathTransmitterApp::StopApplication ()
+{
+  NS_LOG_INFO ("Flow " << m_id << " stopped transmitting.");
+  Simulator::Cancel (m_sendEvent);
 }
 
-void SinglePathTransmitterApp::TransmitPacket() {
+void
+SinglePathTransmitterApp::TransmitPacket ()
+{
 
-    if (txSocket->GetTxAvailable() >= m_dataPacketSize) {
-        auto packetNumber = m_packetNumber++;
-        Ptr<Packet> packet = Create<Packet>(m_dataPacketSize);
-        auto numBytesSent = txSocket->Send(packet);
+  if (txSocket->GetTxAvailable () >= m_dataPacketSize)
+    {
+      auto packetNumber = m_packetNumber++;
+      Ptr<Packet> packet = Create<Packet> (m_dataPacketSize);
+      auto numBytesSent = txSocket->Send (packet);
 
-        if (numBytesSent == -1) {
-            std::stringstream ss;
-            ss << "Packet " << packetNumber << " failed to transmit. Packet size " << packet->GetSize() << "\n";
-            auto error = txSocket->GetErrno();
+      if (numBytesSent == -1)
+        {
+          std::stringstream ss;
+          ss << "Packet " << packetNumber << " failed to transmit. Packet size "
+             << packet->GetSize () << "\n";
+          auto error = txSocket->GetErrno ();
 
-            switch (error) {
-                case Socket::SocketErrno::ERROR_NOTERROR:
-                    ss << "ERROR_NOTERROR";
-                    break;
-                case Socket::SocketErrno::ERROR_ISCONN:
-                    ss << "ERROR_ISCONN";
-                    break;
-                case Socket::SocketErrno::ERROR_NOTCONN:
-                    ss << "ERROR_NOTCONN";
-                    break;
-                case Socket::SocketErrno::ERROR_MSGSIZE:
-                    ss << "ERROR_MSGSIZE";
-                    break;
-                case Socket::SocketErrno::ERROR_AGAIN:
-                    ss << "ERROR_AGAIN";
-                    break;
-                case Socket::SocketErrno::ERROR_SHUTDOWN:
-                    ss << "ERROR_SHUTDOWN";
-                    break;
-                case Socket::SocketErrno::ERROR_OPNOTSUPP:
-                    ss << "ERROR_OPNOTSUPP";
-                    break;
-                case Socket::SocketErrno::ERROR_AFNOSUPPORT:
-                    ss << "ERROR_AFNOSUPPORT";
-                    break;
-                case Socket::SocketErrno::ERROR_INVAL:
-                    ss << "ERROR_INVAL";
-                    break;
-                case Socket::SocketErrno::ERROR_BADF:
-                    ss << "ERROR_BADF";
-                    break;
-                case Socket::SocketErrno::ERROR_NOROUTETOHOST:
-                    ss << "ERROR_NOROUTETOHOST";
-                    break;
-                case Socket::SocketErrno::ERROR_NODEV:
-                    ss << "ERROR_NODEV";
-                    break;
-                case Socket::SocketErrno::ERROR_ADDRNOTAVAIL:
-                    ss << "ERROR_ADDRNOTAVAIL";
-                    break;
-                case Socket::SocketErrno::ERROR_ADDRINUSE:
-                    ss << "ERROR_ADDRINUSE";
-                    break;
-                case Socket::SocketErrno::SOCKET_ERRNO_LAST:
-                    ss << "SOCKET_ERRNO_LAST";
-                    break;
+          switch (error)
+            {
+            case Socket::SocketErrno::ERROR_NOTERROR:
+              ss << "ERROR_NOTERROR";
+              break;
+            case Socket::SocketErrno::ERROR_ISCONN:
+              ss << "ERROR_ISCONN";
+              break;
+            case Socket::SocketErrno::ERROR_NOTCONN:
+              ss << "ERROR_NOTCONN";
+              break;
+            case Socket::SocketErrno::ERROR_MSGSIZE:
+              ss << "ERROR_MSGSIZE";
+              break;
+            case Socket::SocketErrno::ERROR_AGAIN:
+              ss << "ERROR_AGAIN";
+              break;
+            case Socket::SocketErrno::ERROR_SHUTDOWN:
+              ss << "ERROR_SHUTDOWN";
+              break;
+            case Socket::SocketErrno::ERROR_OPNOTSUPP:
+              ss << "ERROR_OPNOTSUPP";
+              break;
+            case Socket::SocketErrno::ERROR_AFNOSUPPORT:
+              ss << "ERROR_AFNOSUPPORT";
+              break;
+            case Socket::SocketErrno::ERROR_INVAL:
+              ss << "ERROR_INVAL";
+              break;
+            case Socket::SocketErrno::ERROR_BADF:
+              ss << "ERROR_BADF";
+              break;
+            case Socket::SocketErrno::ERROR_NOROUTETOHOST:
+              ss << "ERROR_NOROUTETOHOST";
+              break;
+            case Socket::SocketErrno::ERROR_NODEV:
+              ss << "ERROR_NODEV";
+              break;
+            case Socket::SocketErrno::ERROR_ADDRNOTAVAIL:
+              ss << "ERROR_ADDRNOTAVAIL";
+              break;
+            case Socket::SocketErrno::ERROR_ADDRINUSE:
+              ss << "ERROR_ADDRINUSE";
+              break;
+            case Socket::SocketErrno::SOCKET_ERRNO_LAST:
+              ss << "SOCKET_ERRNO_LAST";
+              break;
             }
 
-            NS_ABORT_MSG(ss.str());
+          NS_ABORT_MSG (ss.str ());
         }
 
-        LogPacketTime(packetNumber);
-        NS_LOG_INFO("Flow " << m_id << " sent packet " << packetNumber << " at " << Simulator::Now());
+      LogPacketTime (packetNumber);
+      NS_LOG_INFO ("Flow " << m_id << " sent packet " << packetNumber << " at "
+                           << Simulator::Now ());
     }
 
-    m_sendEvent = Simulator::Schedule(m_transmissionInterval,
-                                      &SinglePathTransmitterApp::TransmitPacket, this);
+  m_sendEvent =
+      Simulator::Schedule (m_transmissionInterval, &SinglePathTransmitterApp::TransmitPacket, this);
 }
 
-void SinglePathTransmitterApp::RtoChanged(ns3::Time oldVal, ns3::Time newVal) {
-    NS_LOG_INFO("RTO value changed for flow " << m_id << ".\n" <<
-                "  Old Value " << oldVal.GetSeconds() << "\n" <<
-                "  New Value: " << newVal.GetSeconds());
-}
-
-void SinglePathTransmitterApp::SetDataPacketSize(const Flow& flow) {
-    m_dataPacketSize = flow.packetSize - CalculateHeaderSize(flow.protocol);
-}
-
-void SinglePathTransmitterApp::SetApplicationGoodputRate(const Flow& flow) {
-    auto pktSizeExclHdr {flow.packetSize - CalculateHeaderSize(flow.protocol)};
-
-    m_dataRateBps = (pktSizeExclHdr * flow.dataRate.GetBitRate()) /
-                    static_cast<double>(flow.packetSize);
-    NS_LOG_INFO("Flow throughput: " << flow.dataRate << "\n" <<
-                "Flow goodput: " << m_dataRateBps << "bps");
+void
+SinglePathTransmitterApp::RtoChanged (ns3::Time oldVal, ns3::Time newVal)
+{
+  NS_LOG_INFO ("RTO value changed for flow " << m_id << ".\n"
+                                             << "  Old Value " << oldVal.GetSeconds () << "\n"
+                                             << "  New Value: " << newVal.GetSeconds ());
 }

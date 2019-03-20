@@ -19,7 +19,7 @@ def build(bld):
                   'src/transmitter-app.cc',
                   'src/application-base.cc',
                   'src/topology-builder.cc',
-                  'src/application-helper.cc',
+                  'src/app-container.cc',
                   'src/single-path-receiver.cc',
                   'src/single-path-transmitter.cc',
                   'src/random-generator-manager.cc']
