@@ -9,12 +9,12 @@
 #include "ns3/flow-monitor-helper.h"
 #include "ns3/point-to-point-helper.h"
 
-#include "../../common-code/sdn-switch.h"
-#include "../../common-code/routing-helper.h"
-#include "../../common-code/result-manager.h"
-#include "../../common-code/topology-builder.h"
-#include "../../common-code/application-helper.h"
-#include "../../common-code/random-generator-manager.h"
+#include "src/sdn-switch.h"
+#include "src/routing-helper.h"
+#include "src/result-manager.h"
+#include "src/topology-builder.h"
+#include "src/application-helper.h"
+#include "src/random-generator-manager.h"
 
 using namespace ns3;
 using namespace tinyxml2;
