@@ -1,5 +1,5 @@
-#ifndef receiver_app_h
-#define receiver_app_h
+#ifndef multipath_receiver_h
+#define multipath_receiver_h
 
 #include <list>
 #include <queue>
@@ -14,7 +14,7 @@
 #include "ns3/ipv4-address.h"
 #include "ns3/application.h"
 
-#include "flow.h"
+#include "../flow.h"
 #include "application-base.h"
 
 class AggregateBuffer
@@ -32,7 +32,7 @@ public:
   std::list<ns3::Ptr<ns3::Packet>> RetrievePacketFromBuffer ();
 };
 
-class ReceiverApp : public ReceiverBase
+class MultipathReceiver : public ReceiverBase
 {
 
   struct PathInformation
@@ -54,8 +54,8 @@ class ReceiverApp : public ReceiverBase
   std::list<ns3::Ptr<ns3::Socket>> m_rxAcceptedSockets; /**< List of the accepted sockets. */
 
 public:
-  ReceiverApp (const Flow &flow);
-  virtual ~ReceiverApp ();
+  MultipathReceiver (const Flow &flow);
+  virtual ~MultipathReceiver ();
 
 private:
   void StartApplication ();
@@ -75,4 +75,4 @@ private:
   std::priority_queue<bufferContents_t, std::vector<bufferContents_t>, std::greater<>> m_recvBuffer;
 };
 
-#endif /* receiver_app_h */
+#endif /* multipath_receiver_h */

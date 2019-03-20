@@ -8,15 +8,15 @@
 #include "ns3/simulator.h"
 #include "ns3/tcp-socket.h"
 
-#include "mptcp-header.h"
-#include "transmitter-app.h"
-#include "random-generator-manager.h"
+#include "../mptcp-header.h"
+#include "multipath-transmitter.h"
+#include "../random-generator-manager.h"
 
 using namespace ns3;
 
-NS_LOG_COMPONENT_DEFINE ("TransmitterApp");
+NS_LOG_COMPONENT_DEFINE ("MultipathTransmitter");
 
-TransmitterApp::TransmitterApp (const Flow &flow) : TransmitterBase (flow.id)
+MultipathTransmitter::MultipathTransmitter (const Flow &flow) : TransmitterBase (flow.id)
 {
   if (flow.dataRate.GetBitRate () <= 1e-5)
     { // Flow was assigned no data rate
@@ -30,7 +30,7 @@ TransmitterApp::TransmitterApp (const Flow &flow) : TransmitterBase (flow.id)
       pathInfo.srcPort = path.srcPort;
       pathInfo.txSocket = CreateSocket (flow.srcNode->GetNode (), flow.protocol);
       pathInfo.txSocket->TraceConnect ("RTO", std::to_string (path.id),
-                                       MakeCallback (&TransmitterApp::RtoChanged, this));
+                                       MakeCallback (&MultipathTransmitter::RtoChanged, this));
       pathInfo.dstAddress =
           Address (InetSocketAddress (flow.dstNode->GetIpAddress (), path.dstPort));
 
@@ -110,7 +110,7 @@ TransmitterApp::TransmitterApp (const Flow &flow) : TransmitterBase (flow.id)
   m_transmissionInterval = Seconds (transmissionInterval);
 }
 
-TransmitterApp::~TransmitterApp ()
+MultipathTransmitter::~MultipathTransmitter ()
 {
   for (auto &pathInfoPair : m_pathInfoContainer)
     {
@@ -120,7 +120,7 @@ TransmitterApp::~TransmitterApp ()
 }
 
 void
-TransmitterApp::StartApplication ()
+MultipathTransmitter::StartApplication ()
 {
   if (m_dataRateBps <= 1e-5)
     { // Do not transmit anything if not allocated any data rate
@@ -153,14 +153,14 @@ TransmitterApp::StartApplication ()
 }
 
 void
-TransmitterApp::StopApplication ()
+MultipathTransmitter::StopApplication ()
 {
   NS_LOG_INFO ("Flow " << m_id << " stopped transmitting.");
   Simulator::Cancel (m_sendEvent);
 }
 
 void
-TransmitterApp::TransmitPacket ()
+MultipathTransmitter::TransmitPacket ()
 {
 
   auto randNum = GetRandomNumber ();
@@ -261,11 +261,12 @@ TransmitterApp::TransmitPacket ()
                            << Simulator::Now ());
     }
 
-  m_sendEvent = Simulator::Schedule (m_transmissionInterval, &TransmitterApp::TransmitPacket, this);
+  m_sendEvent =
+      Simulator::Schedule (m_transmissionInterval, &MultipathTransmitter::TransmitPacket, this);
 }
 
 void
-TransmitterApp::RtoChanged (std::string context, ns3::Time oldVal, ns3::Time newVal)
+MultipathTransmitter::RtoChanged (std::string context, ns3::Time oldVal, ns3::Time newVal)
 {
   NS_LOG_INFO ("RTO value changed for path " << context << ".\n"
                                              << "  Old Value " << oldVal.GetSeconds () << "\n"
@@ -273,7 +274,7 @@ TransmitterApp::RtoChanged (std::string context, ns3::Time oldVal, ns3::Time new
 }
 
 packetSize_t
-TransmitterApp::CalculateHeaderSize (FlowProtocol protocol)
+MultipathTransmitter::CalculateHeaderSize (FlowProtocol protocol)
 {
   auto headerSize = ApplicationBase::CalculateHeaderSize (protocol);
 
@@ -284,7 +285,7 @@ TransmitterApp::CalculateHeaderSize (FlowProtocol protocol)
 }
 
 inline double
-TransmitterApp::GetRandomNumber ()
+MultipathTransmitter::GetRandomNumber ()
 {
   return m_uniformRandomVariable->GetValue ();
 }

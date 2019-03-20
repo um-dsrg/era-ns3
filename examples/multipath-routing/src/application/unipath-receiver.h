@@ -1,5 +1,5 @@
-#ifndef single_path_receiver_h
-#define single_path_receiver_h
+#ifndef unipath_receiver_h
+#define unipath_receiver_h
 
 #include <list>
 
@@ -9,10 +9,10 @@
 #include "ns3/data-rate.h"
 #include "ns3/ipv4-address.h"
 
-#include "flow.h"
+#include "../flow.h"
 #include "application-base.h"
 
-class SinglePathReceiver : public ReceiverBase
+class UnipathReceiver : public ReceiverBase
 {
 
   portNum_t dstPort;
@@ -30,8 +30,8 @@ class SinglePathReceiver : public ReceiverBase
   packetNumber_t m_packetNumber{0};
 
 public:
-  SinglePathReceiver (const Flow &flow);
-  ~SinglePathReceiver ();
+  UnipathReceiver (const Flow &flow);
+  ~UnipathReceiver ();
 
 private:
   void StartApplication ();
@@ -40,4 +40,4 @@ private:
   void HandleAccept (ns3::Ptr<ns3::Socket> socket, const ns3::Address &from);
   void HandleRead (ns3::Ptr<ns3::Socket> socket);
 };
-#endif /* single_path_receiver_h */
+#endif /* unipath_receiver_h */

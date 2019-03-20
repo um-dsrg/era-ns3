@@ -13,7 +13,7 @@
 #include "src/routing-helper.h"
 #include "src/result-manager.h"
 #include "src/topology-builder.h"
-#include "src/application-base.h"
+#include "src/application/application-base.h"
 #include "src/random-generator-manager.h"
 
 using namespace ns3;
@@ -152,33 +152,33 @@ main (int argc, char *argv[])
                "$ns3::DropTailQueue<Packet>/MaxSize",
                QueueSizeValue (QueueSize ("1000000p")));
 
-  if (!perPacketDelayLog)
-    { // Compress the delay log every 500ms
-      Simulator::Schedule (Time ("500ms"), &AppContainer::CompressDelayLog, &appContainer);
-    }
+  // if (!perPacketDelayLog)
+  //   { // Compress the delay log every 500ms
+  //     Simulator::Schedule (Time ("500ms"), &AppContainer::CompressDelayLog, &appContainer);
+  //   }
 
   Simulator::Run ();
   Simulator::Stop ();
 
-  ResultManager resultManager;
-  resultManager.AddGoodputResults (flows, appContainer.GetTransmitterApps (),
-                                   appContainer.GetReceiverApps ());
-  if (perPacketDelayLog)
-    {
-      resultManager.AddDelayResults (appContainer.GetTransmitterApps (),
-                                     appContainer.GetReceiverApps ());
-    }
-  else
-    {
-      resultManager.AddDelayResults (appContainer);
-    }
+  // ResultManager resultManager;
+  // resultManager.AddGoodputResults (flows, appContainer.GetTransmitterApps (),
+  //                                  appContainer.GetReceiverApps ());
+  // if (perPacketDelayLog)
+  //   {
+  //     resultManager.AddDelayResults (appContainer.GetTransmitterApps (),
+  //                                    appContainer.GetReceiverApps ());
+  //   }
+  // else
+  //   {
+  //     resultManager.AddDelayResults (appContainer);
+  //   }
 
   // if (useSdnSwitches) {
   //     auto queueElement = topologyBuilder->GetSwitchQueueLoggingElement(resultManager.m_xmlDoc);
   //     resultManager.AddQueueStatistics(queueElement);
   // }
 
-  resultManager.SaveFile (outputFile);
+  // resultManager.SaveFile (outputFile);
 
   // Save the flow monitor result file
   flowMonHelper.SerializeToXmlFile (flowMonitorOutputFile, false, false);

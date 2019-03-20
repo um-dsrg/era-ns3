@@ -1,5 +1,5 @@
-#ifndef transmitter_app_h
-#define transmitter_app_h
+#ifndef multipath_transmitter_h
+#define multipath_transmitter_h
 
 #include <map>
 #include <list>
@@ -13,15 +13,15 @@
 #include "ns3/ipv4-address.h"
 #include "ns3/random-variable-stream.h"
 
-#include "flow.h"
-#include "definitions.h"
+#include "../flow.h"
+#include "../definitions.h"
 #include "application-base.h"
 
-class TransmitterApp : public TransmitterBase
+class MultipathTransmitter : public TransmitterBase
 {
 public:
-  explicit TransmitterApp (const Flow &flow);
-  virtual ~TransmitterApp ();
+  explicit MultipathTransmitter (const Flow &flow);
+  virtual ~MultipathTransmitter ();
 
 private:
   void StartApplication () override;
@@ -47,4 +47,4 @@ private:
       m_socketTxBuffer; /**< Socket level transmit buffer */
 };
 
-#endif /* transmitter_app_h */
+#endif /* multipath_transmitter_h */

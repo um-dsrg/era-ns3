@@ -5,19 +5,19 @@
 #include <tinyxml2.h>
 
 #include "flow.h"
-#include "app-container.h"
+#include "application/app-container.h"
 
 class ResultManager
 {
 public:
   ResultManager ();
 
-  void AddGoodputResults (const Flow::FlowContainer &flows,
-                          const AppContainer::applicationContainer_t &transmitterApplications,
-                          const AppContainer::applicationContainer_t &receiverApplications);
-  void AddDelayResults (const AppContainer::applicationContainer_t &transmitterApplications,
-                        const AppContainer::applicationContainer_t &receiverApplications);
-  void AddDelayResults (const AppContainer &appHelper);
+  // void AddGoodputResults (const Flow::FlowContainer &flows,
+  //                         const AppContainer::applicationContainer_t &transmitterApplications,
+  //                         const AppContainer::applicationContainer_t &receiverApplications);
+  // void AddDelayResults (const AppContainer::applicationContainer_t &transmitterApplications,
+  //                       const AppContainer::applicationContainer_t &receiverApplications);
+  // void AddDelayResults (const AppContainer &appHelper);
   void AddQueueStatistics (tinyxml2::XMLElement *queueElement);
   void SaveFile (const std::string &path);
 

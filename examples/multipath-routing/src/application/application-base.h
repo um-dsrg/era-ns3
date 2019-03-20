@@ -7,8 +7,8 @@
 #include "ns3/socket.h"
 #include "ns3/application.h"
 
-#include "flow.h"
-#include "definitions.h"
+#include "../flow.h"
+#include "../definitions.h"
 
 class ApplicationBase : public ns3::Application
 {
@@ -40,9 +40,10 @@ class ReceiverBase : public ApplicationBase
 public:
   double GetMeanRxGoodput ();
 
+  virtual ~ReceiverBase ();
+
 protected:
   ReceiverBase (id_t id);
-  virtual ~ReceiverBase ();
 
   /* Goodput calculation related variables */
   uint64_t m_totalRecvBytes{0};
@@ -56,9 +57,10 @@ class TransmitterBase : public ApplicationBase
 public:
   double GetTxGoodput ();
 
+  virtual ~TransmitterBase ();
+
 protected:
   TransmitterBase (id_t id);
-  virtual ~TransmitterBase ();
 
   virtual void TransmitPacket () = 0;
 

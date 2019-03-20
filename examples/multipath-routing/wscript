@@ -12,17 +12,17 @@ def build(bld):
                   'src/switch-base.cc',
                   'src/ppfs-switch.cc',
                   'src/mptcp-header.cc',
-                  'src/receiver-app.cc',
                   'src/custom-device.cc',
                   'src/routing-helper.cc',
                   'src/result-manager.cc',
-                  'src/transmitter-app.cc',
-                  'src/application-base.cc',
                   'src/topology-builder.cc',
-                  'src/app-container.cc',
-                  'src/single-path-receiver.cc',
-                  'src/single-path-transmitter.cc',
-                  'src/random-generator-manager.cc']
+                  'src/random-generator-manager.cc',
+                  'src/application/app-container.cc',
+                  'src/application/application-base.cc',
+                  'src/application/multipath-receiver.cc',
+                  'src/application/unipath-transmitter.cc',
+                  'src/application/unipath-receiver.cc',
+                  'src/application/multipath-transmitter.cc']
 
     obj.env.append_value('LIB', ['tinyxml2'])  # Adding the tinyxml2 library
     set_properties(obj)

@@ -1,13 +1,13 @@
 #include "ns3/log.h"
 #include "ns3/simulator.h"
 
-#include "single-path-receiver.h"
+#include "unipath-receiver.h"
 
 using namespace ns3;
 
-NS_LOG_COMPONENT_DEFINE ("SinglePathReceiverApp");
+NS_LOG_COMPONENT_DEFINE ("UnipathReceiver");
 
-SinglePathReceiver::SinglePathReceiver (const Flow &flow)
+UnipathReceiver::UnipathReceiver (const Flow &flow)
     : ReceiverBase (flow.id), protocol (flow.protocol)
 {
   auto path = flow.GetDataPaths ().front ();
@@ -17,7 +17,7 @@ SinglePathReceiver::SinglePathReceiver (const Flow &flow)
   dstAddress = Address (InetSocketAddress (flow.dstNode->GetIpAddress (), path.dstPort));
 }
 
-SinglePathReceiver::~SinglePathReceiver ()
+UnipathReceiver::~UnipathReceiver ()
 {
   rxListenSocket = nullptr;
   for (auto &acceptedSocket : m_rxAcceptedSockets)
@@ -27,7 +27,7 @@ SinglePathReceiver::~SinglePathReceiver ()
 }
 
 void
-SinglePathReceiver::StartApplication ()
+UnipathReceiver::StartApplication ()
 {
   NS_LOG_INFO ("Flow " << m_id << " started reception.");
 
@@ -37,32 +37,32 @@ SinglePathReceiver::StartApplication ()
       NS_ABORT_MSG ("Failed to bind socket");
     }
 
-  rxListenSocket->SetRecvCallback (MakeCallback (&SinglePathReceiver::HandleRead, this));
+  rxListenSocket->SetRecvCallback (MakeCallback (&UnipathReceiver::HandleRead, this));
 
   if (protocol == FlowProtocol::Tcp)
     {
       rxListenSocket->Listen ();
       rxListenSocket->ShutdownSend (); // Half close the connection;
       rxListenSocket->SetAcceptCallback (MakeNullCallback<bool, Ptr<Socket>, const Address &> (),
-                                         MakeCallback (&SinglePathReceiver::HandleAccept, this));
+                                         MakeCallback (&UnipathReceiver::HandleAccept, this));
     }
 }
 
 void
-SinglePathReceiver::StopApplication ()
+UnipathReceiver::StopApplication ()
 {
   NS_LOG_INFO ("Flow " << m_id << " stopped reception.");
 }
 
 void
-SinglePathReceiver::HandleAccept (Ptr<Socket> socket, const Address &from)
+UnipathReceiver::HandleAccept (Ptr<Socket> socket, const Address &from)
 {
-  socket->SetRecvCallback (MakeCallback (&SinglePathReceiver::HandleRead, this));
+  socket->SetRecvCallback (MakeCallback (&UnipathReceiver::HandleRead, this));
   m_rxAcceptedSockets.push_back (socket);
 }
 
 void
-SinglePathReceiver::HandleRead (Ptr<Socket> socket)
+UnipathReceiver::HandleRead (Ptr<Socket> socket)
 {
   Ptr<Packet> packet;
   Address from;

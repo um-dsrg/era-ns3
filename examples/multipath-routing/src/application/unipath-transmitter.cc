@@ -3,19 +3,19 @@
 #include "ns3/simulator.h"
 #include "ns3/inet-socket-address.h"
 
-#include "single-path-transmitter.h"
+#include "unipath-transmitter.h"
 
 using namespace ns3;
 
-NS_LOG_COMPONENT_DEFINE ("SinglePathTransmitterApp");
+NS_LOG_COMPONENT_DEFINE ("UnipathTransmitter");
 
-SinglePathTransmitterApp::SinglePathTransmitterApp (const Flow &flow) : TransmitterBase (flow.id)
+UnipathTransmitter::UnipathTransmitter (const Flow &flow) : TransmitterBase (flow.id)
 {
   auto path = flow.GetDataPaths ().front ();
   srcPort = path.srcPort;
   txSocket = CreateSocket (flow.srcNode->GetNode (), flow.protocol);
   txSocket->TraceConnectWithoutContext ("RTO",
-                                        MakeCallback (&SinglePathTransmitterApp::RtoChanged, this));
+                                        MakeCallback (&UnipathTransmitter::RtoChanged, this));
   dstAddress = Address (InetSocketAddress (flow.dstNode->GetIpAddress (), path.dstPort));
 
   // Set the data packet size
@@ -34,13 +34,13 @@ SinglePathTransmitterApp::SinglePathTransmitterApp (const Flow &flow) : Transmit
   m_transmissionInterval = Seconds (transmissionInterval);
 }
 
-SinglePathTransmitterApp::~SinglePathTransmitterApp ()
+UnipathTransmitter::~UnipathTransmitter ()
 {
   txSocket = nullptr;
 }
 
 void
-SinglePathTransmitterApp::StartApplication ()
+UnipathTransmitter::StartApplication ()
 {
   if (m_dataRateBps <= 1e-5)
     { // Do not transmit anything if not allocated any data rate
@@ -65,14 +65,14 @@ SinglePathTransmitterApp::StartApplication ()
 }
 
 void
-SinglePathTransmitterApp::StopApplication ()
+UnipathTransmitter::StopApplication ()
 {
   NS_LOG_INFO ("Flow " << m_id << " stopped transmitting.");
   Simulator::Cancel (m_sendEvent);
 }
 
 void
-SinglePathTransmitterApp::TransmitPacket ()
+UnipathTransmitter::TransmitPacket ()
 {
 
   if (txSocket->GetTxAvailable () >= m_dataPacketSize)
@@ -146,11 +146,11 @@ SinglePathTransmitterApp::TransmitPacket ()
     }
 
   m_sendEvent =
-      Simulator::Schedule (m_transmissionInterval, &SinglePathTransmitterApp::TransmitPacket, this);
+      Simulator::Schedule (m_transmissionInterval, &UnipathTransmitter::TransmitPacket, this);
 }
 
 void
-SinglePathTransmitterApp::RtoChanged (ns3::Time oldVal, ns3::Time newVal)
+UnipathTransmitter::RtoChanged (ns3::Time oldVal, ns3::Time newVal)
 {
   NS_LOG_INFO ("RTO value changed for flow " << m_id << ".\n"
                                              << "  Old Value " << oldVal.GetSeconds () << "\n"

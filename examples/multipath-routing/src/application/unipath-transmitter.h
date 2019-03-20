@@ -1,5 +1,5 @@
-#ifndef single_path_transmitter_h
-#define single_path_transmitter_h
+#ifndef unipath_transmitter_h
+#define unipath_transmitter_h
 
 #include <list>
 
@@ -10,15 +10,15 @@
 #include "ns3/application.h"
 #include "ns3/ipv4-address.h"
 
-#include "flow.h"
-#include "definitions.h"
+#include "../flow.h"
+#include "../definitions.h"
 #include "application-base.h"
 
-class SinglePathTransmitterApp : public TransmitterBase
+class UnipathTransmitter : public TransmitterBase
 {
 public:
-  explicit SinglePathTransmitterApp (const Flow &flow);
-  ~SinglePathTransmitterApp () override;
+  explicit UnipathTransmitter (const Flow &flow);
+  ~UnipathTransmitter () override;
 
 private:
   void StartApplication () override;
@@ -33,4 +33,4 @@ private:
   std::list<packetNumber_t> m_txBuffer; /**< Socket level transmit buffer */
 };
 
-#endif /* single_path_transmitter_h */
+#endif /* unipath_transmitter_h */

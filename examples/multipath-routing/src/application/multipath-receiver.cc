@@ -2,12 +2,12 @@
 #include "ns3/simulator.h"
 #include "ns3/inet-socket-address.h"
 
-#include "mptcp-header.h"
-#include "receiver-app.h"
+#include "../mptcp-header.h"
+#include "multipath-receiver.h"
 
 using namespace ns3;
 
-NS_LOG_COMPONENT_DEFINE ("ReceiverApp");
+NS_LOG_COMPONENT_DEFINE ("MultipathReceiver");
 
 /**
  AggregateBuffer implementation
@@ -57,7 +57,8 @@ AggregateBuffer::SetPacketSize (packetSize_t packetSize)
  */
 std::tuple<packetNumber_t, packetSize_t> ExtractPacketDetails (ns3::Ptr<ns3::Packet> packet);
 
-ReceiverApp::ReceiverApp (const Flow &flow) : ReceiverBase (flow.id), protocol (flow.protocol)
+MultipathReceiver::MultipathReceiver (const Flow &flow)
+    : ReceiverBase (flow.id), protocol (flow.protocol)
 {
 
   SetDataPacketSize (flow);
@@ -75,7 +76,7 @@ ReceiverApp::ReceiverApp (const Flow &flow) : ReceiverBase (flow.id), protocol (
     }
 }
 
-ReceiverApp::~ReceiverApp ()
+MultipathReceiver::~MultipathReceiver ()
 {
   for (auto &acceptedSocket : m_rxAcceptedSockets)
     {
@@ -89,7 +90,7 @@ ReceiverApp::~ReceiverApp ()
 }
 
 void
-ReceiverApp::StartApplication ()
+MultipathReceiver::StartApplication ()
 {
   NS_LOG_INFO ("Flow " << m_id << " started reception.");
 
@@ -101,7 +102,8 @@ ReceiverApp::StartApplication ()
           NS_ABORT_MSG ("Failed to bind socket");
         }
 
-      pathInfo.rxListenSocket->SetRecvCallback (MakeCallback (&ReceiverApp::HandleRead, this));
+      pathInfo.rxListenSocket->SetRecvCallback (
+          MakeCallback (&MultipathReceiver::HandleRead, this));
 
       if (protocol == FlowProtocol::Tcp)
         {
@@ -109,19 +111,19 @@ ReceiverApp::StartApplication ()
           pathInfo.rxListenSocket->ShutdownSend (); // Half close the connection;
           pathInfo.rxListenSocket->SetAcceptCallback (
               MakeNullCallback<bool, Ptr<Socket>, const Address &> (),
-              MakeCallback (&ReceiverApp::HandleAccept, this));
+              MakeCallback (&MultipathReceiver::HandleAccept, this));
         }
     }
 }
 
 void
-ReceiverApp::StopApplication ()
+MultipathReceiver::StopApplication ()
 {
   NS_LOG_INFO ("Flow " << m_id << " stopped reception.");
 }
 
 packetSize_t
-ReceiverApp::CalculateHeaderSize (FlowProtocol protocol)
+MultipathReceiver::CalculateHeaderSize (FlowProtocol protocol)
 {
   auto headerSize = ApplicationBase::CalculateHeaderSize (protocol);
 
@@ -132,7 +134,7 @@ ReceiverApp::CalculateHeaderSize (FlowProtocol protocol)
 }
 
 void
-ReceiverApp::SetDataPacketSize (const Flow &flow)
+MultipathReceiver::SetDataPacketSize (const Flow &flow)
 {
   m_dataPacketSize = flow.packetSize - CalculateHeaderSize (flow.protocol);
 
@@ -142,14 +144,14 @@ ReceiverApp::SetDataPacketSize (const Flow &flow)
 }
 
 void
-ReceiverApp::HandleAccept (Ptr<Socket> socket, const Address &from)
+MultipathReceiver::HandleAccept (Ptr<Socket> socket, const Address &from)
 {
-  socket->SetRecvCallback (MakeCallback (&ReceiverApp::HandleRead, this));
+  socket->SetRecvCallback (MakeCallback (&MultipathReceiver::HandleRead, this));
   m_rxAcceptedSockets.push_back (socket);
 }
 
 void
-ReceiverApp::HandleRead (Ptr<Socket> socket)
+MultipathReceiver::HandleRead (Ptr<Socket> socket)
 {
   NS_LOG_INFO ("Flow " << m_id << " received some packets at " << Simulator::Now ());
 
@@ -207,7 +209,7 @@ ReceiverApp::HandleRead (Ptr<Socket> socket)
 }
 
 void
-ReceiverApp::popInOrderPacketsFromQueue ()
+MultipathReceiver::popInOrderPacketsFromQueue ()
 {
   bufferContents_t const *topElement = &m_recvBuffer.top ();
 
