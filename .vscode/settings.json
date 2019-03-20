@@ -1,24 +1,24 @@
 {
-    "files.exclude": {
-        "**/.git": true,
-        "**/.svn": true,
-        "**/.hg": true,
-        "**/CVS": true,
-        "**/.DS_Store": true,
-        // Custom Excludes
-        "doc/": true,
-        "utils/": true,
-        "waf.bat": true,
-        "contrib/": true,
-        "bindings/": true,
-        "waf-tools/": true,
-        ".waf*": true
-    },
-    "editor.rulers": [
-        100
-    ],
-    "editor.tabSize": 2,
-    "editor.formatOnSave": true,
-    "editor.formatOnType": true,
-    "editor.detectIndentation": false
+  "files.exclude": {
+    "**/.git": true,
+    "**/.svn": true,
+    "**/.hg": true,
+    "**/CVS": true,
+    "**/.DS_Store": true,
+    // Custom Excludes
+    "doc/": true,
+    "utils/": true,
+    "waf.bat": true,
+    "contrib/": true,
+    "bindings/": true,
+    "waf-tools/": true,
+    ".waf*": true
+  },
+  "editor.rulers": [
+    100
+  ],
+  "editor.tabSize": 2,
+  "editor.formatOnSave": true,
+  "editor.formatOnType": true,
+  "editor.detectIndentation": false
 }

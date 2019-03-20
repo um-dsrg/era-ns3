@@ -67,11 +67,5 @@ Network Trash Folder
 Temporary Items
 .apdisk
 
-Ns3.xcodeproj/
-
-# Sublime
-*.sublime-workspace
-
-# CLion
-.idea/
-cmake-build-debug/
+# VsCode
+.vscode/ipch
