@@ -12,11 +12,13 @@
 
 struct PacketDetails
 {
-  PacketDetails (ns3::Time transmitted, packetSize_t dataSize);
+  PacketDetails (ns3::Time transmitted, packetSize_t transmittedDataSize);
 
   ns3::Time received;
   ns3::Time transmitted;
-  packetSize_t dataSize; // The number of data stored in the packet in bytes
+  // The number of data bytes stored in the packet
+  packetSize_t transmittedDataSize = 0;
+  packetSize_t receivedDataSize = 0;
 };
 
 struct FlowResults

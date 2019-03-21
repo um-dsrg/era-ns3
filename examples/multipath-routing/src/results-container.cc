@@ -16,8 +16,8 @@ using namespace tinyxml2;
 
 NS_LOG_COMPONENT_DEFINE ("ResultsContainer");
 
-PacketDetails::PacketDetails (Time transmitted, packetSize_t dataSize)
-    : transmitted (transmitted), dataSize (dataSize)
+PacketDetails::PacketDetails (Time transmitted, packetSize_t transmittedDataSize)
+    : transmitted (transmitted), transmittedDataSize (transmittedDataSize)
 {
 }
 
@@ -69,18 +69,20 @@ ResultsContainer::LogPacketReception (id_t flowId, Time time, packetNumber_t pkt
 
   auto &packetDetail = flowResult.packetResults.at (pktNumber);
 
-  // Ensure that the packet sizes match
-  if (packetDetail.dataSize != dataSize)
+  packetDetail.received = time;
+  packetDetail.receivedDataSize = dataSize;
+
+  // Output a warning if the packet sizes do not match
+  if (packetDetail.transmittedDataSize != packetDetail.receivedDataSize)
     {
-      NS_ABORT_MSG (
-          "Flow: "
+      NS_LOG_WARN (
+          "Flow "
           << flowId
           << ": The size of the transmitted and received packet does not match. Packet Number "
-          << pktNumber << ". Transmitted size: " << packetDetail.dataSize
-          << " Received Size: " << dataSize);
+          << pktNumber << ". Transmitted size: " << packetDetail.transmittedDataSize
+          << " Received Size: " << packetDetail.receivedDataSize);
     }
 
-  packetDetail.received = time;
   NS_LOG_INFO ("Flow " << flowId << " received packet " << pktNumber << " (" << dataSize
                        << " data bytes) at " << time.GetSeconds () << "s");
 }
@@ -111,7 +113,8 @@ ResultsContainer::AddFlowResults ()
           packetElement->SetAttribute ("Id", packetNumber);
           packetElement->SetAttribute ("Transmitted", packetDetails.transmitted.GetNanoSeconds ());
           packetElement->SetAttribute ("Received", packetDetails.received.GetNanoSeconds ());
-          packetElement->SetAttribute ("DataSize", packetDetails.dataSize);
+          packetElement->SetAttribute ("TxDataSize", packetDetails.transmittedDataSize);
+          packetElement->SetAttribute ("RxDataSize", packetDetails.receivedDataSize);
 
           flowElement->InsertEndChild (packetElement);
         }
