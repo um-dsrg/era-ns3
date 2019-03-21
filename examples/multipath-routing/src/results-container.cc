@@ -11,11 +11,17 @@
 #include "application/unipath-transmitter.h"
 #include "application/multipath-transmitter.h"
 
+using ns3::Time;
 using namespace tinyxml2;
 
 NS_LOG_COMPONENT_DEFINE ("ResultsContainer");
 
-ResultsContainer::ResultsContainer ()
+PacketDetails::PacketDetails (Time transmitted, packetSize_t packetSize)
+    : transmitted (transmitted), packetSize (packetSize)
+{
+}
+
+ResultsContainer::ResultsContainer (const Flow::flowContainer_t &flows)
 {
   XMLNode *rootElement = m_xmlDoc.NewElement ("Log");
   m_rootNode = m_xmlDoc.InsertFirstChild (rootElement);
@@ -25,6 +31,58 @@ ResultsContainer::ResultsContainer ()
     {
       throw std::runtime_error ("Could not create element node");
     }
+
+  // Generate a new FlowResults entry for every existing flow
+  for (const auto &flowPair : flows)
+    {
+      auto flowId = flowPair.first;
+      m_flowResults.emplace (flowId, FlowResults ());
+    }
+}
+
+void
+ResultsContainer::LogPacketTransmission (id_t flowId, Time time, packetNumber_t pktNumber,
+                                         packetSize_t pktSize)
+{
+  auto &flowResult = m_flowResults.at (flowId);
+
+  // Check to make sure that there are no duplicates
+  NS_ABORT_MSG_IF (flowResult.packetDetails.find (pktNumber) != flowResult.packetDetails.end (),
+                   "Flow " << flowId << ": The packet " << pktNumber
+                           << " has been already logged for transmission");
+
+  flowResult.packetDetails.emplace (pktNumber, PacketDetails (time, pktSize));
+  NS_LOG_INFO ("Flow " << flowId << " transmitted packet " << pktNumber << " (" << pktSize
+                       << "bytes) at " << time.GetSeconds () << "s");
+}
+
+void
+ResultsContainer::LogPacketReception (id_t flowId, Time time, packetNumber_t pktNumber,
+                                      packetSize_t pktSize)
+{
+  auto &flowResult = m_flowResults.at (flowId);
+
+  // Check to make sure that there are no duplicates
+  NS_ABORT_MSG_IF (flowResult.packetDetails.find (pktNumber) == flowResult.packetDetails.end (),
+                   "Flow " << flowId << ": The packet " << pktNumber
+                           << " has never been transmitted");
+
+  auto &packetDetail = flowResult.packetDetails.at (pktNumber);
+
+  // Ensure that the packet sizes match
+  if (packetDetail.packetSize != pktSize)
+    {
+      NS_ABORT_MSG (
+          "Flow: "
+          << flowId
+          << ": The size of the transmitted and received packet does not match. Packet Number"
+          << pktNumber << ". Transmitted size: " << packetDetail.packetSize
+          << " Received Size: " << pktSize);
+    }
+
+  packetDetail.received = time;
+  NS_LOG_INFO ("Flow " << flowId << " received packet " << pktNumber << " (" << pktSize
+                       << "bytes) at " << time.GetSeconds () << "s");
 }
 
 // void
