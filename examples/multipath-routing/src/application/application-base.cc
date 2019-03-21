@@ -52,22 +52,6 @@ ApplicationBase::LogPacketTime (packetNumber_t packetNumber)
   m_delayLog.emplace (packetNumber, Simulator::Now ());
 }
 
-// double
-// ApplicationBase::GetMeanRxGoodput ()
-// {
-//   NS_ABORT_MSG ("Error: The GetMeanRxGoodput function from ApplicationBase cannot "
-//                 "be used directly");
-//   return 0.0;
-// }
-
-// double
-// ApplicationBase::GetTxGoodput ()
-// {
-//   NS_ABORT_MSG ("Error: The GetTxGoodput function from ApplicationBase cannot "
-//                 "be used directly");
-//   return 0.0;
-// }
-
 packetSize_t
 ApplicationBase::CalculateHeaderSize (FlowProtocol protocol)
 {
@@ -139,6 +123,72 @@ double
 TransmitterBase::GetTxGoodput ()
 {
   return m_dataRateBps / 1000000;
+}
+
+void
+TransmitterBase::SendPacket (ns3::Ptr<ns3::Socket> txSocket, ns3::Ptr<ns3::Packet> packet,
+                             packetNumber_t pktNumber)
+{
+  auto numBytesSent = txSocket->Send (packet);
+
+  if (numBytesSent == -1)
+    {
+      std::stringstream ss;
+      ss << "Flow " << m_id << " Packet " << pktNumber << " failed to transmit. Packet size "
+         << packet->GetSize () << "\n";
+      auto error = txSocket->GetErrno ();
+
+      switch (error)
+        {
+        case Socket::SocketErrno::ERROR_NOTERROR:
+          ss << "ERROR_NOTERROR";
+          break;
+        case Socket::SocketErrno::ERROR_ISCONN:
+          ss << "ERROR_ISCONN";
+          break;
+        case Socket::SocketErrno::ERROR_NOTCONN:
+          ss << "ERROR_NOTCONN";
+          break;
+        case Socket::SocketErrno::ERROR_MSGSIZE:
+          ss << "ERROR_MSGSIZE";
+          break;
+        case Socket::SocketErrno::ERROR_AGAIN:
+          ss << "ERROR_AGAIN";
+          break;
+        case Socket::SocketErrno::ERROR_SHUTDOWN:
+          ss << "ERROR_SHUTDOWN";
+          break;
+        case Socket::SocketErrno::ERROR_OPNOTSUPP:
+          ss << "ERROR_OPNOTSUPP";
+          break;
+        case Socket::SocketErrno::ERROR_AFNOSUPPORT:
+          ss << "ERROR_AFNOSUPPORT";
+          break;
+        case Socket::SocketErrno::ERROR_INVAL:
+          ss << "ERROR_INVAL";
+          break;
+        case Socket::SocketErrno::ERROR_BADF:
+          ss << "ERROR_BADF";
+          break;
+        case Socket::SocketErrno::ERROR_NOROUTETOHOST:
+          ss << "ERROR_NOROUTETOHOST";
+          break;
+        case Socket::SocketErrno::ERROR_NODEV:
+          ss << "ERROR_NODEV";
+          break;
+        case Socket::SocketErrno::ERROR_ADDRNOTAVAIL:
+          ss << "ERROR_ADDRNOTAVAIL";
+          break;
+        case Socket::SocketErrno::ERROR_ADDRINUSE:
+          ss << "ERROR_ADDRINUSE";
+          break;
+        case Socket::SocketErrno::SOCKET_ERRNO_LAST:
+          ss << "SOCKET_ERRNO_LAST";
+          break;
+        }
+
+      NS_ABORT_MSG (ss.str ());
+    }
 }
 
 void

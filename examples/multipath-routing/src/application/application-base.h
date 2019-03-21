@@ -15,8 +15,6 @@ class ApplicationBase : public ns3::Application
 public:
   // TODO: All of these need to be removed from here!
   const std::map<packetNumber_t, ns3::Time> &GetDelayLog () const;
-  // virtual double GetMeanRxGoodput ();
-  // virtual double GetTxGoodput ();
   std::map<packetNumber_t, ns3::Time> m_delayLog;
 
 protected:
@@ -66,6 +64,8 @@ protected:
 
   void SetDataPacketSize (const Flow &flow);
   void SetApplicationGoodputRate (const Flow &flow);
+  void SendPacket (ns3::Ptr<ns3::Socket> txSocket, ns3::Ptr<ns3::Packet> packet,
+                   packetNumber_t pktNumber);
 
   double m_dataRateBps; /**< Application's bit rate in bps. */
   ns3::Time m_transmissionInterval; /**< The time between packet transmissions. */
