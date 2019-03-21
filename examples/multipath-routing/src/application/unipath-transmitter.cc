@@ -9,7 +9,8 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("UnipathTransmitter");
 
-UnipathTransmitter::UnipathTransmitter (const Flow &flow) : TransmitterBase (flow.id)
+UnipathTransmitter::UnipathTransmitter (const Flow &flow, ResultsContainer &resContainer)
+    : TransmitterBase (flow.id), m_resContainer (resContainer)
 {
   auto path = flow.GetDataPaths ().front ();
   srcPort = path.srcPort;

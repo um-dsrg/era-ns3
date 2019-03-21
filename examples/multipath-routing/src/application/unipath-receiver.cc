@@ -7,8 +7,8 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("UnipathReceiver");
 
-UnipathReceiver::UnipathReceiver (const Flow &flow)
-    : ReceiverBase (flow.id), protocol (flow.protocol)
+UnipathReceiver::UnipathReceiver (const Flow &flow, ResultsContainer &resContainer)
+    : ReceiverBase (flow.id), protocol (flow.protocol), m_resContainer (resContainer)
 {
   auto path = flow.GetDataPaths ().front ();
 

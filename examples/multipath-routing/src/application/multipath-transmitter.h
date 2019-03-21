@@ -16,11 +16,12 @@
 #include "../flow.h"
 #include "../definitions.h"
 #include "application-base.h"
+#include "../results-container.h"
 
 class MultipathTransmitter : public TransmitterBase
 {
 public:
-  explicit MultipathTransmitter (const Flow &flow);
+  explicit MultipathTransmitter (const Flow &flow, ResultsContainer &resContainer);
   virtual ~MultipathTransmitter ();
 
 private:
@@ -45,6 +46,8 @@ private:
   ns3::Ptr<ns3::UniformRandomVariable> m_uniformRandomVariable; /**< Random variable */
   std::map<ns3::Ptr<ns3::Socket>, std::list<packetNumber_t>>
       m_socketTxBuffer; /**< Socket level transmit buffer */
+
+  ResultsContainer &m_resContainer;
 };
 
 #endif /* multipath_transmitter_h */

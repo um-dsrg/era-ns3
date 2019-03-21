@@ -57,8 +57,8 @@ AggregateBuffer::SetPacketSize (packetSize_t packetSize)
  */
 std::tuple<packetNumber_t, packetSize_t> ExtractPacketDetails (ns3::Ptr<ns3::Packet> packet);
 
-MultipathReceiver::MultipathReceiver (const Flow &flow)
-    : ReceiverBase (flow.id), protocol (flow.protocol)
+MultipathReceiver::MultipathReceiver (const Flow &flow, ResultsContainer &resContainer)
+    : ReceiverBase (flow.id), protocol (flow.protocol), m_resContainer (resContainer)
 {
 
   SetDataPacketSize (flow);

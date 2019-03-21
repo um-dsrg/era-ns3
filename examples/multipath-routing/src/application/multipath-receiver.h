@@ -16,6 +16,7 @@
 
 #include "../flow.h"
 #include "application-base.h"
+#include "../results-container.h"
 
 class AggregateBuffer
 {
@@ -54,7 +55,7 @@ class MultipathReceiver : public ReceiverBase
   std::list<ns3::Ptr<ns3::Socket>> m_rxAcceptedSockets; /**< List of the accepted sockets. */
 
 public:
-  MultipathReceiver (const Flow &flow);
+  MultipathReceiver (const Flow &flow, ResultsContainer& resContainer);
   virtual ~MultipathReceiver ();
 
 private:
@@ -66,6 +67,8 @@ private:
 
   void HandleAccept (ns3::Ptr<ns3::Socket> socket, const ns3::Address &from);
   void HandleRead (ns3::Ptr<ns3::Socket> socket);
+
+  ResultsContainer &m_resContainer;
 
   /* Buffer related variables */
   // TODO: Set this to a class to make the code more readable, a class may be worthwhile because we need to log this

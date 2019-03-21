@@ -16,7 +16,8 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("MultipathTransmitter");
 
-MultipathTransmitter::MultipathTransmitter (const Flow &flow) : TransmitterBase (flow.id)
+MultipathTransmitter::MultipathTransmitter (const Flow &flow, ResultsContainer &resContainer)
+    : TransmitterBase (flow.id), m_resContainer (resContainer)
 {
   if (flow.dataRate.GetBitRate () <= 1e-5)
     { // Flow was assigned no data rate

@@ -5,7 +5,7 @@
 
 #include "sdn-switch.h"
 #include "ppfs-switch.h"
-#include "result-manager.h"
+#include "results-container.h"
 #include "application/unipath-receiver.h"
 #include "application/multipath-receiver.h"
 #include "application/unipath-transmitter.h"
@@ -13,9 +13,9 @@
 
 using namespace tinyxml2;
 
-NS_LOG_COMPONENT_DEFINE ("ResultManager");
+NS_LOG_COMPONENT_DEFINE ("ResultsContainer");
 
-ResultManager::ResultManager ()
+ResultsContainer::ResultsContainer ()
 {
   XMLNode *rootElement = m_xmlDoc.NewElement ("Log");
   m_rootNode = m_xmlDoc.InsertFirstChild (rootElement);
@@ -163,13 +163,13 @@ ResultManager::ResultManager ()
 // }
 
 void
-ResultManager::AddQueueStatistics (XMLElement *queueElement)
+ResultsContainer::AddQueueStatistics (XMLElement *queueElement)
 {
   m_rootNode->InsertEndChild (queueElement);
 }
 
 void
-ResultManager::SaveFile (const std::string &path)
+ResultsContainer::SaveFile (const std::string &path)
 {
   if (m_xmlDoc.SaveFile (path.c_str ()) != tinyxml2::XML_SUCCESS)
     {
@@ -178,7 +178,7 @@ ResultManager::SaveFile (const std::string &path)
 }
 
 void
-ResultManager::InsertTimeStamp ()
+ResultsContainer::InsertTimeStamp ()
 {
   using namespace std::chrono;
   time_point<system_clock> currentTime (system_clock::now ());

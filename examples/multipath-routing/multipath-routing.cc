@@ -11,10 +11,10 @@
 
 #include "src/sdn-switch.h"
 #include "src/routing-helper.h"
-#include "src/result-manager.h"
 #include "src/topology-builder.h"
-#include "src/application/application-base.h"
+#include "src/results-container.h"
 #include "src/random-generator-manager.h"
+#include "src/application/app-container.h"
 
 using namespace ns3;
 using namespace tinyxml2;
@@ -130,9 +130,11 @@ main (int argc, char *argv[])
   // Reconcile the routing tables. Useful only for PPFS switches
   topologyBuilder->ReconcileRoutingTables ();
 
+  ResultsContainer resContainer;
+
   AppContainer appContainer;
   appContainer.InstallApplicationsOnTerminals (flows, topologyBuilder->GetTerminals (),
-                                               usePpfsSwitches);
+                                               usePpfsSwitches, resContainer);
 
   if (enablePcap)
     {

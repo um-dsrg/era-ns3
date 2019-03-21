@@ -15,8 +15,8 @@ class ApplicationBase : public ns3::Application
 public:
   // TODO: All of these need to be removed from here!
   const std::map<packetNumber_t, ns3::Time> &GetDelayLog () const;
-  virtual double GetMeanRxGoodput ();
-  virtual double GetTxGoodput ();
+  // virtual double GetMeanRxGoodput ();
+  // virtual double GetTxGoodput ();
   std::map<packetNumber_t, ns3::Time> m_delayLog;
 
 protected:

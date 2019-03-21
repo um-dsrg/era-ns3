@@ -11,6 +11,7 @@
 
 #include "../flow.h"
 #include "application-base.h"
+#include "../results-container.h"
 
 class UnipathReceiver : public ReceiverBase
 {
@@ -30,7 +31,7 @@ class UnipathReceiver : public ReceiverBase
   packetNumber_t m_packetNumber{0};
 
 public:
-  UnipathReceiver (const Flow &flow);
+  UnipathReceiver (const Flow &flow, ResultsContainer &resContainer);
   ~UnipathReceiver ();
 
 private:
@@ -39,5 +40,7 @@ private:
 
   void HandleAccept (ns3::Ptr<ns3::Socket> socket, const ns3::Address &from);
   void HandleRead (ns3::Ptr<ns3::Socket> socket);
+
+  ResultsContainer &m_resContainer;
 };
 #endif /* unipath_receiver_h */

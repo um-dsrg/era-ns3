@@ -13,11 +13,12 @@
 #include "../flow.h"
 #include "../definitions.h"
 #include "application-base.h"
+#include "../results-container.h"
 
 class UnipathTransmitter : public TransmitterBase
 {
 public:
-  explicit UnipathTransmitter (const Flow &flow);
+  explicit UnipathTransmitter (const Flow &flow, ResultsContainer& resContainer);
   ~UnipathTransmitter () override;
 
 private:
@@ -31,6 +32,8 @@ private:
   ns3::Ptr<ns3::Socket> txSocket; /**< The socket to transmit data on the given path. */
   ns3::Address dstAddress; /**< The path's destination address. */
   std::list<packetNumber_t> m_txBuffer; /**< Socket level transmit buffer */
+
+  ResultsContainer &m_resContainer;
 };
 
 #endif /* unipath_transmitter_h */

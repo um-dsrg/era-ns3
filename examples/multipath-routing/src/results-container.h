@@ -1,16 +1,15 @@
-#ifndef result_manager_h
-#define result_manager_h
+#ifndef results_container_h
+#define results_container_h
 
 #include <string>
 #include <tinyxml2.h>
 
 #include "flow.h"
-#include "application/app-container.h"
 
-class ResultManager
+class ResultsContainer
 {
 public:
-  ResultManager ();
+  ResultsContainer ();
 
   // void AddGoodputResults (const Flow::FlowContainer &flows,
   //                         const AppContainer::applicationContainer_t &transmitterApplications,
@@ -28,4 +27,4 @@ private:
   void InsertTimeStamp ();
   tinyxml2::XMLNode *m_rootNode;
 };
-#endif /* result_manager_h */
+#endif /* results_container_h */

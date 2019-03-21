@@ -22,7 +22,7 @@ NS_LOG_COMPONENT_DEFINE ("AppContainer");
 void
 AppContainer::InstallApplicationsOnTerminals (const Flow::FlowContainer &flows,
                                               const Terminal::TerminalContainer &terminals,
-                                              bool usePpfsSwitches)
+                                              bool usePpfsSwitches, ResultsContainer &resContainer)
 {
   for (const auto &flowPair : flows)
     {
@@ -31,11 +31,12 @@ AppContainer::InstallApplicationsOnTerminals (const Flow::FlowContainer &flows,
 
       if (flow.GetDataPaths ().size () == 1 || usePpfsSwitches)
         {
-          InstallApplicationOnTerminal<UnipathTransmitter, UnipathReceiver> (flow);
+          InstallApplicationOnTerminal<UnipathTransmitter, UnipathReceiver> (flow, resContainer);
         }
       else
         {
-          InstallApplicationOnTerminal<MultipathTransmitter, MultipathReceiver> (flow);
+          InstallApplicationOnTerminal<MultipathTransmitter, MultipathReceiver> (flow,
+                                                                                 resContainer);
         }
 
       // Create the flow delay log entry.
@@ -45,17 +46,18 @@ AppContainer::InstallApplicationsOnTerminals (const Flow::FlowContainer &flows,
 
 template <typename TransmitterApp, typename ReceiverApp>
 void
-AppContainer::InstallApplicationOnTerminal (const Flow &flow)
+AppContainer::InstallApplicationOnTerminal (const Flow &flow, ResultsContainer &resContainer)
 {
   // Installing the transmitter
-  std::unique_ptr<TransmitterApp> transmitterApp = std::make_unique<TransmitterApp> (flow);
+  std::unique_ptr<TransmitterApp> transmitterApp =
+      std::make_unique<TransmitterApp> (flow, resContainer);
   Ptr<Application> nsTransmitterApp = transmitterApp.get ();
   flow.srcNode->GetNode ()->AddApplication (nsTransmitterApp);
   transmitterApp->SetStartTime (Seconds (0.0));
   m_transmitterApplications.emplace (flow.id, std::move (transmitterApp));
 
   // Installing the receiver
-  std::unique_ptr<ReceiverApp> receiverApp = std::make_unique<ReceiverApp> (flow);
+  std::unique_ptr<ReceiverApp> receiverApp = std::make_unique<ReceiverApp> (flow, resContainer);
   Ptr<Application> nsReceiverApp = receiverApp.get ();
   flow.dstNode->GetNode ()->AddApplication (nsReceiverApp);
   receiverApp->SetStartTime (Seconds (0.0));
