@@ -130,7 +130,7 @@ main (int argc, char *argv[])
   // Reconcile the routing tables. Useful only for PPFS switches
   topologyBuilder->ReconcileRoutingTables ();
 
-  AppContainer appContainer; // TODO Rename this variable
+  AppContainer appContainer;
   appContainer.InstallApplicationsOnTerminals (flows, topologyBuilder->GetTerminals (),
                                                usePpfsSwitches);
 
