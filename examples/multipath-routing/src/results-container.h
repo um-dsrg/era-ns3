@@ -21,7 +21,7 @@ struct PacketDetails
 
 struct FlowResults
 {
-  std::map<id_t, PacketDetails> packetDetails; /**< Key: Packet Id | Value: Packet Details */
+  std::map<id_t, PacketDetails> packetResults; /**< Key: Packet Id | Value: Packet Details */
 };
 
 class ResultsContainer
@@ -34,6 +34,8 @@ public:
                               packetSize_t dataSize);
   void LogPacketReception (id_t flowId, ns3::Time time, packetNumber_t pktNumber,
                            packetSize_t dataSize);
+
+  void AddFlowResults ();
 
   // void AddGoodputResults (const Flow::FlowContainer &flows,
   //                         const AppContainer::applicationContainer_t &transmitterApplications,

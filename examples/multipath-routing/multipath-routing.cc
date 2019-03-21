@@ -164,25 +164,29 @@ main (int argc, char *argv[])
   Simulator::Run ();
   Simulator::Stop ();
 
-  // ResultManager resultManager;
-  // resultManager.AddGoodputResults (flows, appContainer.GetTransmitterApps (),
-  //                                  appContainer.GetReceiverApps ());
-  // if (perPacketDelayLog)
-  //   {
-  //     resultManager.AddDelayResults (appContainer.GetTransmitterApps (),
-  //                                    appContainer.GetReceiverApps ());
-  //   }
-  // else
-  //   {
-  //     resultManager.AddDelayResults (appContainer);
-  //   }
+  resContainer.AddFlowResults ();
+  resContainer.SaveFile (outputFile);
 
-  // if (useSdnSwitches) {
-  //     auto queueElement = topologyBuilder->GetSwitchQueueLoggingElement(resultManager.m_xmlDoc);
-  //     resultManager.AddQueueStatistics(queueElement);
-  // }
+  /* TODO Update the below
+  ResultManager resultManager;
+  resultManager.AddGoodputResults (flows, appContainer.GetTransmitterApps (),
+                                   appContainer.GetReceiverApps ());
+  if (perPacketDelayLog)
+    {
+      resultManager.AddDelayResults (appContainer.GetTransmitterApps (),
+                                     appContainer.GetReceiverApps ());
+    }
+  else
+    {
+      resultManager.AddDelayResults (appContainer);
+    }
 
-  // resultManager.SaveFile (outputFile);
+  if (useSdnSwitches) {
+      auto queueElement = topologyBuilder->GetSwitchQueueLoggingElement(resultManager.m_xmlDoc);
+      resultManager.AddQueueStatistics(queueElement);
+  }
+
+  resultManager.SaveFile (outputFile); */
 
   // Save the flow monitor result file
   flowMonHelper.SerializeToXmlFile (flowMonitorOutputFile, false, false);

@@ -47,11 +47,11 @@ ResultsContainer::LogPacketTransmission (id_t flowId, Time time, packetNumber_t 
   auto &flowResult = m_flowResults.at (flowId);
 
   // Check to make sure that there are no duplicates
-  NS_ABORT_MSG_IF (flowResult.packetDetails.find (pktNumber) != flowResult.packetDetails.end (),
+  NS_ABORT_MSG_IF (flowResult.packetResults.find (pktNumber) != flowResult.packetResults.end (),
                    "Flow " << flowId << ": The packet " << pktNumber
                            << " has been already logged for transmission");
 
-  flowResult.packetDetails.emplace (pktNumber, PacketDetails (time, dataSize));
+  flowResult.packetResults.emplace (pktNumber, PacketDetails (time, dataSize));
   NS_LOG_INFO ("Flow " << flowId << " transmitted packet " << pktNumber << " (" << dataSize
                        << " data bytes) at " << time.GetSeconds () << "s");
 }
@@ -63,11 +63,11 @@ ResultsContainer::LogPacketReception (id_t flowId, Time time, packetNumber_t pkt
   auto &flowResult = m_flowResults.at (flowId);
 
   // Check to make sure that there are no duplicates
-  NS_ABORT_MSG_IF (flowResult.packetDetails.find (pktNumber) == flowResult.packetDetails.end (),
+  NS_ABORT_MSG_IF (flowResult.packetResults.find (pktNumber) == flowResult.packetResults.end (),
                    "Flow " << flowId << ": The packet " << pktNumber
                            << " has never been transmitted");
 
-  auto &packetDetail = flowResult.packetDetails.at (pktNumber);
+  auto &packetDetail = flowResult.packetResults.at (pktNumber);
 
   // Ensure that the packet sizes match
   if (packetDetail.dataSize != dataSize)
@@ -83,6 +83,74 @@ ResultsContainer::LogPacketReception (id_t flowId, Time time, packetNumber_t pkt
   packetDetail.received = time;
   NS_LOG_INFO ("Flow " << flowId << " received packet " << pktNumber << " (" << dataSize
                        << " data bytes) at " << time.GetSeconds () << "s");
+}
+
+void
+ResultsContainer::AddFlowResults ()
+{
+  NS_LOG_INFO ("Saving the flow results");
+
+  XMLElement *resultsElement = m_xmlDoc.NewElement ("Results");
+
+  for (const auto &flowResultsPair : m_flowResults)
+    {
+      auto flowId = flowResultsPair.first;
+      auto &flowResult = flowResultsPair.second;
+
+      NS_LOG_INFO ("Saving the results of Flow: " << flowId);
+
+      XMLElement *flowElement{m_xmlDoc.NewElement ("Flow")};
+      flowElement->SetAttribute ("Id", flowId);
+
+      for (const auto &packetResult : flowResult.packetResults)
+        {
+          auto &packetNumber{packetResult.first};
+          auto &packetDetails{packetResult.second};
+
+          XMLElement *packetElement{m_xmlDoc.NewElement ("Packet")};
+          packetElement->SetAttribute ("Id", packetNumber);
+          packetElement->SetAttribute ("Transmitted", packetDetails.transmitted.GetNanoSeconds ());
+          packetElement->SetAttribute ("Received", packetDetails.received.GetNanoSeconds ());
+          packetElement->SetAttribute ("DataSize", packetDetails.dataSize);
+
+          flowElement->InsertEndChild (packetElement);
+        }
+      resultsElement->InsertEndChild (flowElement);
+    }
+
+  XMLComment *comment = m_xmlDoc.NewComment ("Timings are given in NanoSeconds");
+  resultsElement->InsertFirstChild (comment);
+
+  m_rootNode->InsertEndChild (resultsElement);
+}
+
+void
+ResultsContainer::AddQueueStatistics (XMLElement *queueElement)
+{
+  m_rootNode->InsertEndChild (queueElement);
+}
+
+void
+ResultsContainer::SaveFile (const std::string &path)
+{
+  if (m_xmlDoc.SaveFile (path.c_str ()) != tinyxml2::XML_SUCCESS)
+    {
+      throw std::runtime_error ("Could not save the result file in " + path);
+    }
+}
+
+void
+ResultsContainer::InsertTimeStamp ()
+{
+  using namespace std::chrono;
+  time_point<system_clock> currentTime (system_clock::now ());
+  std::time_t currentTimeFormatted = system_clock::to_time_t (currentTime);
+
+  std::stringstream ss;
+  ss << std::put_time (std::localtime (&currentTimeFormatted), "%a %d-%m-%Y %T");
+
+  XMLElement *rootElement = m_rootNode->ToElement ();
+  rootElement->SetAttribute ("Generated", ss.str ().c_str ());
 }
 
 // void
@@ -219,32 +287,3 @@ ResultsContainer::LogPacketReception (id_t flowId, Time time, packetNumber_t pkt
 
 //   m_rootNode->InsertEndChild (delayElement);
 // }
-
-void
-ResultsContainer::AddQueueStatistics (XMLElement *queueElement)
-{
-  m_rootNode->InsertEndChild (queueElement);
-}
-
-void
-ResultsContainer::SaveFile (const std::string &path)
-{
-  if (m_xmlDoc.SaveFile (path.c_str ()) != tinyxml2::XML_SUCCESS)
-    {
-      throw std::runtime_error ("Could not save the result file in " + path);
-    }
-}
-
-void
-ResultsContainer::InsertTimeStamp ()
-{
-  using namespace std::chrono;
-  time_point<system_clock> currentTime (system_clock::now ());
-  std::time_t currentTimeFormatted = system_clock::to_time_t (currentTime);
-
-  std::stringstream ss;
-  ss << std::put_time (std::localtime (&currentTimeFormatted), "%a %d-%m-%Y %T");
-
-  XMLElement *rootElement = m_rootNode->ToElement ();
-  rootElement->SetAttribute ("Generated", ss.str ().c_str ());
-}
