@@ -69,18 +69,20 @@ main (int argc, char *argv[])
 
   if (verbose)
     {
+      LogComponentEnable ("RoutingHelper", LOG_LEVEL_ALL);
+      LogComponentEnable ("TopologyBuilder", LOG_LEVEL_ALL);
+      LogComponentEnable ("ResultsContainer", LOG_LEVEL_ALL);
+      /* Switches */
       LogComponentEnable ("SdnSwitch", LOG_LEVEL_ALL);
       LogComponentEnable ("PpfsSwitch", LOG_LEVEL_ALL);
       LogComponentEnable ("SwitchBase", LOG_LEVEL_ALL);
-      LogComponentEnable ("ReceiverApp", LOG_LEVEL_ALL);
-      LogComponentEnable ("RoutingHelper", LOG_LEVEL_ALL);
-      LogComponentEnable ("ResultManager", LOG_LEVEL_ALL);
-      LogComponentEnable ("TransmitterApp", LOG_LEVEL_ALL);
+      /* Applications */
+      LogComponentEnable ("AppContainer", LOG_LEVEL_ALL);
       LogComponentEnable ("ApplicationBase", LOG_LEVEL_ALL);
-      LogComponentEnable ("TopologyBuilder", LOG_LEVEL_ALL);
-      LogComponentEnable ("ApplicationHelper", LOG_LEVEL_ALL);
-      LogComponentEnable ("SinglePathReceiverApp", LOG_LEVEL_ALL);
-      LogComponentEnable ("SinglePathTransmitterApp", LOG_LEVEL_ALL);
+      LogComponentEnable ("UnipathReceiver", LOG_LEVEL_ALL);
+      LogComponentEnable ("MultipathReceiver", LOG_LEVEL_ALL);
+      LogComponentEnable ("UnipathTransmitter", LOG_LEVEL_ALL);
+      LogComponentEnable ("MultipathTransmitter", LOG_LEVEL_ALL);
     }
 
   // Set the seed and run values
