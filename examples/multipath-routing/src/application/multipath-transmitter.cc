@@ -195,71 +195,10 @@ MultipathTransmitter::TransmitPacket ()
       mptcpHeader.SetPacketNumber (packetNumber);
       Ptr<Packet> packet = Create<Packet> (m_dataPacketSize);
       packet->AddHeader (mptcpHeader);
+      SendPacket (txSocket, packet, packetNumber);
 
-      auto numBytesSent = txSocket->Send (packet);
-
-      if (numBytesSent == -1)
-        {
-          std::stringstream ss;
-          ss << "Packet " << packetNumber << " failed to transmit. Packet size "
-             << packet->GetSize () << "\n";
-          auto error = txSocket->GetErrno ();
-
-          switch (error)
-            {
-            case Socket::SocketErrno::ERROR_NOTERROR:
-              ss << "ERROR_NOTERROR";
-              break;
-            case Socket::SocketErrno::ERROR_ISCONN:
-              ss << "ERROR_ISCONN";
-              break;
-            case Socket::SocketErrno::ERROR_NOTCONN:
-              ss << "ERROR_NOTCONN";
-              break;
-            case Socket::SocketErrno::ERROR_MSGSIZE:
-              ss << "ERROR_MSGSIZE";
-              break;
-            case Socket::SocketErrno::ERROR_AGAIN:
-              ss << "ERROR_AGAIN";
-              break;
-            case Socket::SocketErrno::ERROR_SHUTDOWN:
-              ss << "ERROR_SHUTDOWN";
-              break;
-            case Socket::SocketErrno::ERROR_OPNOTSUPP:
-              ss << "ERROR_OPNOTSUPP";
-              break;
-            case Socket::SocketErrno::ERROR_AFNOSUPPORT:
-              ss << "ERROR_AFNOSUPPORT";
-              break;
-            case Socket::SocketErrno::ERROR_INVAL:
-              ss << "ERROR_INVAL";
-              break;
-            case Socket::SocketErrno::ERROR_BADF:
-              ss << "ERROR_BADF";
-              break;
-            case Socket::SocketErrno::ERROR_NOROUTETOHOST:
-              ss << "ERROR_NOROUTETOHOST";
-              break;
-            case Socket::SocketErrno::ERROR_NODEV:
-              ss << "ERROR_NODEV";
-              break;
-            case Socket::SocketErrno::ERROR_ADDRNOTAVAIL:
-              ss << "ERROR_ADDRNOTAVAIL";
-              break;
-            case Socket::SocketErrno::ERROR_ADDRINUSE:
-              ss << "ERROR_ADDRINUSE";
-              break;
-            case Socket::SocketErrno::SOCKET_ERRNO_LAST:
-              ss << "SOCKET_ERRNO_LAST";
-              break;
-            }
-
-          NS_ABORT_MSG (ss.str ());
-        }
-
-      LogPacketTime (packetNumber);
-      NS_LOG_INFO ("Flow " << m_id << " sent packet " << packetNumber << " at "
-                           << Simulator::Now ());
+      m_resContainer.LogPacketTransmission (m_id, Simulator::Now (), packetNumber,
+                                            packet->GetSize ());
     }
 
   m_sendEvent =
