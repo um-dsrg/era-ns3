@@ -46,15 +46,14 @@ void
 AppContainer::InstallApplicationOnTerminal (const Flow &flow, ResultsContainer &resContainer)
 {
   // Installing the transmitter
-  std::unique_ptr<TransmitterApp> transmitterApp =
-      std::make_unique<TransmitterApp> (flow, resContainer);
+  auto transmitterApp = std::make_unique<TransmitterApp> (flow, resContainer);
   Ptr<Application> nsTransmitterApp = transmitterApp.get ();
   flow.srcNode->GetNode ()->AddApplication (nsTransmitterApp);
   transmitterApp->SetStartTime (Seconds (0.0));
   m_transmitterApplications.emplace (flow.id, std::move (transmitterApp));
 
   // Installing the receiver
-  std::unique_ptr<ReceiverApp> receiverApp = std::make_unique<ReceiverApp> (flow, resContainer);
+  auto receiverApp = std::make_unique<ReceiverApp> (flow, resContainer);
   Ptr<Application> nsReceiverApp = receiverApp.get ();
   flow.dstNode->GetNode ()->AddApplication (nsReceiverApp);
   receiverApp->SetStartTime (Seconds (0.0));
