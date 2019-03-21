@@ -16,8 +16,8 @@ using namespace tinyxml2;
 
 NS_LOG_COMPONENT_DEFINE ("ResultsContainer");
 
-PacketDetails::PacketDetails (Time transmitted, packetSize_t packetSize)
-    : transmitted (transmitted), packetSize (packetSize)
+PacketDetails::PacketDetails (Time transmitted, packetSize_t dataSize)
+    : transmitted (transmitted), dataSize (dataSize)
 {
 }
 
@@ -42,7 +42,7 @@ ResultsContainer::ResultsContainer (const Flow::flowContainer_t &flows)
 
 void
 ResultsContainer::LogPacketTransmission (id_t flowId, Time time, packetNumber_t pktNumber,
-                                         packetSize_t pktSize)
+                                         packetSize_t dataSize)
 {
   auto &flowResult = m_flowResults.at (flowId);
 
@@ -51,14 +51,14 @@ ResultsContainer::LogPacketTransmission (id_t flowId, Time time, packetNumber_t 
                    "Flow " << flowId << ": The packet " << pktNumber
                            << " has been already logged for transmission");
 
-  flowResult.packetDetails.emplace (pktNumber, PacketDetails (time, pktSize));
-  NS_LOG_INFO ("Flow " << flowId << " transmitted packet " << pktNumber << " (" << pktSize
-                       << "bytes) at " << time.GetSeconds () << "s");
+  flowResult.packetDetails.emplace (pktNumber, PacketDetails (time, dataSize));
+  NS_LOG_INFO ("Flow " << flowId << " transmitted packet " << pktNumber << " (" << dataSize
+                       << " data bytes) at " << time.GetSeconds () << "s");
 }
 
 void
 ResultsContainer::LogPacketReception (id_t flowId, Time time, packetNumber_t pktNumber,
-                                      packetSize_t pktSize)
+                                      packetSize_t dataSize)
 {
   auto &flowResult = m_flowResults.at (flowId);
 
@@ -70,19 +70,19 @@ ResultsContainer::LogPacketReception (id_t flowId, Time time, packetNumber_t pkt
   auto &packetDetail = flowResult.packetDetails.at (pktNumber);
 
   // Ensure that the packet sizes match
-  if (packetDetail.packetSize != pktSize)
+  if (packetDetail.dataSize != dataSize)
     {
       NS_ABORT_MSG (
           "Flow: "
           << flowId
-          << ": The size of the transmitted and received packet does not match. Packet Number"
-          << pktNumber << ". Transmitted size: " << packetDetail.packetSize
-          << " Received Size: " << pktSize);
+          << ": The size of the transmitted and received packet does not match. Packet Number "
+          << pktNumber << ". Transmitted size: " << packetDetail.dataSize
+          << " Received Size: " << dataSize);
     }
 
   packetDetail.received = time;
-  NS_LOG_INFO ("Flow " << flowId << " received packet " << pktNumber << " (" << pktSize
-                       << "bytes) at " << time.GetSeconds () << "s");
+  NS_LOG_INFO ("Flow " << flowId << " received packet " << pktNumber << " (" << dataSize
+                       << " data bytes) at " << time.GetSeconds () << "s");
 }
 
 // void

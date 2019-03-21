@@ -191,7 +191,7 @@ MultipathReceiver::HandleRead (Ptr<Socket> socket)
 
           if (packetNumber == m_expectedPacketNum)
             {
-              LogPacketTime (packetNumber);
+              m_resContainer.LogPacketReception (m_id, Simulator::Now (), packetNumber, packetSize);
               m_totalRecvBytes += packetSize;
               NS_LOG_INFO ("The expected packet is received. Total Received bytes "
                            << m_totalRecvBytes);
@@ -218,7 +218,8 @@ MultipathReceiver::popInOrderPacketsFromQueue ()
   while (!m_recvBuffer.empty () && topElement->first == m_expectedPacketNum)
     {
       m_totalRecvBytes += topElement->second;
-      LogPacketTime (m_expectedPacketNum);
+      m_resContainer.LogPacketReception (m_id, Simulator::Now (), m_expectedPacketNum,
+                                         topElement->second);
 
       NS_LOG_INFO ("Retrieved packet " << topElement->first << " from the buffer.\n"
                                        << "Total received bytes: " << m_totalRecvBytes << "\n");

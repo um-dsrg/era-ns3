@@ -12,11 +12,11 @@
 
 struct PacketDetails
 {
-  PacketDetails (ns3::Time transmitted, packetSize_t packetSize);
+  PacketDetails (ns3::Time transmitted, packetSize_t dataSize);
 
   ns3::Time received;
   ns3::Time transmitted;
-  packetSize_t packetSize;
+  packetSize_t dataSize; // The number of data stored in the packet in bytes
 };
 
 struct FlowResults
@@ -31,9 +31,9 @@ public:
   ResultsContainer (const Flow::flowContainer_t &flows);
 
   void LogPacketTransmission (id_t flowId, ns3::Time time, packetNumber_t pktNumber,
-                              packetSize_t pktSize);
+                              packetSize_t dataSize);
   void LogPacketReception (id_t flowId, ns3::Time time, packetNumber_t pktNumber,
-                           packetSize_t pktSize);
+                           packetSize_t dataSize);
 
   // void AddGoodputResults (const Flow::FlowContainer &flows,
   //                         const AppContainer::applicationContainer_t &transmitterApplications,

@@ -82,7 +82,8 @@ UnipathReceiver::HandleRead (Ptr<Socket> socket)
 
       m_lastRxPacket = Simulator::Now (); // Log the time the last packet is received
 
-      LogPacketTime (m_packetNumber);
+      m_resContainer.LogPacketReception (m_id, Simulator::Now (), m_packetNumber,
+                                         packet->GetSize ());
       m_packetNumber++;
       m_totalRecvBytes += packet->GetSize ();
 
