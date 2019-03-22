@@ -8,13 +8,18 @@ using namespace ns3;
 NS_LOG_COMPONENT_DEFINE ("UnipathReceiver");
 
 UnipathReceiver::UnipathReceiver (const Flow &flow, ResultsContainer &resContainer)
-    : ReceiverBase (flow.id), protocol (flow.protocol), m_resContainer (resContainer)
+    : ReceiverBase (flow.id), m_resContainer (resContainer), protocol (flow.protocol)
 {
   auto path = flow.GetDataPaths ().front ();
 
   dstPort = path.dstPort;
   rxListenSocket = CreateSocket (flow.dstNode->GetNode (), flow.protocol);
   dstAddress = Address (InetSocketAddress (flow.dstNode->GetIpAddress (), path.dstPort));
+
+  m_dataPacketSize = flow.packetSize - CalculateHeaderSize (flow.protocol);
+  NS_LOG_INFO ("Flow " << flow.id << "\nPacket size including headers: " << flow.packetSize
+                       << "bytes\nPacket size excluding headers is: " << m_dataPacketSize
+                       << "bytes");
 }
 
 UnipathReceiver::~UnipathReceiver ()
@@ -82,11 +87,30 @@ UnipathReceiver::HandleRead (Ptr<Socket> socket)
 
       m_lastRxPacket = Simulator::Now (); // Log the time the last packet is received
 
-      m_resContainer.LogPacketReception (m_id, Simulator::Now (), m_packetNumber,
-                                         packet->GetSize ());
-      m_packetNumber++;
-      m_totalRecvBytes += packet->GetSize ();
+      auto recvBytes = packet->GetSize ();
+      NS_LOG_INFO ("Flow " << m_id << " received " << recvBytes << "bytes of data at "
+                           << Simulator::Now ().GetSeconds ());
 
+      pendingBytes += recvBytes;
+
+      // The floor and division should be here
+      auto packetsReceived = floor (pendingBytes / static_cast<double> (m_dataPacketSize));
+      NS_LOG_INFO ("Flow " << m_id << " extracted " << packetsReceived << " packet(s) at "
+                           << Simulator::Now ().GetSeconds ());
+
+      // Log for every data packet size, packet received
+      for (auto i = 0; i < packetsReceived; ++i)
+        {
+          m_resContainer.LogPacketReception (m_id, Simulator::Now (), m_packetNumber,
+                                             m_dataPacketSize);
+          m_packetNumber++;
+        }
+
+      // Subtract the number of bytes that have been logged already
+      pendingBytes -= packetsReceived * m_dataPacketSize;
+      NS_LOG_INFO ("Number of pending bytes remaining: " << pendingBytes);
+
+      m_totalRecvBytes += packet->GetSize ();
       NS_LOG_INFO ("Total Received bytes " << m_totalRecvBytes);
     }
 }

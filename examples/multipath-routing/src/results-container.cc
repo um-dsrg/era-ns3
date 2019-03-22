@@ -73,15 +73,12 @@ ResultsContainer::LogPacketReception (id_t flowId, Time time, packetNumber_t pkt
   packetDetail.receivedDataSize = dataSize;
 
   // Output a warning if the packet sizes do not match
-  if (packetDetail.transmittedDataSize != packetDetail.receivedDataSize)
-    {
-      NS_LOG_WARN (
-          "Flow "
-          << flowId
-          << ": The size of the transmitted and received packet does not match. Packet Number "
-          << pktNumber << ". Transmitted size: " << packetDetail.transmittedDataSize
-          << " Received Size: " << packetDetail.receivedDataSize);
-    }
+  NS_ABORT_MSG_IF (
+      packetDetail.transmittedDataSize != packetDetail.receivedDataSize,
+      "Flow " << flowId
+              << ": The size of the transmitted and received packet does not match. Packet Number "
+              << pktNumber << ". Transmitted size: " << packetDetail.transmittedDataSize
+              << " Received Size: " << packetDetail.receivedDataSize);
 
   NS_LOG_INFO ("Flow " << flowId << " received packet " << pktNumber << " (" << dataSize
                        << " data bytes) at " << time.GetSeconds () << "s");
