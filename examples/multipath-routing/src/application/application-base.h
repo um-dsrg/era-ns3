@@ -43,6 +43,7 @@ public:
 protected:
   ReceiverBase (id_t id);
 
+  // TODO: Remove these
   /* Goodput calculation related variables */
   uint64_t m_totalRecvBytes{0};
   bool m_firstPacketReceived{false};

@@ -67,6 +67,15 @@ ResultsContainer::LogPacketReception (id_t flowId, Time time, packetNumber_t pkt
                    "Flow " << flowId << ": The packet " << pktNumber
                            << " has never been transmitted");
 
+  if (flowResult.firstPacketReceived == false)
+    {
+      flowResult.firstPacketReceived = true;
+      flowResult.firstReception = time;
+    }
+
+  flowResult.lastReception = time;
+  flowResult.totalRecvBytes += dataSize;
+
   auto &packetDetail = flowResult.packetResults.at (pktNumber);
 
   packetDetail.received = time;
@@ -100,6 +109,10 @@ ResultsContainer::AddFlowResults ()
 
       XMLElement *flowElement{m_xmlDoc.NewElement ("Flow")};
       flowElement->SetAttribute ("Id", flowId);
+      flowElement->SetAttribute ("TimeFirstRx", flowResult.firstReception.GetNanoSeconds ());
+      flowElement->SetAttribute ("TimeLastRx", flowResult.lastReception.GetNanoSeconds ());
+      flowElement->SetAttribute ("TotalRecvBytes",
+                                 boost::numeric_cast<unsigned int> (flowResult.totalRecvBytes));
 
       for (const auto &packetResult : flowResult.packetResults)
         {

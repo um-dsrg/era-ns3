@@ -23,6 +23,12 @@ struct PacketDetails
 
 struct FlowResults
 {
+  ns3::Time firstReception{0};
+  ns3::Time lastReception{0};
+
+  uint64_t totalRecvBytes;
+  bool firstPacketReceived{false};
+
   std::map<id_t, PacketDetails> packetResults; /**< Key: Packet Id | Value: Packet Details */
 };
 
