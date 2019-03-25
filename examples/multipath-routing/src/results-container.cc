@@ -41,6 +41,13 @@ ResultsContainer::ResultsContainer (const Flow::flowContainer_t &flows)
 }
 
 void
+ResultsContainer::LogFlowGoodputRate(id_t flowId, double goodputRate)
+{
+  auto& flowResult = m_flowResults.at(flowId);
+  flowResult.txGoodput = goodputRate;
+}
+
+void
 ResultsContainer::LogPacketTransmission (id_t flowId, Time time, packetNumber_t pktNumber,
                                          packetSize_t dataSize)
 {
@@ -109,6 +116,7 @@ ResultsContainer::AddFlowResults ()
 
       XMLElement *flowElement{m_xmlDoc.NewElement ("Flow")};
       flowElement->SetAttribute ("Id", flowId);
+      flowElement->SetAttribute ("TxGoodput", flowResult.txGoodput);
       flowElement->SetAttribute ("TimeFirstRx", flowResult.firstReception.GetNanoSeconds ());
       flowElement->SetAttribute ("TimeLastRx", flowResult.lastReception.GetNanoSeconds ());
       flowElement->SetAttribute ("TotalRecvBytes",

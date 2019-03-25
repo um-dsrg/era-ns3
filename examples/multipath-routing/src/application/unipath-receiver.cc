@@ -79,14 +79,6 @@ UnipathReceiver::HandleRead (Ptr<Socket> socket)
           break;
         }
 
-      if (!m_firstPacketReceived)
-        { // Log the time the first packet has been received
-          m_firstPacketReceived = true;
-          m_firstRxPacket = Simulator::Now ();
-        }
-
-      m_lastRxPacket = Simulator::Now (); // Log the time the last packet is received
-
       auto recvBytes = packet->GetSize ();
       NS_LOG_INFO ("Flow " << m_id << " received " << recvBytes << "bytes of data at "
                            << Simulator::Now ().GetSeconds ());
@@ -109,8 +101,5 @@ UnipathReceiver::HandleRead (Ptr<Socket> socket)
       // Subtract the number of bytes that have been logged already
       pendingBytes -= packetsReceived * m_dataPacketSize;
       NS_LOG_INFO ("Number of pending bytes remaining: " << pendingBytes);
-
-      m_totalRecvBytes += packet->GetSize ();
-      NS_LOG_INFO ("Total Received bytes " << m_totalRecvBytes);
     }
 }

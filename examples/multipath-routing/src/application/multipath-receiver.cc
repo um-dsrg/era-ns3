@@ -165,14 +165,6 @@ MultipathReceiver::HandleRead (Ptr<Socket> socket)
           break;
         }
 
-      if (!m_firstPacketReceived)
-        { // Log the time the first packet has been received
-          m_firstPacketReceived = true;
-          m_firstRxPacket = Simulator::Now ();
-        }
-
-      m_lastRxPacket = Simulator::Now (); // Log the time the last packet is received
-
       aggregateBuffer.AddPacketToBuffer (packet);
 
       auto retrievedPackets{aggregateBuffer.RetrievePacketFromBuffer ()};
@@ -192,10 +184,6 @@ MultipathReceiver::HandleRead (Ptr<Socket> socket)
           if (packetNumber == m_expectedPacketNum)
             {
               m_resContainer.LogPacketReception (m_id, Simulator::Now (), packetNumber, packetSize);
-              m_totalRecvBytes += packetSize;
-              NS_LOG_INFO ("The expected packet is received. Total Received bytes "
-                           << m_totalRecvBytes);
-
               m_expectedPacketNum++;
               popInOrderPacketsFromQueue ();
             }
@@ -217,13 +205,8 @@ MultipathReceiver::popInOrderPacketsFromQueue ()
 
   while (!m_recvBuffer.empty () && topElement->first == m_expectedPacketNum)
     {
-      m_totalRecvBytes += topElement->second;
       m_resContainer.LogPacketReception (m_id, Simulator::Now (), m_expectedPacketNum,
                                          topElement->second);
-
-      NS_LOG_INFO ("Retrieved packet " << topElement->first << " from the buffer.\n"
-                                       << "Total received bytes: " << m_totalRecvBytes << "\n");
-
       m_expectedPacketNum++;
       m_recvBuffer.pop ();
       topElement = &m_recvBuffer.top ();

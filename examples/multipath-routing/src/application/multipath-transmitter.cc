@@ -99,7 +99,7 @@ MultipathTransmitter::MultipathTransmitter (const Flow &flow, ResultsContainer &
   SetDataPacketSize (flow);
 
   // Set the application's good put rate in bps
-  SetApplicationGoodputRate (flow);
+  SetApplicationGoodputRate (flow, resContainer);
 
   // Calculate the transmission interval
   auto pktSizeBits = static_cast<double> (m_dataPacketSize * 8);

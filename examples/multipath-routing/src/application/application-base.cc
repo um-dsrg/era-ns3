@@ -15,12 +15,6 @@ NS_LOG_COMPONENT_DEFINE ("ApplicationBase");
 /* ApplicationBase                         */
 /*******************************************/
 
-const std::map<packetNumber_t, ns3::Time> &
-ApplicationBase::GetDelayLog () const
-{
-  return m_delayLog;
-}
-
 ApplicationBase::ApplicationBase (id_t id) : m_id (id)
 {
 }
@@ -44,12 +38,6 @@ ApplicationBase::CreateSocket (Ptr<Node> srcNode, FlowProtocol protocol)
     {
       NS_ABORT_MSG ("Cannot create non TCP/UDP socket");
     }
-}
-
-void
-ApplicationBase::LogPacketTime (packetNumber_t packetNumber)
-{
-  m_delayLog.emplace (packetNumber, Simulator::Now ());
 }
 
 packetSize_t
@@ -92,21 +80,6 @@ ReceiverBase::~ReceiverBase ()
 {
 }
 
-double
-ReceiverBase::GetMeanRxGoodput ()
-{
-  if (m_totalRecvBytes == 0)
-    {
-      return 0;
-    }
-  else
-    {
-      auto durationInSeconds = double{(m_lastRxPacket - m_firstRxPacket).GetSeconds ()};
-      auto currentGoodPut = double{((m_totalRecvBytes * 8) / durationInSeconds) / 1'000'000};
-      return currentGoodPut;
-    }
-}
-
 /*******************************************/
 /* TransmitterBase                         */
 /*******************************************/
@@ -117,12 +90,6 @@ TransmitterBase::TransmitterBase (id_t id) : ApplicationBase (id)
 
 TransmitterBase::~TransmitterBase ()
 {
-}
-
-double
-TransmitterBase::GetTxGoodput ()
-{
-  return m_dataRateBps / 1000000;
 }
 
 void
@@ -198,7 +165,7 @@ TransmitterBase::SetDataPacketSize (const Flow &flow)
 }
 
 void
-TransmitterBase::SetApplicationGoodputRate (const Flow &flow)
+TransmitterBase::SetApplicationGoodputRate (const Flow &flow, ResultsContainer& resContainer)
 {
   auto pktSizeExclHdr{flow.packetSize - CalculateHeaderSize (flow.protocol)};
 
@@ -206,4 +173,6 @@ TransmitterBase::SetApplicationGoodputRate (const Flow &flow)
       (pktSizeExclHdr * flow.dataRate.GetBitRate ()) / static_cast<double> (flow.packetSize);
   NS_LOG_INFO ("Flow throughput: " << flow.dataRate << "\n"
                                    << "Flow goodput: " << m_dataRateBps << "bps");
+
+  resContainer.LogFlowGoodputRate(flow.id, (m_dataRateBps / static_cast<double> (1000000)));
 }
