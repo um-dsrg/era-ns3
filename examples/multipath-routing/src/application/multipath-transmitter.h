@@ -27,7 +27,7 @@ public:
 private:
   void StartApplication () override;
   void StopApplication () override;
-  void TransmitPacket ();
+  void TransmitPacket () override;
 
   void RtoChanged (std::string context, ns3::Time oldVal, ns3::Time newVal);
 
