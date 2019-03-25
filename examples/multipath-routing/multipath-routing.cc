@@ -135,8 +135,7 @@ main (int argc, char *argv[])
   ResultsContainer resContainer (flows);
 
   AppContainer appContainer;
-  appContainer.InstallApplicationsOnTerminals (flows, topologyBuilder->GetTerminals (),
-                                               usePpfsSwitches, resContainer);
+  appContainer.InstallApplicationsOnTerminals (flows, usePpfsSwitches, resContainer);
 
   if (enablePcap)
     {
@@ -156,37 +155,12 @@ main (int argc, char *argv[])
                "$ns3::DropTailQueue<Packet>/MaxSize",
                QueueSizeValue (QueueSize ("1000000p")));
 
-  // if (!perPacketDelayLog)
-  //   { // Compress the delay log every 500ms
-  //     Simulator::Schedule (Time ("500ms"), &AppContainer::CompressDelayLog, &appContainer);
-  //   }
-
   Simulator::Run ();
   Simulator::Stop ();
 
+  // Add the results to the XML file and save it
   resContainer.AddFlowResults ();
   resContainer.SaveFile (outputFile);
-
-  /* TODO Update the below
-  ResultManager resultManager;
-  resultManager.AddGoodputResults (flows, appContainer.GetTransmitterApps (),
-                                   appContainer.GetReceiverApps ());
-  if (perPacketDelayLog)
-    {
-      resultManager.AddDelayResults (appContainer.GetTransmitterApps (),
-                                     appContainer.GetReceiverApps ());
-    }
-  else
-    {
-      resultManager.AddDelayResults (appContainer);
-    }
-
-  if (useSdnSwitches) {
-      auto queueElement = topologyBuilder->GetSwitchQueueLoggingElement(resultManager.m_xmlDoc);
-      resultManager.AddQueueStatistics(queueElement);
-  }
-
-  resultManager.SaveFile (outputFile); */
 
   // Save the flow monitor result file
   flowMonHelper.SerializeToXmlFile (flowMonitorOutputFile, false, false);

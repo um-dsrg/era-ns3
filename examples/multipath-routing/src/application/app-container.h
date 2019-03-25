@@ -22,12 +22,8 @@ public:
   using transmitterAppContainer_t = std::map<id_t, std::unique_ptr<TransmitterBase>>;
   using receiverAppContainer_t = std::map<id_t, std::unique_ptr<ReceiverBase>>;
 
-  void InstallApplicationsOnTerminals (const Flow::flowContainer_t &flows,
-                                       const Terminal::TerminalContainer &terminals,
-                                       bool usePpfsSwitches, ResultsContainer &resContainer);
-
-  // const applicationContainer_t &GetTransmitterApps () const;
-  // const applicationContainer_t &GetReceiverApps () const;
+  void InstallApplicationsOnTerminals (const Flow::flowContainer_t &flows, bool usePpfsSwitches,
+                                       ResultsContainer &resContainer);
 
 private:
   template <typename TransmitterApp, typename ReceiverApp>

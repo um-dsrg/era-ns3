@@ -21,7 +21,6 @@ NS_LOG_COMPONENT_DEFINE ("AppContainer");
 
 void
 AppContainer::InstallApplicationsOnTerminals (const Flow::flowContainer_t &flows,
-                                              const Terminal::TerminalContainer &terminals,
                                               bool usePpfsSwitches, ResultsContainer &resContainer)
 {
   for (const auto &flowPair : flows)
