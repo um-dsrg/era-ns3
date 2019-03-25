@@ -37,6 +37,7 @@ main (int argc, char *argv[])
   std::string inputFile{""};
   std::string outputFile{""};
   std::string flowMonitorOutputFile{""};
+  std::string bufferSize{"100p"}; // The default size is equal to 100 packets
 
   // Set the command line parameters
   CommandLine cmdLine;
@@ -62,6 +63,10 @@ main (int argc, char *argv[])
                     "By default this feature is disabled due to "
                     "the high memory requirements.",
                     perPacketDelayLog);
+  cmdLine.AddValue ("bufferSize",
+                    "The Net Device buffer size each switch will be setup with. The default size "
+                    "is equal to 100 packet.",
+                    bufferSize);
   cmdLine.Parse (argc, argv);
 
   NS_ABORT_MSG_IF ((usePpfsSwitches == false && useSdnSwitches == false),
@@ -150,10 +155,10 @@ main (int argc, char *argv[])
   // Set the simulation stop time
   Simulator::Stop (Time (stopTime));
 
-  // Set the buffer size
+  // Set the NetDevice buffer size
   Config::Set ("/NodeList/*/DeviceList/*/$ns3::PointToPointNetDevice/TxQueue/"
                "$ns3::DropTailQueue<Packet>/MaxSize",
-               QueueSizeValue (QueueSize ("1000000p")));
+               QueueSizeValue (QueueSize (bufferSize)));
 
   Simulator::Run ();
   Simulator::Stop ();
