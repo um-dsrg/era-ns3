@@ -124,6 +124,7 @@ main (int argc, char *argv[])
   auto flows{topologyBuilder->ParseFlows (rootNode)};
   RoutingHelperBase *routingHelper{nullptr};
 
+  // TODO Update this to use unique pointers
   if (useSdnSwitches)
     {
       routingHelper = new RoutingHelper<SdnSwitch>;

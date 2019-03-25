@@ -19,6 +19,7 @@ public:
                                 FlowProtocol protocol, ns3::Ptr<ns3::NetDevice> forwardingPort);
     void SetPacketReception();
 
+    // TODO This needs to be removed from here
     /**
      * Store the number of packets in the queue for each net device available on the switch.
      */
