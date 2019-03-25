@@ -71,7 +71,7 @@ Temporary Items
 .vscode/ipch
 
 # Tags
-tags
+tags*
 
 # Vim
 *.swp
