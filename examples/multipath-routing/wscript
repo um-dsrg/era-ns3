@@ -7,13 +7,17 @@ def build(bld):
     obj = bld.create_ns3_program('multipath_routing', all_modules)
     obj.source = ['multipath-routing.cc',
                   'src/flow.cc',
-                  'src/terminal.cc',
                   'src/mptcp-header.cc',
-                  'src/custom-device.cc',
                   'src/routing-helper.cc',
                   'src/topology-builder.cc',
                   'src/results-container.cc',
                   'src/random-generator-manager.cc']
+    # Device
+    obj.source.extend(['src/device/custom-device.cc'])
+
+    # Terminal
+    obj.source.extend(['src/device/terminal/terminal.cc'])
+
     # Switch
     obj.source.extend(['src/device/switch/sdn-switch.cc',
                        'src/device/switch/switch-base.cc',

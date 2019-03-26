@@ -9,7 +9,7 @@
 #include "ns3/ipv4-address.h"
 
 #include "definitions.h"
-#include "terminal.h"
+#include "device/terminal/terminal.h"
 
 struct Link
 {

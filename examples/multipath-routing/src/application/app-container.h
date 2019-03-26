@@ -10,11 +10,11 @@
 #include "ns3/application-container.h"
 
 #include "../flow.h"
-#include "../terminal.h"
 #include "../definitions.h"
 #include "../topology-builder.h"
 #include "application-base.h"
 #include "../results-container.h"
+#include "../device/terminal/terminal.h"
 
 class AppContainer
 {

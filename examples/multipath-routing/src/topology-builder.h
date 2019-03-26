@@ -18,9 +18,9 @@
 #include "ns3/point-to-point-net-device.h"
 
 #include "flow.h"
-#include "terminal.h"
 #include "definitions.h"
-#include "custom-device.h"
+#include "device/custom-device.h"
+#include "device/terminal/terminal.h"
 
 using namespace ns3;
 using namespace tinyxml2;

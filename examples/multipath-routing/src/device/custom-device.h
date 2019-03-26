@@ -2,7 +2,7 @@
 #define custom_device_h
 
 #include "ns3/node.h"
-#include "definitions.h"
+#include "../definitions.h"
 
 class CustomDevice {
 public:

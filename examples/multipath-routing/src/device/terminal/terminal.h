@@ -2,7 +2,7 @@
 #define TERMINAL_H
 
 #include "ns3/ipv4-address.h"
-#include "custom-device.h"
+#include "../custom-device.h"
 
 class Terminal : public CustomDevice
 {
