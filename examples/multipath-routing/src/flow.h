@@ -4,6 +4,7 @@
 #include <map>
 #include <vector>
 #include <iostream>
+#include <tinyxml2.h>
 
 #include "ns3/data-rate.h"
 #include "ns3/ipv4-address.h"
@@ -13,6 +14,8 @@
 
 struct Link
 {
+  using linkContainer_t = std::map<id_t, Link>;
+
   id_t id;
   CustomDevice *srcNode;
   CustomDevice *dstNode;
@@ -24,9 +27,9 @@ struct Link
 
 struct Path
 {
-  static portNum_t portNumCounter; //!< Global port number counter.
+  explicit Path () = default;
 
-  explicit Path (bool autoAssignPortNumbers);
+  static portNum_t GeneratePortNumber ();
   void AddLink (Link const *link);
   const std::vector<Link const *> &GetLinks () const;
   friend std::ostream &operator<< (std::ostream &output, const Path &path);
@@ -37,6 +40,7 @@ struct Path
   ns3::DataRate dataRate;
 
 private:
+  static portNum_t portNumCounter; //!< Global port number counter.
   std::vector<Link const *> m_links; //!< The link ids this path goes through.
 };
 
@@ -44,16 +48,13 @@ struct Flow
 {
   using flowContainer_t = std::map<id_t, Flow>;
 
-  explicit Flow ();
+  explicit Flow () = default;
 
   void AddDataPath (const Path &path);
   const std::vector<Path> &GetDataPaths () const;
 
   void AddAckPath (const Path &path);
   const std::vector<Path> &GetAckPaths () const;
-
-  void AddAckShortestPath (const Path &path);
-  const Path &GetAckShortestPath () const;
 
   bool operator< (const Flow &other) const;
   friend std::ostream &operator<< (std::ostream &output, const Flow &flow);
@@ -68,7 +69,10 @@ struct Flow
 private:
   std::vector<Path> m_dataPaths; /**< The data paths this flow is using */
   std::vector<Path> m_ackPaths; /**< The ack paths this flow is using */
-  Path m_ackShortestPath;
 };
+
+Flow::flowContainer_t ParseFlows (tinyxml2::XMLNode *rootNode,
+                                  Terminal::terminalContainer_t &terminalContainer,
+                                  Link::linkContainer_t &linkContainer);
 
 #endif /* flow_h */

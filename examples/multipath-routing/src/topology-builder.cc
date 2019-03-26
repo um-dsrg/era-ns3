@@ -6,7 +6,13 @@
 
 NS_LOG_COMPONENT_DEFINE ("TopologyBuilder");
 
-TopologyBuilder::TopologyBuilder (SwitchType switchType) : m_switchType (switchType)
+TopologyBuilder::TopologyBuilder (SwitchType switchType, SwitchContainer &switchContainer,
+                                  Terminal::terminalContainer_t &terminalContainer,
+                                  Link::linkContainer_t &linkContainer)
+    : m_switchType (switchType),
+      m_switchContainer (switchContainer),
+      m_terminalContainer (terminalContainer),
+      m_linkContainer (linkContainer)
 {
 }
 
@@ -101,7 +107,7 @@ TopologyBuilder::BuildNetworkTopology (XMLNode *rootNode)
 
           // Save link
           sameDelayLinks.push_back (link);
-          auto ret = m_links.emplace (link.id, link);
+          auto ret = m_linkContainer.emplace (link.id, link);
           NS_ABORT_MSG_IF (ret.second == false, "Duplicate link " << link.id << " found");
 
           linkElementElement = linkElementElement->NextSiblingElement ("LinkElement");
@@ -120,7 +126,7 @@ TopologyBuilder::AssignIpToTerminals ()
   InternetStackHelper stack;
   NetDeviceContainer terminalDevices; //!< Contain all the terminal's NetDevices
 
-  for (auto &terminalPair : m_terminals)
+  for (auto &terminalPair : m_terminalContainer)
     {
       auto terminalNode = terminalPair.second.GetNode ();
 
@@ -143,56 +149,10 @@ TopologyBuilder::AssignIpToTerminals ()
   ipAddrHelper.SetBase ("0.0.0.0", "255.0.0.0");
   ipAddrHelper.Assign (terminalDevices);
 
-  for (auto &terminalPair : m_terminals)
+  for (auto &terminalPair : m_terminalContainer)
     {
       terminalPair.second.SetIpAddress ();
     }
-}
-
-Flow::flowContainer_t
-TopologyBuilder::ParseFlows (XMLNode *rootNode)
-{
-  Flow::flowContainer_t flows;
-
-  auto flowDetElement = rootNode->FirstChildElement ("FlowDetails");
-  NS_ABORT_MSG_IF (flowDetElement == nullptr, "FlowDetails Element not found");
-
-  auto flowElement = flowDetElement->FirstChildElement ("Flow");
-  while (flowElement != nullptr)
-    {
-      Flow flow;
-
-      flowElement->QueryAttribute ("Id", &flow.id);
-
-      id_t srcNodeId{0};
-      flowElement->QueryAttribute ("SourceNode", &srcNodeId);
-      flow.srcNode = &m_terminals.at (srcNodeId);
-
-      id_t dstNodeId{0};
-      flowElement->QueryAttribute ("DestinationNode", &dstNodeId);
-      flow.dstNode = &m_terminals.at (dstNodeId);
-
-      flow.protocol = static_cast<FlowProtocol> (*flowElement->Attribute ("Protocol"));
-      flowElement->QueryAttribute ("PacketSize", &flow.packetSize);
-      double dataRate;
-      flowElement->QueryAttribute ("AllocatedDataRate", &dataRate);
-      flow.dataRate = ns3::DataRate (std::string{std::to_string (dataRate) + "Mbps"});
-
-      auto pathPortMap{AddDataPaths (flow, flowElement)};
-
-      if (flow.protocol == FlowProtocol::Tcp)
-        { // Parse ACK paths for TCP flows only
-          AddAckPaths (flow, flowElement, pathPortMap);
-        }
-
-      auto ret = flows.emplace (flow.id, flow);
-      NS_ABORT_MSG_IF (ret.second == false, "Inserting Flow " << flow.id << " failed");
-
-      NS_LOG_INFO ("Flow Details:\n" << flow);
-      flowElement = flowElement->NextSiblingElement ("Flow");
-    }
-
-  return flows;
 }
 
 void
@@ -228,10 +188,10 @@ TopologyBuilder::CreateUniqueNode (id_t nodeId, NodeType nodeType)
     }
   else if (nodeType == NodeType::Terminal)
     {
-      if (m_terminals.find (nodeId) == m_terminals.end ())
+      if (m_terminalContainer.find (nodeId) == m_terminalContainer.end ())
         {
           NS_LOG_INFO ("Creating the Terminal " << nodeId);
-          auto ret = m_terminals.emplace (nodeId, Terminal (nodeId));
+          auto ret = m_terminalContainer.emplace (nodeId, Terminal (nodeId));
           NS_ABORT_MSG_IF (ret.second == false,
                            "Trying to insert a duplicate node with id " << nodeId);
         }
@@ -326,7 +286,7 @@ TopologyBuilder::GetNode (id_t id, NodeType nodeType)
         }
       else if (nodeType == NodeType::Terminal)
         {
-          return &m_terminals.at (id);
+          return &m_terminalContainer.at (id);
         }
       else
         {
@@ -337,193 +297,6 @@ TopologyBuilder::GetNode (id_t id, NodeType nodeType)
       NS_ABORT_MSG ("The node " << id << " has not been found.");
   }
 }
-
-TopologyBuilder::pathPortMap_t
-TopologyBuilder::AddDataPaths (Flow &flow, XMLElement *flowElement)
-{
-  TopologyBuilder::pathPortMap_t pathPortMap;
-
-  auto pathsElement = flowElement->FirstChildElement ("Paths");
-  auto pathElement = pathsElement->FirstChildElement ("Path");
-
-  while (pathElement != nullptr)
-    {
-      Path path (true);
-      pathElement->QueryAttribute ("Id", &path.id);
-
-      double dataRate;
-      pathElement->QueryAttribute ("DataRate", &dataRate);
-      path.dataRate = ns3::DataRate (std::string{std::to_string (dataRate) + "Mbps"});
-
-      auto linkElement = pathElement->FirstChildElement ("Link");
-      while (linkElement != nullptr)
-        {
-          id_t linkId;
-          linkElement->QueryAttribute ("Id", &linkId);
-          path.AddLink (&m_links.at (linkId));
-          linkElement = linkElement->NextSiblingElement ("Link");
-        }
-
-      auto ret = pathPortMap.emplace (path.id, std::make_pair (path.srcPort, path.dstPort));
-      NS_ABORT_MSG_IF (ret.second == false, "Trying to insert a duplicate path " << path.id);
-
-      flow.AddDataPath (path);
-      pathElement = pathElement->NextSiblingElement ("Path");
-    }
-
-  return pathPortMap;
-}
-
-void
-TopologyBuilder::AddAckPaths (Flow &flow, XMLElement *flowElement,
-                              const TopologyBuilder::pathPortMap_t &pathPortMap)
-{
-  auto ackPathsElement = flowElement->FirstChildElement ("AckPaths");
-  auto pathElement = ackPathsElement->FirstChildElement ("Path");
-
-  while (pathElement != nullptr)
-    {
-      Path path (false);
-      pathElement->QueryAttribute ("Id", &path.id);
-
-      const auto &dataPathPortPair{pathPortMap.at (path.id)};
-      /* Swapping the port numbers for the ACK flows */
-      path.srcPort = dataPathPortPair.second;
-      path.dstPort = dataPathPortPair.first;
-
-      auto linkElement = pathElement->FirstChildElement ("Link");
-      while (linkElement != nullptr)
-        {
-          id_t linkId;
-          linkElement->QueryAttribute ("Id", &linkId);
-          path.AddLink (&m_links.at (linkId));
-          linkElement = linkElement->NextSiblingElement ("Link");
-        }
-
-      flow.AddAckPath (path);
-      pathElement = pathElement->NextSiblingElement ("Path");
-    }
-}
-
-///////////////////////////////////////////////////////////////////////////////////
-/*template <>*/
-/*typename TopologyBuilder<PpfsSwitch>::PathPortMap*/
-/*TopologyBuilder<PpfsSwitch>::AddDataPaths(Flow &flow, XMLElement *flowElement) {*/
-
-/*    TopologyBuilder<PpfsSwitch>::PathPortMap pathPortMap;*/
-
-/*    auto pathsElement = flowElement->FirstChildElement ("Paths");*/
-/*    auto pathElement = pathsElement->FirstChildElement ("Path");*/
-
-/*    Path dummyPath(true);*/
-
-/*    while (pathElement != nullptr) {*/
-/*        Path path(false);*/
-/*        path.srcPort = dummyPath.srcPort;*/
-/*        path.dstPort = dummyPath.dstPort;*/
-
-/*        pathElement->QueryAttribute ("Id", &path.id);*/
-
-/*        double dataRate;*/
-/*        pathElement->QueryAttribute("DataRate", &dataRate);*/
-/*        path.dataRate = ns3::DataRate(std::string{std::to_string(dataRate) + "Mbps"});*/
-
-/*        auto linkElement = pathElement->FirstChildElement ("Link");*/
-/*        while (linkElement != nullptr) {*/
-/*            id_t linkId;*/
-/*            linkElement->QueryAttribute ("Id", &linkId);*/
-/*            path.AddLink (&m_links.at (linkId));*/
-/*            linkElement = linkElement->NextSiblingElement ("Link");*/
-/*        }*/
-
-/*        auto ret = pathPortMap.emplace(path.id, std::make_pair(path.srcPort, path.dstPort));*/
-/*        NS_ABORT_MSG_IF(ret.second == false, "Trying to insert a duplicate path " << path.id);*/
-
-/*        flow.AddDataPath(path);*/
-/*        pathElement = pathElement->NextSiblingElement ("Path");*/
-/*    }*/
-
-/*    return pathPortMap;*/
-/*}*/
-
-/*template <>*/
-/*void TopologyBuilder<PpfsSwitch>::AddAckPaths(Flow& flow, XMLElement* flowElement,*/
-/*                                              const TopologyBuilder<PpfsSwitch>::PathPortMap& pathPortMap) {*/
-
-/*    auto ackShortestPathElement = flowElement->FirstChildElement("AckShortestPath");*/
-
-/*   */
-/*     All data paths have the same source and destination port numbers; therefore,*/
-/*     any path will do for this purpose.*/
-/**/
-/*    Path dataPath = flow.GetDataPaths().front();*/
-/*    Path ackPath(false);*/
-
-/* Swapping the port numbers for the ACK flows */
-/*    ackPath.srcPort = dataPath.dstPort;*/
-/*    ackPath.dstPort = dataPath.srcPort;*/
-
-/*    auto linkElement = ackShortestPathElement->FirstChildElement("Link");*/
-/*    while (linkElement != nullptr) {*/
-/*        id_t linkId;*/
-/*        linkElement->QueryAttribute ("Id", &linkId);*/
-/*        ackPath.AddLink (&m_links.at (linkId));*/
-/*        linkElement = linkElement->NextSiblingElement ("Link");*/
-/*    }*/
-
-/*    flow.AddAckShortestPath(ackPath);*/
-/*}*/
-
-/*template <>*/
-/*void TopologyBuilder<SdnSwitch>::ReconcileRoutingTables() {*/
-/*}*/
-
-/*template <>*/
-/*void TopologyBuilder<PpfsSwitch>::ReconcileRoutingTables() {*/
-/*    NS_LOG_INFO("Reconciling the routing tables.\n"*/
-/*                "NOTE This function should only be invoked for PPFS switches");*/
-
-/*    for (auto& switchPair : m_switches) {*/
-/*        auto& switchObject {switchPair.second};*/
-/*        switchObject.ReconcileSplitRatios();*/
-/*    }*/
-/*}*/
-
-/*template <>*/
-/*tinyxml2::XMLElement* TopologyBuilder<SdnSwitch>::GetSwitchQueueLoggingElement(XMLDocument& xmlDocument) {*/
-/*    XMLElement* queuesElement = xmlDocument.NewElement("Queue");*/
-/*    for (const auto& switchPair : m_switches) {*/
-/*        auto switchId {switchPair.first};*/
-/*        NS_LOG_INFO("Saving the queue elements of switch " << switchId);*/
-
-/*        XMLElement* switchElement = xmlDocument.NewElement("Switch");*/
-/*        switchElement->SetAttribute("Id", switchId);*/
-
-/*        auto netDevCounter = uint32_t{0};*/
-/*        const auto& switchInstance {switchPair.second};*/
-/*        for (const auto& devLogPair : switchInstance.m_netDeviceQueueLog) {*/
-/*            XMLElement* netDevElement = xmlDocument.NewElement("NetDevice");*/
-/*            netDevElement->SetAttribute("Id", netDevCounter);*/
-
-/*            for (const auto& queueLogPair: devLogPair.second) {*/
-/*                XMLElement* sizeElement = xmlDocument.NewElement("Packet");*/
-/*                sizeElement->SetAttribute("NumPktsInQueue", queueLogPair.first);*/
-/*                sizeElement->SetAttribute("Time", boost::numeric_cast<double>(queueLogPair.second.GetNanoSeconds()));*/
-/*                netDevElement->InsertEndChild(sizeElement);*/
-/*            }*/
-
-/*            netDevCounter++;*/
-/*            switchElement->InsertEndChild(netDevElement);*/
-/*        }*/
-/*        queuesElement->InsertEndChild(switchElement);*/
-/*    }*/
-/*    return queuesElement;*/
-/*}*/
-
-/*template <>*/
-/*tinyxml2::XMLElement* TopologyBuilder<PpfsSwitch>::GetSwitchQueueLoggingElement(XMLDocument& xmlDocument) {*/
-/*    return nullptr;*/
-/*}*/
 
 /**
  Shuffles the XML Link elements in place.

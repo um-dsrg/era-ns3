@@ -26,41 +26,30 @@
 using namespace ns3;
 using namespace tinyxml2;
 
-/* template <class SwitchType> */
 class TopologyBuilder
 {
 public:
-  TopologyBuilder (SwitchType switchType);
-
-  // TODO REMOVE THE BELOW functions
-  /* const Terminal::TerminalContainer &GetTerminals (); */
-  /* const std::map<id_t, SwitchType> &GetSwitches (); */
-  // todo Remove this function from this class and create a switch container
-  /* tinyxml2::XMLElement *GetSwitchQueueLoggingElement (tinyxml2::XMLDocument &xmlDocument); */
+  TopologyBuilder (SwitchType switchType, SwitchContainer &switchContainer,
+                   Terminal::terminalContainer_t &terminalContainer, Link::linkContainer_t &links);
 
   void CreateNodes (XMLNode *rootNode);
-  std::map<id_t, Ptr<NetDevice>> BuildNetworkTopology (XMLNode *rootNode); // DONE
-  void AssignIpToTerminals (); // DONE
-  Flow::flowContainer_t ParseFlows (XMLNode *rootNode); // DONE
-  void EnablePacketReceptionOnSwitches (); // DONE
-  void ReconcileRoutingTables (); // DONE
+  std::map<id_t, Ptr<NetDevice>> BuildNetworkTopology (XMLNode *rootNode);
+  void AssignIpToTerminals ();
+  void EnablePacketReceptionOnSwitches ();
+  void ReconcileRoutingTables ();
 
 private:
-  /**< Key: Path ID | Value: source port, destination port */
   using pathPortMap_t = std::map<id_t, std::pair<portNum_t, portNum_t>>;
 
-  void CreateUniqueNode (id_t nodeId, NodeType nodeType); // DONE
+  void CreateUniqueNode (id_t nodeId, NodeType nodeType);
   void InstallP2pLinks (const std::vector<Link> &links,
-                        std::map<id_t, Ptr<NetDevice>> &transmitOnLink); // DONE
-  CustomDevice *GetNode (id_t id, NodeType nodeType); // DONE
+                        std::map<id_t, Ptr<NetDevice>> &transmitOnLink);
+  CustomDevice *GetNode (id_t id, NodeType nodeType);
 
-  pathPortMap_t AddDataPaths (Flow &flow, XMLElement *flowElement); // DONE
-  void AddAckPaths (Flow &flow, XMLElement *flowElement, const pathPortMap_t &pathPortMap);
-
-  Terminal::TerminalContainer m_terminals; /**< Maps the node id with the Terminal object. */
-  SwitchType m_switchType; /**< The type of switches to use */
-  SwitchContainer m_switchContainer;
-  std::map<id_t, Link> m_links; /**< Maps the link id with the Link object. */
+  SwitchType m_switchType; // The type of switches to use
+  SwitchContainer &m_switchContainer;
+  Terminal::terminalContainer_t &m_terminalContainer;
+  Link::linkContainer_t &m_linkContainer;
 };
 
 void ShuffleLinkElements (std::vector<XMLElement *> &linkElements);
