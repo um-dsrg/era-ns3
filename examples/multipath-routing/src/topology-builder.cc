@@ -160,7 +160,8 @@ TopologyBuilder::CreateUniqueNode (id_t nodeId, NodeType nodeType)
 {
   if (nodeType == NodeType::Switch)
     {
-      m_switchContainer.AddSwitch (nodeId, m_switchType);
+      if (m_switchContainer.SwitchExists (nodeId) == false)
+        m_switchContainer.AddSwitch (nodeId, m_switchType);
     }
   else if (nodeType == NodeType::Terminal)
     {

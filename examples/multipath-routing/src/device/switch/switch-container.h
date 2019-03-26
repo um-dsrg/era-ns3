@@ -13,6 +13,7 @@ public:
   using switchContainer_t = std::map<id_t, std::unique_ptr<SwitchBase>>;
 
   SwitchBase *GetSwitch (id_t switchId);
+  bool SwitchExists (id_t switchId);
   void AddSwitch (id_t switchId, SwitchType switchType);
 
   void ReconcileRoutingTables ();

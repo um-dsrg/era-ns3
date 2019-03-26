@@ -15,9 +15,19 @@ SwitchContainer::GetSwitch (id_t switchId)
   return m_switchContainer.at (switchId).get ();
 }
 
+bool
+SwitchContainer::SwitchExists (id_t switchId)
+{
+  if (m_switchContainer.find (switchId) == m_switchContainer.end ())
+    return false;
+  else
+    return true;
+}
+
 void
 SwitchContainer::AddSwitch (id_t switchId, SwitchType switchType)
 {
+  NS_LOG_INFO ("Adding switch " << switchId);
   std::pair<switchContainer_t::iterator, bool> ret;
   if (switchType == SwitchType::SdnSwitch)
     {
@@ -33,7 +43,6 @@ SwitchContainer::AddSwitch (id_t switchId, SwitchType switchType)
     {
       NS_ABORT_MSG ("Unknown switch type given");
     }
-  NS_LOG_INFO ("Switch: " << switchId << " created");
   NS_ABORT_MSG_IF (ret.second == false,
                    "Trying to insert a duplicate switch with id: " << switchId);
 }
