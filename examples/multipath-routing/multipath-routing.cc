@@ -104,44 +104,46 @@ main (int argc, char *argv[])
   // Configure Selective Acknowledgements
   Config::SetDefault ("ns3::TcpSocketBase::Sack", BooleanValue (useSack));
 
-  // Create the nodes and build the topology
-  TopologyBuilderBase *topologyBuilder{nullptr};
-  if (useSdnSwitches)
-    {
-      topologyBuilder = new TopologyBuilder<SdnSwitch>;
-    }
-  else if (usePpfsSwitches)
-    {
-      topologyBuilder = new TopologyBuilder<PpfsSwitch>;
-    }
+  // Uncomment the block - BEGIN
+  /* // Create the nodes and build the topology */
+  /* TopologyBuilderBase *topologyBuilder{nullptr}; */
+  /* if (useSdnSwitches) */
+  /*   { */
+  /*     topologyBuilder = new TopologyBuilder<SdnSwitch>; */
+  /*   } */
+  /* else if (usePpfsSwitches) */
+  /*   { */
+  /*     topologyBuilder = new TopologyBuilder<PpfsSwitch>; */
+  /*   } */
 
-  topologyBuilder->CreateNodes (rootNode);
-  auto transmitOnLink{topologyBuilder->BuildNetworkTopology (rootNode)};
-  topologyBuilder->AssignIpToTerminals ();
-  topologyBuilder->EnablePacketReceptionOnSwitches ();
+  /* topologyBuilder->CreateNodes (rootNode); */
+  /* auto transmitOnLink{topologyBuilder->BuildNetworkTopology (rootNode)}; */
+  /* topologyBuilder->AssignIpToTerminals (); */
+  /* topologyBuilder->EnablePacketReceptionOnSwitches (); */
 
-  // Parse the flows and build the routing table
-  auto flows{topologyBuilder->ParseFlows (rootNode)};
-  RoutingHelperBase *routingHelper{nullptr};
+  /* // Parse the flows and build the routing table */
+  /* auto flows{topologyBuilder->ParseFlows (rootNode)}; */
+  /* RoutingHelperBase *routingHelper{nullptr}; */
 
-  // TODO Update this to use unique pointers
-  if (useSdnSwitches)
-    {
-      routingHelper = new RoutingHelper<SdnSwitch>;
-    }
-  else if (usePpfsSwitches)
-    {
-      routingHelper = new RoutingHelper<PpfsSwitch>;
-    }
-  routingHelper->BuildRoutingTable (flows, transmitOnLink);
+  /* // TODO Update this to use unique pointers */
+  /* if (useSdnSwitches) */
+  /*   { */
+  /*     routingHelper = new RoutingHelper<SdnSwitch>; */
+  /*   } */
+  /* else if (usePpfsSwitches) */
+  /*   { */
+  /*     routingHelper = new RoutingHelper<PpfsSwitch>; */
+  /*   } */
+  /* routingHelper->BuildRoutingTable (flows, transmitOnLink); */
 
-  // Reconcile the routing tables. Useful only for PPFS switches
-  topologyBuilder->ReconcileRoutingTables ();
+  /* // Reconcile the routing tables. Useful only for PPFS switches */
+  /* topologyBuilder->ReconcileRoutingTables (); */
 
-  ResultsContainer resContainer (flows);
+  /* ResultsContainer resContainer (flows); */
 
-  AppContainer appContainer;
-  appContainer.InstallApplicationsOnTerminals (flows, usePpfsSwitches, resContainer);
+  /* AppContainer appContainer; */
+  /* appContainer.InstallApplicationsOnTerminals (flows, usePpfsSwitches, resContainer); */
+  // Uncomment the block - END
 
   if (enablePcap)
     {
@@ -165,16 +167,16 @@ main (int argc, char *argv[])
   Simulator::Stop ();
 
   // Add the results to the XML file and save it
-  resContainer.AddFlowResults ();
-  resContainer.SaveFile (outputFile);
+  /* resContainer.AddFlowResults (); */
+  /* resContainer.SaveFile (outputFile); */
 
   // Save the flow monitor result file
   flowMonHelper.SerializeToXmlFile (flowMonitorOutputFile, false, false);
 
   Simulator::Destroy ();
 
-  delete routingHelper;
-  delete topologyBuilder;
+  /* delete routingHelper; */
+  /* delete topologyBuilder; */
 
   return 0;
 }
