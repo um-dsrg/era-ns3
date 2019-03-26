@@ -11,13 +11,16 @@
 
 #include "switch-base.h"
 
-class SdnSwitch : public SwitchBase {
+class SdnSwitch : public SwitchBase
+{
 public:
     SdnSwitch(id_t id);
 
-    void AddEntryToRoutingTable(uint32_t srcIp, uint32_t dstIp, portNum_t srcPort, portNum_t dstPort,
-                                FlowProtocol protocol, ns3::Ptr<ns3::NetDevice> forwardingPort);
-    void SetPacketReception();
+    void AddEntryToRoutingTable (uint32_t srcIp, uint32_t dstIp, portNum_t srcPort,
+                                 portNum_t dstPort, FlowProtocol protocol,
+                                 ns3::Ptr<ns3::NetDevice> forwardingPort,
+                                 splitRatio_t splitRatio) override;
+    void SetPacketReception () override;
 
     // TODO This needs to be removed from here
     /**

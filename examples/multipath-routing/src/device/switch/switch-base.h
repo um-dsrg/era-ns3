@@ -32,7 +32,13 @@ class SwitchBase : public CustomDevice
 protected:
   SwitchBase (id_t id);
   virtual ~SwitchBase ();
+
   virtual void SetPacketReception () = 0;
+  virtual void AddEntryToRoutingTable (uint32_t srcIp, uint32_t dstIp, portNum_t srcPort,
+                                       portNum_t dstPort, FlowProtocol protocol,
+                                       ns3::Ptr<ns3::NetDevice> forwardingPort,
+                                       splitRatio_t splitRatio) = 0;
+  virtual void ReconcileSplitRatios ();
 
   RtFlow ExtractFlowFromPacket (ns3::Ptr<const ns3::Packet> packet, uint16_t protocol);
 };

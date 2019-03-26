@@ -22,15 +22,17 @@ NS_LOG_COMPONENT_DEFINE ("SdnSwitch");
 SdnSwitch::SdnSwitch (id_t id) : SwitchBase (id) {
 }
 
-void SdnSwitch::AddEntryToRoutingTable (uint32_t srcIp, uint32_t dstIp, portNum_t srcPort,
-                                         portNum_t dstPort, FlowProtocol protocol,
-                                         Ptr<NetDevice> forwardingPort) {
-    RtFlow rtFlow {srcIp, dstIp, srcPort, dstPort, protocol};
-    auto ret = m_routingTable.emplace (rtFlow, forwardingPort);
-    NS_ABORT_MSG_IF (ret.second == false, "Unable to add routing table entry in Switch " << m_id);
+void
+SdnSwitch::AddEntryToRoutingTable (uint32_t srcIp, uint32_t dstIp, portNum_t srcPort,
+                                   portNum_t dstPort, FlowProtocol protocol,
+                                   ns3::Ptr<ns3::NetDevice> forwardingPort, splitRatio_t splitRatio)
+{
+  RtFlow rtFlow{srcIp, dstIp, srcPort, dstPort, protocol};
+  auto ret = m_routingTable.emplace (rtFlow, forwardingPort);
+  NS_ABORT_MSG_IF (ret.second == false, "Unable to add routing table entry in Switch " << m_id);
 
-    NS_LOG_INFO("Add entry in SDN Switch " << m_id);
-    NS_LOG_INFO(rtFlow);
+  NS_LOG_INFO ("Add entry in SDN Switch " << m_id);
+  NS_LOG_INFO (rtFlow);
 }
 
 void SdnSwitch::SetPacketReception() {

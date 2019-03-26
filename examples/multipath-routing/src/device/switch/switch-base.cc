@@ -76,6 +76,12 @@ SwitchBase::~SwitchBase ()
 {
 }
 
+void
+SwitchBase::ReconcileSplitRatios ()
+{
+  return; // NOTE: This function is only used by the PPFS Switch
+}
+
 RtFlow
 SwitchBase::ExtractFlowFromPacket (Ptr<const Packet> packet, uint16_t protocol)
 {
