@@ -29,9 +29,11 @@ struct RtFlow
 
 class SwitchBase : public CustomDevice
 {
+public:
+  virtual ~SwitchBase ();
+
 protected:
   SwitchBase (id_t id);
-  virtual ~SwitchBase ();
 
   virtual void SetPacketReception () = 0;
   virtual void AddEntryToRoutingTable (uint32_t srcIp, uint32_t dstIp, portNum_t srcPort,

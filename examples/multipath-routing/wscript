@@ -21,7 +21,8 @@ def build(bld):
     # Switch
     obj.source.extend(['src/device/switch/sdn-switch.cc',
                        'src/device/switch/switch-base.cc',
-                       'src/device/switch/ppfs-switch.cc'])
+                       'src/device/switch/ppfs-switch.cc',
+                       'src/device/switch/switch-container.cc'])
     # Application
     obj.source.extend(['src/application/app-container.cc',
                        'src/application/application-base.cc',
