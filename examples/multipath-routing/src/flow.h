@@ -73,6 +73,6 @@ private:
 
 Flow::flowContainer_t ParseFlows (tinyxml2::XMLNode *rootNode,
                                   Terminal::terminalContainer_t &terminalContainer,
-                                  Link::linkContainer_t &linkContainer);
+                                  Link::linkContainer_t &linkContainer, SwitchType switchType);
 
 #endif /* flow_h */

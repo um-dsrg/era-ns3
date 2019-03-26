@@ -29,38 +29,49 @@ Path::GetLinks () const
   return m_links;
 }
 
-std::ostream & operator<< (std::ostream &output, const Path &path) {
-    output << "Path ID: " << path.id << "\n";
-    output << "Data Rate: " << path.dataRate << "\n";
-    output << "Source Port: " << path.srcPort << "\n";
-    output << "Destination Port: " << path.dstPort << "\n";
-    output << "Links \n";
+std::ostream &
+operator<< (std::ostream &output, const Path &path)
+{
+  output << "Path ID: " << path.id << "\n";
+  output << "Data Rate: " << path.dataRate << "\n";
+  output << "Source Port: " << path.srcPort << "\n";
+  output << "Destination Port: " << path.dstPort << "\n";
+  output << "Links \n";
 
-    for (const auto link : path.m_links) {
-        output << "Link ID: " << link->id << "\n";
+  for (const auto link : path.m_links)
+    {
+      output << "Link ID: " << link->id << "\n";
     }
 
-    return output;
+  return output;
 }
 
 /**
  * Flow Implementation
  */
 
-void Flow::AddDataPath(const Path& path) {
-    m_dataPaths.push_back(path);
+void
+Flow::AddDataPath (const Path &path)
+{
+  m_dataPaths.push_back (path);
 }
 
-const std::vector<Path>& Flow::GetDataPaths() const {
-    return m_dataPaths;
+const std::vector<Path> &
+Flow::GetDataPaths () const
+{
+  return m_dataPaths;
 }
 
-void Flow::AddAckPath(const Path &path) {
-    m_ackPaths.push_back(path);
+void
+Flow::AddAckPath (const Path &path)
+{
+  m_ackPaths.push_back (path);
 }
 
-const std::vector<Path>& Flow::GetAckPaths() const {
-    return m_ackPaths;
+const std::vector<Path> &
+Flow::GetAckPaths () const
+{
+  return m_ackPaths;
 }
 
 /* void Flow::AddAckShortestPath(const Path &path) { */
@@ -71,52 +82,64 @@ const std::vector<Path>& Flow::GetAckPaths() const {
 /*     return m_ackShortestPath; */
 /* } */
 
-bool Flow::operator< (const Flow &other) const {
-    /*
+bool
+Flow::operator< (const Flow &other) const
+{
+  /*
     * Used by the map to store the keys in order.
     * In this case it is sorted by Source Ip Address, then Destination Ip Address.
     */
-    if (srcNode->GetIpAddress().Get() == other.srcNode->GetIpAddress().Get()) {
-    return dstNode->GetIpAddress().Get() < other.dstNode->GetIpAddress().Get();
-    } else {
-    return srcNode->GetIpAddress().Get() < other.srcNode->GetIpAddress().Get();
+  if (srcNode->GetIpAddress ().Get () == other.srcNode->GetIpAddress ().Get ())
+    {
+      return dstNode->GetIpAddress ().Get () < other.dstNode->GetIpAddress ().Get ();
+    }
+  else
+    {
+      return srcNode->GetIpAddress ().Get () < other.srcNode->GetIpAddress ().Get ();
     }
 }
 
-std::ostream & operator<< (std::ostream &output, const Flow &flow) {
-    ns3::Ipv4Address address;
-    output << "Flow ID: " << flow.id << "\n";
-    output << "Data Rate: " << flow.dataRate << "\n";
-    output << "Packet Size: " << flow.packetSize << "bytes\n";
-    output << "Source IP Addr: " << flow.srcNode->GetIpAddress().Get() << "\n";
-    output << "Destination IP Addr: " << flow.dstNode->GetIpAddress().Get() << "\n";
-    output << "Protocol: " << static_cast<char> (flow.protocol) << "\n";
-    output << "----------------------\n";
+std::ostream &
+operator<< (std::ostream &output, const Flow &flow)
+{
+  ns3::Ipv4Address address;
+  output << "Flow ID: " << flow.id << "\n";
+  output << "Data Rate: " << flow.dataRate << "\n";
+  output << "Packet Size: " << flow.packetSize << "bytes\n";
+  output << "Source IP Addr: " << flow.srcNode->GetIpAddress ().Get () << "\n";
+  output << "Destination IP Addr: " << flow.dstNode->GetIpAddress ().Get () << "\n";
+  output << "Protocol: " << static_cast<char> (flow.protocol) << "\n";
+  output << "----------------------\n";
 
-    if (!flow.m_dataPaths.empty()) {
-        output << "Data Paths\n---\n";
-        for (const auto& dataPath : flow.m_dataPaths) {
-            output << dataPath;
-            output << "---\n";
+  if (!flow.m_dataPaths.empty ())
+    {
+      output << "Data Paths\n---\n";
+      for (const auto &dataPath : flow.m_dataPaths)
+        {
+          output << dataPath;
+          output << "---\n";
         }
     }
 
-    if (!flow.m_ackPaths.empty()) {
-        output << "Ack Paths\n---\n";
-        for (const auto& ackPath : flow.m_ackPaths) {
-            output << ackPath;
-            output << "---\n";
+  if (!flow.m_ackPaths.empty ())
+    {
+      output << "Ack Paths\n---\n";
+      for (const auto &ackPath : flow.m_ackPaths)
+        {
+          output << ackPath;
+          output << "---\n";
         }
     }
-    return output;
+  return output;
 }
 
 /**
  * Function Implementation
  */
 
-/**< Key: Path ID | Value: source port, destination port */
+/* Key: Path ID | Value: source port, destination port */
 using pathPortMap_t = std::map<id_t, std::pair<portNum_t, portNum_t>>;
+
 pathPortMap_t AddDataPaths (Flow &flow, tinyxml2::XMLElement *flowElement,
                             Link::linkContainer_t &linkContainer, SwitchType switchType);
 void AddAckPaths (Flow &flow, tinyxml2::XMLElement *flowElement, const pathPortMap_t &pathPortMap,
