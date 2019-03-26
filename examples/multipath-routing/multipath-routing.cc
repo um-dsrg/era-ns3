@@ -81,6 +81,7 @@ main (int argc, char *argv[])
       LogComponentEnable ("SdnSwitch", LOG_LEVEL_ALL);
       LogComponentEnable ("PpfsSwitch", LOG_LEVEL_ALL);
       LogComponentEnable ("SwitchBase", LOG_LEVEL_ALL);
+      LogComponentEnable ("SwitchContainer", LOG_LEVEL_ALL);
       /* Applications */
       LogComponentEnable ("AppContainer", LOG_LEVEL_ALL);
       LogComponentEnable ("ApplicationBase", LOG_LEVEL_ALL);
