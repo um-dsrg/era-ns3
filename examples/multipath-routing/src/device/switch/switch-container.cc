@@ -9,6 +9,12 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("SwitchContainer");
 
+SwitchBase *
+SwitchContainer::GetSwitch (id_t switchId)
+{
+  return m_switchContainer.at (switchId).get ();
+}
+
 void
 SwitchContainer::AddSwitch (id_t switchId, SwitchType switchType)
 {
@@ -32,8 +38,26 @@ SwitchContainer::AddSwitch (id_t switchId, SwitchType switchType)
                    "Trying to insert a duplicate switch with id: " << switchId);
 }
 
-SwitchBase *
-SwitchContainer::GetSwitch (id_t switchId)
+void
+SwitchContainer::EnablePacketReceptionOnSwitches ()
 {
-  return m_switchContainer.at (switchId).get ();
+  NS_LOG_INFO ("Enabling Packet reception on all switches");
+  for (auto &switchPair : m_switchContainer)
+    {
+      auto &switchInstance = switchPair.second;
+      switchInstance->SetPacketReception ();
+    }
+}
+
+void
+SwitchContainer::ReconcileRoutingTables ()
+{
+  NS_LOG_INFO ("Reconciling the routing tables.\n"
+               "NOTE This function should only be invoked for PPFS switches");
+
+  for (auto &switchPair : m_switchContainer)
+    {
+      auto &switchObject{switchPair.second};
+      switchObject->ReconcileSplitRatios ();
+    }
 }

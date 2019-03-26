@@ -12,9 +12,11 @@ class SwitchContainer
 public:
   using switchContainer_t = std::map<id_t, std::unique_ptr<SwitchBase>>;
 
+  SwitchBase *GetSwitch (id_t switchId);
   void AddSwitch (id_t switchId, SwitchType switchType);
 
-  SwitchBase *GetSwitch (id_t switchId);
+  void ReconcileRoutingTables ();
+  void EnablePacketReceptionOnSwitches ();
 
   inline switchContainer_t::iterator begin ();
   inline switchContainer_t::iterator end ();

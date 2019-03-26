@@ -32,11 +32,9 @@ public:
   TopologyBuilder (SwitchType switchType, SwitchContainer &switchContainer,
                    Terminal::terminalContainer_t &terminalContainer, Link::linkContainer_t &links);
 
+  void AssignIpToTerminals ();
   void CreateNodes (XMLNode *rootNode);
   std::map<id_t, Ptr<NetDevice>> BuildNetworkTopology (XMLNode *rootNode);
-  void AssignIpToTerminals ();
-  void EnablePacketReceptionOnSwitches ();
-  void ReconcileRoutingTables ();
 
 private:
   using pathPortMap_t = std::map<id_t, std::pair<portNum_t, portNum_t>>;

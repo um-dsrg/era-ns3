@@ -156,30 +156,6 @@ TopologyBuilder::AssignIpToTerminals ()
 }
 
 void
-TopologyBuilder::EnablePacketReceptionOnSwitches ()
-{
-  NS_LOG_INFO ("Enabling Packet reception on all switches");
-  for (auto &switchPair : m_switchContainer)
-    {
-      auto &switchInstance = switchPair.second;
-      switchInstance->SetPacketReception ();
-    }
-}
-
-void
-TopologyBuilder::ReconcileRoutingTables ()
-{
-  NS_LOG_INFO ("Reconciling the routing tables.\n"
-               "NOTE This function should only be invoked for PPFS switches");
-
-  for (auto &switchPair : m_switchContainer)
-    {
-      auto &switchObject{switchPair.second};
-      switchObject->ReconcileSplitRatios ();
-    }
-}
-
-void
 TopologyBuilder::CreateUniqueNode (id_t nodeId, NodeType nodeType)
 {
   if (nodeType == NodeType::Switch)
