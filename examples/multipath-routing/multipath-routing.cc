@@ -73,6 +73,7 @@ main (int argc, char *argv[])
 
   if (verbose)
     {
+      LogComponentEnable ("Flow", LOG_LEVEL_ALL);
       LogComponentEnable ("RoutingHelper", LOG_LEVEL_ALL);
       LogComponentEnable ("TopologyBuilder", LOG_LEVEL_ALL);
       LogComponentEnable ("ResultsContainer", LOG_LEVEL_ALL);

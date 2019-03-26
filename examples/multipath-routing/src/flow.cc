@@ -1,4 +1,8 @@
+#include "ns3/log.h"
+
 #include "flow.h"
+
+NS_LOG_COMPONENT_DEFINE ("Flow");
 
 /**
  * Path Implementation
@@ -185,7 +189,7 @@ ParseFlows (tinyxml2::XMLNode *rootNode, Terminal::terminalContainer_t &terminal
       auto ret = flows.emplace (flow.id, flow);
       NS_ABORT_MSG_IF (ret.second == false, "Inserting Flow " << flow.id << " failed");
 
-      /* NS_LOG_INFO ("Flow Details:\n" << flow); */
+      NS_LOG_INFO ("Flow Details:\n" << flow);
       flowElement = flowElement->NextSiblingElement ("Flow");
     }
 
