@@ -9,6 +9,8 @@
 #include "ns3/flow-monitor-helper.h"
 #include "ns3/point-to-point-helper.h"
 
+#include "src/flow.h"
+#include "src/definitions.h"
 #include "src/routing-helper.h"
 #include "src/topology-builder.h"
 #include "src/results-container.h"
@@ -37,7 +39,7 @@ main (int argc, char *argv[])
   std::string inputFile{""};
   std::string outputFile{""};
   std::string flowMonitorOutputFile{""};
-  std::string bufferSize{"100p"}; // The default size is equal to 100 packets
+  std::string bufferSize{"100p"};
 
   // Set the command line parameters
   CommandLine cmdLine;
@@ -68,9 +70,6 @@ main (int argc, char *argv[])
                     "is equal to 100 packet.",
                     bufferSize);
   cmdLine.Parse (argc, argv);
-
-  NS_ABORT_MSG_IF ((usePpfsSwitches == false && useSdnSwitches == false),
-                   "No switch type is defined");
 
   if (verbose)
     {
@@ -104,46 +103,40 @@ main (int argc, char *argv[])
   // Configure Selective Acknowledgements
   Config::SetDefault ("ns3::TcpSocketBase::Sack", BooleanValue (useSack));
 
-  // Uncomment the block - BEGIN
-  /* // Create the nodes and build the topology */
-  /* TopologyBuilderBase *topologyBuilder{nullptr}; */
-  /* if (useSdnSwitches) */
-  /*   { */
-  /*     topologyBuilder = new TopologyBuilder<SdnSwitch>; */
-  /*   } */
-  /* else if (usePpfsSwitches) */
-  /*   { */
-  /*     topologyBuilder = new TopologyBuilder<PpfsSwitch>; */
-  /*   } */
+  // Set the switch type
+  SwitchType switchType;
+  if (usePpfsSwitches)
+    switchType = SwitchType::PpfsSwitch;
+  else if (useSdnSwitches)
+    switchType = SwitchType::SdnSwitch;
+  else
+    NS_ABORT_MSG ("No switch type is defined");
 
-  /* topologyBuilder->CreateNodes (rootNode); */
-  /* auto transmitOnLink{topologyBuilder->BuildNetworkTopology (rootNode)}; */
-  /* topologyBuilder->AssignIpToTerminals (); */
-  /* topologyBuilder->EnablePacketReceptionOnSwitches (); */
+  SwitchContainer switchContainer;
+  Terminal::terminalContainer_t terminalContainer;
+  Link::linkContainer_t linkContainer;
 
-  /* // Parse the flows and build the routing table */
-  /* auto flows{topologyBuilder->ParseFlows (rootNode)}; */
-  /* RoutingHelperBase *routingHelper{nullptr}; */
+  // Create the nodes and build the topology
+  TopologyBuilder topologyBuilder (switchType, switchContainer, terminalContainer, linkContainer);
 
-  /* // TODO Update this to use unique pointers */
-  /* if (useSdnSwitches) */
-  /*   { */
-  /*     routingHelper = new RoutingHelper<SdnSwitch>; */
-  /*   } */
-  /* else if (usePpfsSwitches) */
-  /*   { */
-  /*     routingHelper = new RoutingHelper<PpfsSwitch>; */
-  /*   } */
-  /* routingHelper->BuildRoutingTable (flows, transmitOnLink); */
+  topologyBuilder.CreateNodes (rootNode);
+  auto transmitOnLink = topologyBuilder.BuildNetworkTopology (rootNode);
+  topologyBuilder.AssignIpToTerminals ();
 
-  /* // Reconcile the routing tables. Useful only for PPFS switches */
-  /* topologyBuilder->ReconcileRoutingTables (); */
+  // Parse the flows and build the routing table
+  auto flows = ParseFlows (rootNode, terminalContainer, linkContainer, switchType);
 
-  /* ResultsContainer resContainer (flows); */
+  // Build the switch routing table
+  BuildRoutingTable (flows, transmitOnLink);
 
-  /* AppContainer appContainer; */
-  /* appContainer.InstallApplicationsOnTerminals (flows, usePpfsSwitches, resContainer); */
-  // Uncomment the block - END
+  // Enable packet reception and reconcile the routing tables */
+  switchContainer.EnablePacketReceptionOnSwitches ();
+  switchContainer.ReconcileRoutingTables ();
+
+  ResultsContainer resContainer (flows);
+
+  AppContainer appContainer;
+  appContainer.InstallApplicationsOnTerminals (flows, usePpfsSwitches, resContainer);
 
   if (enablePcap)
     {
@@ -167,16 +160,13 @@ main (int argc, char *argv[])
   Simulator::Stop ();
 
   // Add the results to the XML file and save it
-  /* resContainer.AddFlowResults (); */
-  /* resContainer.SaveFile (outputFile); */
+  resContainer.AddFlowResults ();
+  resContainer.SaveFile (outputFile);
 
   // Save the flow monitor result file
   flowMonHelper.SerializeToXmlFile (flowMonitorOutputFile, false, false);
 
   Simulator::Destroy ();
-
-  /* delete routingHelper; */
-  /* delete topologyBuilder; */
 
   return 0;
 }
