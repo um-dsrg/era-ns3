@@ -3,8 +3,8 @@
 #include <iomanip>
 #include <boost/numeric/conversion/cast.hpp>
 
-#include "sdn-switch.h"
-#include "ppfs-switch.h"
+#include "device/switch/sdn-switch.h"
+#include "device/switch/ppfs-switch.h"
 #include "results-container.h"
 #include "application/unipath-receiver.h"
 #include "application/multipath-receiver.h"

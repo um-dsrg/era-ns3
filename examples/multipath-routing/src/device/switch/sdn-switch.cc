@@ -13,7 +13,7 @@
 #include "ns3/point-to-point-net-device.h"
 
 #include "sdn-switch.h"
-#include "random-generator-manager.h"
+#include "../../random-generator-manager.h"
 
 using namespace ns3;
 

@@ -10,9 +10,9 @@
 #include "ns3/node-container.h"
 
 #include "flow.h"
-#include "sdn-switch.h"
+#include "device/switch/sdn-switch.h"
 #include "definitions.h"
-#include "ppfs-switch.h"
+#include "device/switch/ppfs-switch.h"
 #include "topology-builder.h"
 
 /**

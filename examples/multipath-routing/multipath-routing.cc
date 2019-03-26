@@ -9,7 +9,7 @@
 #include "ns3/flow-monitor-helper.h"
 #include "ns3/point-to-point-helper.h"
 
-#include "src/sdn-switch.h"
+#include "src/device/switch/sdn-switch.h"
 #include "src/routing-helper.h"
 #include "src/topology-builder.h"
 #include "src/results-container.h"

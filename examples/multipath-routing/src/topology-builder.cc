@@ -1,7 +1,7 @@
 #include <boost/numeric/conversion/cast.hpp>
 
-#include "sdn-switch.h"
-#include "ppfs-switch.h"
+#include "device/switch/sdn-switch.h"
+#include "device/switch/ppfs-switch.h"
 #include "topology-builder.h"
 
 NS_LOG_COMPONENT_DEFINE ("TopologyBuilder");

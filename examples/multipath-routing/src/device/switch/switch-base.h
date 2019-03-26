@@ -5,8 +5,8 @@
 
 #include "ns3/packet.h"
 
-#include "definitions.h"
-#include "custom-device.h"
+#include "../../definitions.h"
+#include "../../custom-device.h"
 
 class SwitchBase : public CustomDevice {
 protected:
