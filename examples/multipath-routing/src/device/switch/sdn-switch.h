@@ -22,13 +22,7 @@ public:
                                  splitRatio_t splitRatio) override;
     void SetPacketReception () override;
 
-    // TODO This needs to be removed from here
-    /**
-     * Store the number of packets in the queue for each net device available on the switch.
-     */
-    std::map<ns3::Ptr<ns3::NetDevice>, std::list<std::pair<uint32_t, ns3::Time>>> m_netDeviceQueueLog;
-
-private:
+  private:
     void PacketReceived(ns3::Ptr<ns3::NetDevice> incomingPort, ns3::Ptr<const ns3::Packet> packet,
                         uint16_t protocol, const ns3::Address &src, const ns3::Address &dst,
                         ns3::NetDevice::PacketType packetType);

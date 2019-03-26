@@ -19,7 +19,8 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("SdnSwitch");
 
-SdnSwitch::SdnSwitch (id_t id) : SwitchBase (id) {
+SdnSwitch::SdnSwitch (id_t id) : SwitchBase (id)
+{
 }
 
 void
@@ -35,34 +36,35 @@ SdnSwitch::AddEntryToRoutingTable (uint32_t srcIp, uint32_t dstIp, portNum_t src
   NS_LOG_INFO (rtFlow);
 }
 
-void SdnSwitch::SetPacketReception() {
-    uint32_t numOfDevices = m_node->GetNDevices ();
-    NS_ASSERT (numOfDevices > 0);
-    for (uint32_t currentDevice = 0; currentDevice < numOfDevices; ++currentDevice) {
-        m_node->RegisterProtocolHandler (MakeCallback (&SdnSwitch::PacketReceived, this),
-                                         /*all protocols*/ 0, m_node->GetDevice (currentDevice),
-                                         /*disable promiscuous mode*/ false);
-        m_netDeviceQueueLog.emplace(m_node->GetDevice(currentDevice),
-                                    std::list<std::pair<uint32_t, Time>>());
+void
+SdnSwitch::SetPacketReception ()
+{
+  uint32_t numOfDevices = m_node->GetNDevices ();
+  NS_ASSERT (numOfDevices > 0);
+  for (uint32_t currentDevice = 0; currentDevice < numOfDevices; ++currentDevice)
+    {
+      m_node->RegisterProtocolHandler (MakeCallback (&SdnSwitch::PacketReceived, this),
+                                       /*all protocols*/ 0, m_node->GetDevice (currentDevice),
+                                       /*disable promiscuous mode*/ false);
     }
 }
 
-void SdnSwitch::PacketReceived(Ptr<NetDevice> incomingPort, Ptr<const Packet> packet, uint16_t protocol,
-                                const Address &src, const Address &dst, NetDevice::PacketType packetType) {
-    NS_LOG_INFO("Switch " << m_id << " received a packet at " << Simulator::Now());
-    auto parsedFlow = ExtractFlowFromPacket(packet, protocol);
+void
+SdnSwitch::PacketReceived (Ptr<NetDevice> incomingPort, Ptr<const Packet> packet, uint16_t protocol,
+                           const Address &src, const Address &dst, NetDevice::PacketType packetType)
+{
+  NS_LOG_INFO ("Switch " << m_id << " received a packet at " << Simulator::Now ().GetSeconds ()
+                         << "s");
+  auto parsedFlow = ExtractFlowFromPacket (packet, protocol);
 
-    // Log the number of packets in the queue
-    // Ptr<PointToPointNetDevice> p2pDevice = incomingPort->GetObject<PointToPointNetDevice>();
-    // auto& netDevQueueLog {m_netDeviceQueueLog.at(p2pDevice)};
-    // netDevQueueLog.emplace_back(p2pDevice->GetQueue()->GetNPackets(), Simulator::Now());
-
-    try {
-        auto forwardingNetDevice = m_routingTable.at(parsedFlow);
-        auto sendSuccess = forwardingNetDevice->Send(packet->Copy(), dst, protocol);
-        NS_ABORT_MSG_IF(!sendSuccess, "Switch " << m_id << " failed to forward packet");
-        NS_LOG_INFO("Switch " << m_id << " forwarded a packet at " << Simulator::Now());
-    } catch (const std::out_of_range& oor) {
-        NS_ABORT_MSG("Routing table Miss on Switch " << m_id << ".\nFlow Details\n" << parsedFlow);
-    }
+  try
+    {
+      auto forwardingNetDevice = m_routingTable.at (parsedFlow);
+      auto sendSuccess = forwardingNetDevice->Send (packet->Copy (), dst, protocol);
+      NS_ABORT_MSG_IF (!sendSuccess, "Switch " << m_id << " failed to forward packet");
+      NS_LOG_INFO ("Switch " << m_id << " forwarded a packet at " << Simulator::Now ());
+  } catch (const std::out_of_range &oor)
+    {
+      NS_ABORT_MSG ("Routing table Miss on Switch " << m_id << ".\nFlow Details\n" << parsedFlow);
+  }
 }
