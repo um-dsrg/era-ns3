@@ -16,56 +16,83 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("SwitchBase");
 
-SwitchBase::SwitchBase (id_t id) : CustomDevice (id) {
-}
+/********************************************/
+/* RtFlow                                   */
+/********************************************/
 
-SwitchBase::~SwitchBase () {
-}
-
-SwitchBase::RtFlow::RtFlow(uint32_t srcIp, uint32_t dstIp, portNum_t srcPort, portNum_t dstPort,
-                           FlowProtocol protocol) :
-srcIp{srcIp}, dstIp{dstIp}, srcPort{srcPort}, dstPort{dstPort}, protocol{protocol}
+RtFlow::RtFlow (uint32_t srcIp, uint32_t dstIp, portNum_t srcPort, portNum_t dstPort,
+                FlowProtocol protocol)
+    : srcIp{srcIp}, dstIp{dstIp}, srcPort{srcPort}, dstPort{dstPort}, protocol{protocol}
 {
 }
 
-bool SwitchBase::RtFlow::operator<(const RtFlow &other) const {
-    if (srcIp == other.srcIp) {
-        if (dstIp == other.dstIp) {
-            if (srcPort == other.srcPort) {
-                return dstPort < other.dstPort;
-            } else {
-                return srcPort < other.srcPort;
+bool
+RtFlow::operator< (const RtFlow &other) const
+{
+  if (srcIp == other.srcIp)
+    {
+      if (dstIp == other.dstIp)
+        {
+          if (srcPort == other.srcPort)
+            {
+              return dstPort < other.dstPort;
             }
-        } else {
-            return dstIp < other.dstIp;
+          else
+            {
+              return srcPort < other.srcPort;
+            }
         }
-    } else {
-        return srcIp < other.srcIp;
+      else
+        {
+          return dstIp < other.dstIp;
+        }
+    }
+  else
+    {
+      return srcIp < other.srcIp;
     }
 }
 
-std::ostream& operator<<(std::ostream& os, const SwitchBase::RtFlow& flow) {
-    os << "Protocol " << static_cast<char> (flow.protocol) << "\n";
-    os << "Source IP " << flow.srcIp << "\n";
-    os << "Source Port " << flow.srcPort << "\n";
-    os << "Destination IP " << flow.dstIp << "\n";
-    os << "Destination Port " << flow.dstPort << "\n";
-    return os;
+std::ostream &
+operator<< (std::ostream &os, const RtFlow &flow)
+{
+  os << "Protocol " << static_cast<char> (flow.protocol) << "\n";
+  os << "Source IP " << flow.srcIp << "\n";
+  os << "Source Port " << flow.srcPort << "\n";
+  os << "Destination IP " << flow.dstIp << "\n";
+  os << "Destination Port " << flow.dstPort << "\n";
+  return os;
 }
 
-SwitchBase::RtFlow SwitchBase::ExtractFlowFromPacket(Ptr<const Packet> packet, uint16_t protocol) {
-    Ptr<Packet> receivedPacket = packet->Copy (); // Copy the packet for parsing purposes
-    RtFlow flow;
+/********************************************/
+/* SwitchBase                               */
+/********************************************/
 
-    if (protocol == Ipv4L3Protocol::PROT_NUMBER) {
-        Ipv4Header ipHeader;
-        uint8_t ipProtocol (0);
+SwitchBase::SwitchBase (id_t id) : CustomDevice (id)
+{
+}
 
-        if (receivedPacket->PeekHeader (ipHeader)) { // Extract source and destination IP
-            ipProtocol = ipHeader.GetProtocol ();
-            flow.srcIp = ipHeader.GetSource().Get();
-            flow.dstIp = ipHeader.GetDestination().Get();
-            receivedPacket->RemoveHeader (ipHeader); // Removing the IP header
+SwitchBase::~SwitchBase ()
+{
+}
+
+RtFlow
+SwitchBase::ExtractFlowFromPacket (Ptr<const Packet> packet, uint16_t protocol)
+{
+  Ptr<Packet> receivedPacket = packet->Copy (); // Copy the packet for parsing purposes
+  RtFlow flow;
+
+  if (protocol == Ipv4L3Protocol::PROT_NUMBER)
+    {
+      Ipv4Header ipHeader;
+      uint8_t ipProtocol (0);
+
+      if (receivedPacket->PeekHeader (ipHeader))
+        { // Extract source and destination IP
+          ipProtocol = ipHeader.GetProtocol ();
+          flow.srcIp = ipHeader.GetSource ().Get ();
+          flow.dstIp = ipHeader.GetDestination ().Get ();
+          receivedPacket->RemoveHeader (ipHeader); // Removing the IP header
         }
 
         if (ipProtocol == UdpL4Protocol::PROT_NUMBER) { // UDP Packet
