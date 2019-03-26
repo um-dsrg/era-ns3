@@ -10,11 +10,29 @@
 class SwitchContainer
 {
 public:
+  using switchContainer_t = std::map<id_t, std::unique_ptr<SwitchBase>>;
+
   void AddSwitch (id_t switchId, SwitchType switchType);
-  SwitchBase const *GetSwitch (id_t switchId);
+
+  SwitchBase *GetSwitch (id_t switchId);
+
+  inline switchContainer_t::iterator begin ();
+  inline switchContainer_t::iterator end ();
 
 private:
-  std::map<id_t, std::unique_ptr<SwitchBase>> m_switchContainer;
+  switchContainer_t m_switchContainer;
 };
+
+SwitchContainer::switchContainer_t::iterator
+SwitchContainer::begin ()
+{
+  return m_switchContainer.begin ();
+}
+
+SwitchContainer::switchContainer_t::iterator
+SwitchContainer::end ()
+{
+  return m_switchContainer.end ();
+}
 
 #endif /* switch_container_h */
