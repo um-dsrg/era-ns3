@@ -42,9 +42,14 @@ operator<< (std::ostream &output, const Path &path)
   output << "Destination Port: " << path.dstPort << "\n";
   output << "Links \n";
 
-  for (const auto link : path.m_links)
+  for (Link const *link : path.m_links)
     {
-      output << "Link ID: " << link->id << "\n";
+      output << "Link ID: " << link->id << " Address: " << link << "\n";
+    }
+  output << "Testing link ids\n";
+  for (auto test : path.m_testing)
+    {
+      output << "Link id: " << test << "\n";
     }
 
   return output;
@@ -77,14 +82,6 @@ Flow::GetAckPaths () const
 {
   return m_ackPaths;
 }
-
-/* void Flow::AddAckShortestPath(const Path &path) { */
-/*     m_ackShortestPath = path; */
-/* } */
-
-/* const Path& Flow::GetAckShortestPath() const { */
-/*     return m_ackShortestPath; */
-/* } */
 
 bool
 Flow::operator< (const Flow &other) const
@@ -181,18 +178,49 @@ ParseFlows (tinyxml2::XMLNode *rootNode, Terminal::terminalContainer_t &terminal
 
       auto pathPortMap{AddDataPaths (flow, flowElement, linkContainer, switchType)};
 
+      std::cout << "Logging all flows (inside the loop) before adding ack paths" << std::endl;
+      for (const auto &flowPair : flows)
+        {
+          std::cout << flowPair.second << std::endl;
+        }
+
       if (flow.protocol == FlowProtocol::Tcp) // Parse ACK paths for TCP flows only
         {
+          // The problem seems to be coming from this function
+          std::cout << "Printing the link container before adding ack paths" << std::endl;
+          for (const auto &linkPair : linkContainer)
+            {
+              std::cout << "Link ID " << linkPair.first << " Address: " << &linkPair.second
+                        << " Id from object " << linkPair.second.id << std::endl;
+            }
           AddAckPaths (flow, flowElement, pathPortMap, linkContainer, switchType);
+          std::cout << "Printing the link container after adding ack paths" << std::endl;
+          for (const auto &linkPair : linkContainer)
+            {
+              std::cout << "Link ID " << linkPair.first << " Address: " << &linkPair.second
+                        << " Id from object " << linkPair.second.id << std::endl;
+            }
         }
 
       auto ret = flows.emplace (flow.id, flow);
       NS_ABORT_MSG_IF (ret.second == false, "Inserting Flow " << flow.id << " failed");
 
-      NS_LOG_INFO ("Flow Details:\n" << flow);
+      std::cout << "Logging all flows (inside the loop) after adding ack paths" << std::endl;
+      for (const auto &flowPair : flows)
+        {
+          std::cout << flowPair.second << std::endl;
+        }
+
+      /* NS_LOG_INFO ("Flow Details:\n" << flow); */
       flowElement = flowElement->NextSiblingElement ("Flow");
     }
 
+  /* // The problem is present already here */
+  /* std::cout << "Logging the flows before returning" << std::endl; */
+  /* for (const auto &flowPair : flows) */
+  /*   { */
+  /*     std::cout << flowPair.second << std::endl; */
+  /*   } */
   return flows;
 }
 
@@ -293,7 +321,13 @@ AddAckPaths (Flow &flow, tinyxml2::XMLElement *flowElement, const pathPortMap_t 
             {
               id_t linkId;
               linkElement->QueryAttribute ("Id", &linkId);
+              // NOTE The problem is here because it is not giving me the same addresses.
+              // As a solution try and store a unique pointer to the link in the map instead of the link,
+              // that way the underlying object does not change.
+              std::cout << "The address of link " << linkId << " is " << &linkContainer[linkId]
+                        << std::endl;
               path.AddLink (&linkContainer.at (linkId));
+              path.m_testing.push_back (linkId);
               linkElement = linkElement->NextSiblingElement ("Link");
             }
 
