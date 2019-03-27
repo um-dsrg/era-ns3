@@ -73,25 +73,23 @@ InstallAckPaths (const Flow &flow, const std::map<id_t, Ptr<NetDevice>> &transmi
           NS_LOG_INFO ("Installing routing for Ack Path " << path.id);
           NS_LOG_INFO ("Path details: " << path);
 
-          //for (const auto &link : path.GetLinks ())
-          //  {
-          //    NS_LOG_INFO ("Working on Link " << link->id);
+          for (const auto &link : path.GetLinks ())
+            {
+              NS_LOG_INFO ("Working on Link " << link->id);
 
-          //    if (link->srcNodeType == NodeType::Switch)
-          //      {
-          //        auto forwardingPort = transmitOnLink.at (link->id);
-          //        auto *switchNode = dynamic_cast<SwitchBase *> (link->srcNode);
+              if (link->srcNodeType == NodeType::Switch)
+                {
+                  auto forwardingPort = transmitOnLink.at (link->id);
+                  auto *switchNode = dynamic_cast<SwitchBase *> (link->srcNode);
 
-          //        /**
-          //               The addresses are reversed becuase the ACK flow has the opposite source
-          //               and destination details of the data flow.
-          //               */
-          //        switchNode->AddEntryToRoutingTable (
-          //            flow.dstNode->GetIpAddress ().Get (), flow.srcNode->GetIpAddress ().Get (),
-          //            path.srcPort, path.dstPort, flow.protocol, forwardingPort,
-          //            1.0 /* Ack flows are not split*/);
-          //      }
-          //  }
+                  /* The addresses are reversed becuase the ACK flow has the opposite source
+                     and destination details of the data flow. */
+                  switchNode->AddEntryToRoutingTable (
+                      flow.dstNode->GetIpAddress ().Get (), flow.srcNode->GetIpAddress ().Get (),
+                      path.srcPort, path.dstPort, flow.protocol, forwardingPort,
+                      1.0 /* Ack flows are not split*/);
+                }
+            }
         }
     }
 }

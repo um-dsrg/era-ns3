@@ -2,6 +2,7 @@
 #define flow_h
 
 #include <map>
+#include <memory>
 #include <vector>
 #include <iostream>
 #include <tinyxml2.h>
@@ -14,7 +15,8 @@
 
 struct Link
 {
-  using linkContainer_t = std::map<id_t, Link>;
+  /* using linkContainer_t = std::map<id_t, Link>; */
+  using linkContainer_t = std::map<id_t, std::unique_ptr<Link>>;
 
   id_t id;
   CustomDevice *srcNode;
@@ -62,8 +64,8 @@ struct Flow
   friend std::ostream &operator<< (std::ostream &output, const Flow &flow);
 
   id_t id{0};
-  Terminal *srcNode{0};
-  Terminal *dstNode{0};
+  const Terminal *srcNode{0};
+  const Terminal *dstNode{0};
   ns3::DataRate dataRate;
   packetSize_t packetSize;
   FlowProtocol protocol{FlowProtocol::Undefined};
@@ -74,7 +76,8 @@ private:
 };
 
 Flow::flowContainer_t ParseFlows (tinyxml2::XMLNode *rootNode,
-                                  Terminal::terminalContainer_t &terminalContainer,
-                                  Link::linkContainer_t &linkContainer, SwitchType switchType);
+                                  const Terminal::terminalContainer_t &terminalContainer,
+                                  const Link::linkContainer_t &linkContainer,
+                                  SwitchType switchType);
 
 #endif /* flow_h */

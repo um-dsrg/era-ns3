@@ -1,3 +1,4 @@
+#include <memory>
 #include <boost/numeric/conversion/cast.hpp>
 
 #include "topology-builder.h"
@@ -7,12 +8,10 @@
 NS_LOG_COMPONENT_DEFINE ("TopologyBuilder");
 
 TopologyBuilder::TopologyBuilder (SwitchType switchType, SwitchContainer &switchContainer,
-                                  Terminal::terminalContainer_t &terminalContainer,
-                                  Link::linkContainer_t &linkContainer)
+                                  Terminal::terminalContainer_t &terminalContainer)
     : m_switchType (switchType),
       m_switchContainer (switchContainer),
-      m_terminalContainer (terminalContainer),
-      m_linkContainer (linkContainer)
+      m_terminalContainer (terminalContainer)
 {
 }
 
@@ -51,7 +50,7 @@ TopologyBuilder::CreateNodes (XMLNode *rootNode)
 }
 
 std::map<id_t, Ptr<NetDevice>>
-TopologyBuilder::BuildNetworkTopology (XMLNode *rootNode)
+TopologyBuilder::BuildNetworkTopology (XMLNode *rootNode, Link::linkContainer_t &linkContainer)
 {
   /**
      A map that given a link id will return the NetDevice that needs to be used to
@@ -83,32 +82,33 @@ TopologyBuilder::BuildNetworkTopology (XMLNode *rootNode)
       // We need to loop through all the Link Elements here.
       XMLElement *linkElementElement = linkElement->FirstChildElement ("LinkElement");
 
-      std::vector<Link> sameDelayLinks;
+      std::vector<const Link *> sameDelayLinks;
       while (linkElementElement != nullptr)
         {
-          Link link;
-          link.delay = linkDelay;
-          linkElementElement->QueryAttribute ("Id", &link.id);
-          linkElementElement->QueryAttribute ("Capacity", &link.capacity);
+          auto link = std::make_unique<Link> ();
+
+          link->delay = linkDelay;
+          linkElementElement->QueryAttribute ("Id", &link->id);
+          linkElementElement->QueryAttribute ("Capacity", &link->capacity);
 
           // Source Node
           uint32_t srcNodeId;
           linkElementElement->QueryAttribute ("SourceNode", &srcNodeId);
-          link.srcNodeType =
+          link->srcNodeType =
               static_cast<NodeType> (*linkElementElement->Attribute ("SourceNodeType"));
-          link.srcNode = GetNode (srcNodeId, link.srcNodeType);
+          link->srcNode = GetNode (srcNodeId, link->srcNodeType);
 
           // Destination Node
           uint32_t dstNodeId;
           linkElementElement->QueryAttribute ("DestinationNode", &dstNodeId);
-          link.dstNodeType =
+          link->dstNodeType =
               static_cast<NodeType> (*linkElementElement->Attribute ("DestinationNodeType"));
-          link.dstNode = GetNode (dstNodeId, link.dstNodeType);
+          link->dstNode = GetNode (dstNodeId, link->dstNodeType);
 
           // Save link
-          sameDelayLinks.push_back (link);
-          auto ret = m_linkContainer.emplace (link.id, link);
-          NS_ABORT_MSG_IF (ret.second == false, "Duplicate link " << link.id << " found");
+          sameDelayLinks.push_back (link.get ());
+          auto ret = linkContainer.insert (std::make_pair (link->id, std::move (link)));
+          NS_ABORT_MSG_IF (ret.second == false, "Duplicate link " << link->id << " found");
 
           linkElementElement = linkElementElement->NextSiblingElement ("LinkElement");
         }
@@ -180,21 +180,21 @@ TopologyBuilder::CreateUniqueNode (id_t nodeId, NodeType nodeType)
 }
 
 void
-TopologyBuilder::InstallP2pLinks (const std::vector<Link> &links,
+TopologyBuilder::InstallP2pLinks (const std::vector<const Link *> &links,
                                   std::map<id_t, Ptr<NetDevice>> &transmitOnLink)
 {
   NS_ABORT_MSG_IF (links.size () > 2 || links.size () < 1,
                    "The number of same delay links should be between 1 and 2");
 
-  NS_LOG_INFO ("Creating link " << links[0].id);
+  NS_LOG_INFO ("Creating link " << links[0]->id);
   if (links.size () == 2)
     {
-      NS_LOG_INFO ("Creating link " << links[1].id);
+      NS_LOG_INFO ("Creating link " << links[1]->id);
       /* Check that the two links are in fact bidirectional */
-      NS_ASSERT_MSG (links[0].delay == links[1].delay, "The link delay values do not match");
-      NS_ASSERT_MSG (links[0].srcNode->GetId () == links[1].dstNode->GetId (),
+      NS_ASSERT_MSG (links[0]->delay == links[1]->delay, "The link delay values do not match");
+      NS_ASSERT_MSG (links[0]->srcNode->GetId () == links[1]->dstNode->GetId (),
                      "Link A source node is not equal to Link B destination node");
-      NS_ASSERT_MSG (links[0].dstNode->GetId () == links[1].srcNode->GetId (),
+      NS_ASSERT_MSG (links[0]->dstNode->GetId () == links[1]->srcNode->GetId (),
                      "Link A destination node is not equal to Link B source node");
     }
 
@@ -204,25 +204,25 @@ TopologyBuilder::InstallP2pLinks (const std::vector<Link> &links,
      To Point link, with the exception of the data rate values as they might
      be different.
      */
-  const auto &commonLink{links[0]};
+  const auto commonLink{links[0]};
 
   // Device Configuration
   ObjectFactory deviceFactory ("ns3::PointToPointNetDevice");
 
   // Create NetDevice on source node
-  deviceFactory.Set ("DataRate", DataRateValue (DataRate (commonLink.capacity * 1'000'000)));
+  deviceFactory.Set ("DataRate", DataRateValue (DataRate (commonLink->capacity * 1'000'000)));
   Ptr<PointToPointNetDevice> srcNd = deviceFactory.Create<PointToPointNetDevice> ();
   srcNd->SetAddress (Mac48Address::Allocate ());
-  commonLink.srcNode->GetNode ()->AddDevice (srcNd);
+  commonLink->srcNode->GetNode ()->AddDevice (srcNd);
 
   // Create NetDevice on destination node
   if (links.size () == 2)
     {
-      deviceFactory.Set ("DataRate", DataRateValue (DataRate (links[1].capacity * 1'000'000)));
+      deviceFactory.Set ("DataRate", DataRateValue (DataRate (links[1]->capacity * 1'000'000)));
     }
   Ptr<PointToPointNetDevice> dstNd = deviceFactory.Create<PointToPointNetDevice> ();
   dstNd->SetAddress (Mac48Address::Allocate ());
-  commonLink.dstNode->GetNode ()->AddDevice (dstNd);
+  commonLink->dstNode->GetNode ()->AddDevice (dstNd);
 
   // Create Queue on source NetDevice
   ObjectFactory queueFactory ("ns3::DropTailQueue<Packet>");
@@ -235,20 +235,20 @@ TopologyBuilder::InstallP2pLinks (const std::vector<Link> &links,
 
   // Connect Net Devices together via the Point To Point channel
   ObjectFactory channelFactory ("ns3::PointToPointChannel");
-  channelFactory.Set ("Delay", TimeValue (MilliSeconds (commonLink.delay)));
+  channelFactory.Set ("Delay", TimeValue (MilliSeconds (commonLink->delay)));
   Ptr<PointToPointChannel> channel = channelFactory.Create<PointToPointChannel> ();
   srcNd->Attach (channel);
   dstNd->Attach (channel);
 
-  auto ret = transmitOnLink.emplace (commonLink.id, srcNd);
+  auto ret = transmitOnLink.emplace (commonLink->id, srcNd);
   NS_ABORT_MSG_IF (ret.second == false,
-                   "Duplicate link id " << commonLink.id << " in transmit on link map");
+                   "Duplicate link id " << commonLink->id << " in transmit on link map");
 
   if (links.size () == 2)
     {
-      auto ret = transmitOnLink.emplace (links[1].id, dstNd);
+      auto ret = transmitOnLink.emplace (links[1]->id, dstNd);
       NS_ABORT_MSG_IF (ret.second == false,
-                       "Duplicate link id " << links[1].id << " in transmit on link map");
+                       "Duplicate link id " << links[1]->id << " in transmit on link map");
     }
 }
 

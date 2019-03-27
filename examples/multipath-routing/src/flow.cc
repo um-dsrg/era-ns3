@@ -142,13 +142,13 @@ operator<< (std::ostream &output, const Flow &flow)
 using pathPortMap_t = std::map<id_t, std::pair<portNum_t, portNum_t>>;
 
 pathPortMap_t AddDataPaths (Flow &flow, tinyxml2::XMLElement *flowElement,
-                            Link::linkContainer_t &linkContainer, SwitchType switchType);
+                            const Link::linkContainer_t &linkContainer, SwitchType switchType);
 void AddAckPaths (Flow &flow, tinyxml2::XMLElement *flowElement, const pathPortMap_t &pathPortMap,
-                  Link::linkContainer_t linkContainer, SwitchType switchType);
+                  const Link::linkContainer_t &linkContainer, SwitchType switchType);
 
 Flow::flowContainer_t
-ParseFlows (tinyxml2::XMLNode *rootNode, Terminal::terminalContainer_t &terminalContainer,
-            Link::linkContainer_t &linkContainer, SwitchType switchType)
+ParseFlows (tinyxml2::XMLNode *rootNode, const Terminal::terminalContainer_t &terminalContainer,
+            const Link::linkContainer_t &linkContainer, SwitchType switchType)
 {
   Flow::flowContainer_t flows;
 
@@ -178,55 +178,24 @@ ParseFlows (tinyxml2::XMLNode *rootNode, Terminal::terminalContainer_t &terminal
 
       auto pathPortMap{AddDataPaths (flow, flowElement, linkContainer, switchType)};
 
-      std::cout << "Logging all flows (inside the loop) before adding ack paths" << std::endl;
-      for (const auto &flowPair : flows)
-        {
-          std::cout << flowPair.second << std::endl;
-        }
-
       if (flow.protocol == FlowProtocol::Tcp) // Parse ACK paths for TCP flows only
         {
-          // The problem seems to be coming from this function
-          std::cout << "Printing the link container before adding ack paths" << std::endl;
-          for (const auto &linkPair : linkContainer)
-            {
-              std::cout << "Link ID " << linkPair.first << " Address: " << &linkPair.second
-                        << " Id from object " << linkPair.second.id << std::endl;
-            }
           AddAckPaths (flow, flowElement, pathPortMap, linkContainer, switchType);
-          std::cout << "Printing the link container after adding ack paths" << std::endl;
-          for (const auto &linkPair : linkContainer)
-            {
-              std::cout << "Link ID " << linkPair.first << " Address: " << &linkPair.second
-                        << " Id from object " << linkPair.second.id << std::endl;
-            }
         }
 
       auto ret = flows.emplace (flow.id, flow);
       NS_ABORT_MSG_IF (ret.second == false, "Inserting Flow " << flow.id << " failed");
 
-      std::cout << "Logging all flows (inside the loop) after adding ack paths" << std::endl;
-      for (const auto &flowPair : flows)
-        {
-          std::cout << flowPair.second << std::endl;
-        }
-
-      /* NS_LOG_INFO ("Flow Details:\n" << flow); */
+      NS_LOG_INFO ("Flow Details:\n" << flow);
       flowElement = flowElement->NextSiblingElement ("Flow");
     }
 
-  /* // The problem is present already here */
-  /* std::cout << "Logging the flows before returning" << std::endl; */
-  /* for (const auto &flowPair : flows) */
-  /*   { */
-  /*     std::cout << flowPair.second << std::endl; */
-  /*   } */
   return flows;
 }
 
 pathPortMap_t
-AddDataPaths (Flow &flow, tinyxml2::XMLElement *flowElement, Link::linkContainer_t &linkContainer,
-              SwitchType switchType)
+AddDataPaths (Flow &flow, tinyxml2::XMLElement *flowElement,
+              const Link::linkContainer_t &linkContainer, SwitchType switchType)
 {
   pathPortMap_t pathPortMap;
 
@@ -260,7 +229,7 @@ AddDataPaths (Flow &flow, tinyxml2::XMLElement *flowElement, Link::linkContainer
         {
           id_t linkId;
           linkElement->QueryAttribute ("Id", &linkId);
-          path.AddLink (&linkContainer.at (linkId));
+          path.AddLink (linkContainer.at (linkId).get ());
           linkElement = linkElement->NextSiblingElement ("Link");
         }
 
@@ -276,7 +245,7 @@ AddDataPaths (Flow &flow, tinyxml2::XMLElement *flowElement, Link::linkContainer
 
 void
 AddAckPaths (Flow &flow, tinyxml2::XMLElement *flowElement, const pathPortMap_t &pathPortMap,
-             Link::linkContainer_t linkContainer, SwitchType switchType)
+             const Link::linkContainer_t &linkContainer, SwitchType switchType)
 {
   if (switchType == SwitchType::PpfsSwitch)
     {
@@ -296,7 +265,7 @@ AddAckPaths (Flow &flow, tinyxml2::XMLElement *flowElement, const pathPortMap_t 
         {
           id_t linkId;
           linkElement->QueryAttribute ("Id", &linkId);
-          ackPath.AddLink (&linkContainer.at (linkId));
+          ackPath.AddLink (linkContainer.at (linkId).get ());
           linkElement = linkElement->NextSiblingElement ("Link");
         }
       flow.AddAckPath (ackPath);
@@ -321,12 +290,7 @@ AddAckPaths (Flow &flow, tinyxml2::XMLElement *flowElement, const pathPortMap_t 
             {
               id_t linkId;
               linkElement->QueryAttribute ("Id", &linkId);
-              // NOTE The problem is here because it is not giving me the same addresses.
-              // As a solution try and store a unique pointer to the link in the map instead of the link,
-              // that way the underlying object does not change.
-              std::cout << "The address of link " << linkId << " is " << &linkContainer[linkId]
-                        << std::endl;
-              path.AddLink (&linkContainer.at (linkId));
+              path.AddLink (linkContainer.at (linkId).get ());
               path.m_testing.push_back (linkId);
               linkElement = linkElement->NextSiblingElement ("Link");
             }

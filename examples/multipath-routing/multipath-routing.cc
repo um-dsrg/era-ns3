@@ -119,21 +119,14 @@ main (int argc, char *argv[])
   Link::linkContainer_t linkContainer;
 
   // Create the nodes and build the topology
-  TopologyBuilder topologyBuilder (switchType, switchContainer, terminalContainer, linkContainer);
+  TopologyBuilder topologyBuilder (switchType, switchContainer, terminalContainer);
 
   topologyBuilder.CreateNodes (rootNode);
-  auto transmitOnLink = topologyBuilder.BuildNetworkTopology (rootNode);
+  auto transmitOnLink = topologyBuilder.BuildNetworkTopology (rootNode, linkContainer);
   topologyBuilder.AssignIpToTerminals ();
 
   // Parse the flows and build the routing table
   auto flows = ParseFlows (rootNode, terminalContainer, linkContainer, switchType);
-  // The problem resides from the returned flow set. There seems to be something wrong
-  // with the ParseFlows mechanism.
-  std::cout << "Logging the flows before touching the routing table." << std::endl;
-  for (const auto &flowPair : flows)
-    {
-      std::cout << flowPair.second << std::endl;
-    }
 
   // Build the switch routing table
   BuildRoutingTable (flows, transmitOnLink);

@@ -30,24 +30,24 @@ class TopologyBuilder
 {
 public:
   TopologyBuilder (SwitchType switchType, SwitchContainer &switchContainer,
-                   Terminal::terminalContainer_t &terminalContainer, Link::linkContainer_t &links);
+                   Terminal::terminalContainer_t &terminalContainer);
 
   void AssignIpToTerminals ();
   void CreateNodes (XMLNode *rootNode);
-  std::map<id_t, Ptr<NetDevice>> BuildNetworkTopology (XMLNode *rootNode);
+  std::map<id_t, Ptr<NetDevice>> BuildNetworkTopology (XMLNode *rootNode,
+                                                       Link::linkContainer_t &linkContainer);
 
 private:
   using pathPortMap_t = std::map<id_t, std::pair<portNum_t, portNum_t>>;
 
   void CreateUniqueNode (id_t nodeId, NodeType nodeType);
-  void InstallP2pLinks (const std::vector<Link> &links,
+  void InstallP2pLinks (const std::vector<const Link *> &links,
                         std::map<id_t, Ptr<NetDevice>> &transmitOnLink);
   CustomDevice *GetNode (id_t id, NodeType nodeType);
 
   SwitchType m_switchType; // The type of switches to use
   SwitchContainer &m_switchContainer;
   Terminal::terminalContainer_t &m_terminalContainer;
-  Link::linkContainer_t &m_linkContainer;
 };
 
 void ShuffleLinkElements (std::vector<XMLElement *> &linkElements);
