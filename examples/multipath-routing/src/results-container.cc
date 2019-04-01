@@ -139,13 +139,16 @@ ResultsContainer::AddFlowResults ()
       XMLElement *flowElement{m_xmlDoc.NewElement ("Flow")};
       flowElement->SetAttribute ("Id", flowId);
       flowElement->SetAttribute ("TxGoodput", flowResult.txGoodput);
-      flowElement->SetAttribute ("TimeFirstRx", flowResult.firstReception.GetNanoSeconds ());
-      flowElement->SetAttribute ("TimeLastRx", flowResult.lastReception.GetNanoSeconds ());
+      flowElement->SetAttribute ("TimeFirstRx", boost::numeric_cast<unsigned int> (
+                                                    flowResult.firstReception.GetNanoSeconds ()));
+      flowElement->SetAttribute ("TimeLastRx", boost::numeric_cast<unsigned int> (
+                                                   flowResult.lastReception.GetNanoSeconds ()));
       flowElement->SetAttribute ("NumRecvPackets",
                                  boost::numeric_cast<unsigned int> (flowResult.totalRecvPackets));
       flowElement->SetAttribute ("TotalRecvBytes",
                                  boost::numeric_cast<unsigned int> (flowResult.totalRecvBytes));
-      flowElement->SetAttribute ("TotalDelay", flowResult.totalDelay.GetNanoSeconds ());
+      flowElement->SetAttribute ("TotalDelay", boost::numeric_cast<unsigned int> (
+                                                   flowResult.totalDelay.GetNanoSeconds ()));
 
       for (const auto &packetResult : flowResult.packetResults)
         {
