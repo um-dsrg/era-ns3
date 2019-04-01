@@ -26,6 +26,7 @@ struct FlowResults
   double txGoodput{0.0}; /**<The rate at which the application is generating its data */
   ns3::Time firstReception{0}; /**< The time the first packet was received */
   ns3::Time lastReception{0}; /**< The time the last packet was received */
+  ns3::Time totalDelay{0}; /**< The total delay time */
 
   uint64_t totalRecvBytes{0}; /**< The total number of received bytes */
   uint64_t totalRecvPackets{0}; /**< The total number of received packets */
@@ -37,8 +38,7 @@ struct FlowResults
 class ResultsContainer
 {
 public:
-  // TODO At construction phase we need to pass the flags of whether or not to keep all entries
-  ResultsContainer (const Flow::flowContainer_t &flows);
+  ResultsContainer (const Flow::flowContainer_t &flows, bool logPacketResults);
 
   void LogFlowTxGoodputRate (id_t flowId, double goodputRate);
   void LogPacketTransmission (id_t flowId, ns3::Time time, packetNumber_t pktNumber,
@@ -54,6 +54,7 @@ private:
   void InsertTimeStamp ();
   tinyxml2::XMLNode *m_rootNode;
 
+  bool m_logPacketResults{false};
   std::map<id_t, FlowResults> m_flowResults; /**< Key: Flow Id | Value: Flow Results */
   tinyxml2::XMLDocument m_xmlDoc; /**< XML Document */
 };

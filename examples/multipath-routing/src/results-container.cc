@@ -21,7 +21,8 @@ PacketDetails::PacketDetails (Time transmitted, packetSize_t transmittedDataSize
 {
 }
 
-ResultsContainer::ResultsContainer (const Flow::flowContainer_t &flows)
+ResultsContainer::ResultsContainer (const Flow::flowContainer_t &flows, bool logPacketResults)
+    : m_logPacketResults (logPacketResults)
 {
   XMLNode *rootElement = m_xmlDoc.NewElement ("Log");
   m_rootNode = m_xmlDoc.InsertFirstChild (rootElement);
@@ -74,6 +75,7 @@ ResultsContainer::LogPacketReception (id_t flowId, Time time, packetNumber_t pkt
                    "Flow " << flowId << ": The packet " << pktNumber
                            << " has never been transmitted");
 
+  // Log the time the flow received the first and last packet
   if (flowResult.firstPacketReceived == false)
     {
       flowResult.firstPacketReceived = true;
@@ -81,15 +83,15 @@ ResultsContainer::LogPacketReception (id_t flowId, Time time, packetNumber_t pkt
     }
 
   flowResult.lastReception = time;
+
+  // Log the total number of received bytes and total number of packets received
   flowResult.totalRecvBytes += dataSize;
+  flowResult.totalRecvPackets++;
 
   auto &packetDetail = flowResult.packetResults.at (pktNumber);
 
   packetDetail.received = time;
   packetDetail.receivedDataSize = dataSize;
-
-  // Log the number of packets received
-  flowResult.totalRecvPackets++;
 
   // Output a warning if the packet sizes do not match
   NS_ABORT_MSG_IF (
@@ -101,11 +103,28 @@ ResultsContainer::LogPacketReception (id_t flowId, Time time, packetNumber_t pkt
 
   NS_LOG_INFO ("Flow " << flowId << " received packet " << pktNumber << " (" << dataSize
                        << " data bytes) at " << time.GetSeconds () << "s");
+
+  // We calculate the total delay here
+  flowResult.totalDelay += packetDetail.received - packetDetail.transmitted;
+
+  if (m_logPacketResults == false)
+    {
+      // If non for every packet delete
+      auto numElementsRemoved = flowResult.packetResults.erase (pktNumber);
+      NS_ABORT_MSG_IF (numElementsRemoved != 1, "The details of flow " << flowId << " packet "
+                                                                       << pktNumber
+                                                                       << " have not been removed");
+    }
 }
 
 void
 ResultsContainer::AddFlowResults ()
 {
+  /*
+   * NOTE: We may need to delete the pending items here if the GEANT simulation result files
+   * become too big
+   */
+
   NS_LOG_INFO ("Saving the flow results");
 
   XMLElement *resultsElement = m_xmlDoc.NewElement ("Results");
@@ -126,6 +145,7 @@ ResultsContainer::AddFlowResults ()
                                  boost::numeric_cast<unsigned int> (flowResult.totalRecvPackets));
       flowElement->SetAttribute ("TotalRecvBytes",
                                  boost::numeric_cast<unsigned int> (flowResult.totalRecvBytes));
+      flowElement->SetAttribute ("TotalDelay", flowResult.totalDelay.GetNanoSeconds ());
 
       for (const auto &packetResult : flowResult.packetResults)
         {

@@ -31,6 +31,7 @@ main (int argc, char *argv[])
   bool useSdnSwitches{false};
   bool usePpfsSwitches{false};
   bool perPacketDelayLog{false};
+  bool logPacketResults{false};
 
   uint32_t initRun{1};
   uint32_t seedValue{1};
@@ -69,6 +70,10 @@ main (int argc, char *argv[])
                     "The Net Device buffer size each switch will be setup with. The default size "
                     "is equal to 100 packet.",
                     bufferSize);
+  cmdLine.AddValue ("logPacketResults",
+                    "When set, log all the packet results for each flow. Enabling this feature "
+                    "might result in very large result files.",
+                    logPacketResults);
   cmdLine.Parse (argc, argv);
 
   if (verbose)
@@ -135,7 +140,7 @@ main (int argc, char *argv[])
   switchContainer.EnablePacketReceptionOnSwitches ();
   switchContainer.ReconcileRoutingTables ();
 
-  ResultsContainer resContainer (flows);
+  ResultsContainer resContainer (flows, logPacketResults);
 
   AppContainer appContainer;
   appContainer.InstallApplicationsOnTerminals (flows, usePpfsSwitches, resContainer);
