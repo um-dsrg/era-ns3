@@ -23,12 +23,13 @@ struct PacketDetails
 
 struct FlowResults
 {
-  double txGoodput; /**<The rate at which the application is generating its data */
+  double txGoodput{0.0}; /**<The rate at which the application is generating its data */
   ns3::Time firstReception{0}; /**< The time the first packet was received */
   ns3::Time lastReception{0}; /**< The time the last packet was received */
 
-  uint64_t totalRecvBytes;
-  bool firstPacketReceived{false};
+  uint64_t totalRecvBytes{0}; /**< The total number of received bytes */
+  uint64_t totalRecvPackets{0}; /**< The total number of received packets */
+  bool firstPacketReceived{false}; /**< Flag that is enabled when the first packet is received */
 
   std::map<id_t, PacketDetails> packetResults; /**< Key: Packet Id | Value: Packet Details */
 };

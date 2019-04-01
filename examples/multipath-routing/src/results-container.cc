@@ -88,6 +88,9 @@ ResultsContainer::LogPacketReception (id_t flowId, Time time, packetNumber_t pkt
   packetDetail.received = time;
   packetDetail.receivedDataSize = dataSize;
 
+  // Log the number of packets received
+  flowResult.totalRecvPackets++;
+
   // Output a warning if the packet sizes do not match
   NS_ABORT_MSG_IF (
       packetDetail.transmittedDataSize != packetDetail.receivedDataSize,
@@ -119,6 +122,8 @@ ResultsContainer::AddFlowResults ()
       flowElement->SetAttribute ("TxGoodput", flowResult.txGoodput);
       flowElement->SetAttribute ("TimeFirstRx", flowResult.firstReception.GetNanoSeconds ());
       flowElement->SetAttribute ("TimeLastRx", flowResult.lastReception.GetNanoSeconds ());
+      flowElement->SetAttribute ("NumRecvPackets",
+                                 boost::numeric_cast<unsigned int> (flowResult.totalRecvPackets));
       flowElement->SetAttribute ("TotalRecvBytes",
                                  boost::numeric_cast<unsigned int> (flowResult.totalRecvBytes));
 
