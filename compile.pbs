@@ -13,5 +13,5 @@
 #PBS -e localhost:${HOME}/logs/${PBS_JOBNAME}.err.txt
 #PBS -o localhost:${HOME}/logs/${PBS_JOBNAME}.out.txt
 
-cd ${HOME}/Repositories/Ns3 && ./waf configure --build-profile=optimized --enable-examples --out=${HOME}/Repositories/Ns3/build/optimized
-cd ${HOME}/Repositories/Ns3 && ./waf build -j40
+cd ${HOME}/Documents/Git/Development/Ns3 && ./waf configure --build-profile=optimized --enable-examples --out=${HOME}/Documents/Git/Development/Ns3/build/optimized
+cd ${HOME}/Documents/Git/Development/Ns3 && ./waf build -j40
