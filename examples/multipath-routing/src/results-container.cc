@@ -41,9 +41,9 @@ ResultsContainer::ResultsContainer (const Flow::flowContainer_t &flows)
 }
 
 void
-ResultsContainer::LogFlowGoodputRate(id_t flowId, double goodputRate)
+ResultsContainer::LogFlowTxGoodputRate (id_t flowId, double goodputRate)
 {
-  auto& flowResult = m_flowResults.at(flowId);
+  auto &flowResult = m_flowResults.at (flowId);
   flowResult.txGoodput = goodputRate;
 }
 

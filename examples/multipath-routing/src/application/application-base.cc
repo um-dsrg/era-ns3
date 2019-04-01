@@ -165,7 +165,7 @@ TransmitterBase::SetDataPacketSize (const Flow &flow)
 }
 
 void
-TransmitterBase::SetApplicationGoodputRate (const Flow &flow, ResultsContainer& resContainer)
+TransmitterBase::SetApplicationGoodputRate (const Flow &flow, ResultsContainer &resContainer)
 {
   auto pktSizeExclHdr{flow.packetSize - CalculateHeaderSize (flow.protocol)};
 
@@ -174,5 +174,5 @@ TransmitterBase::SetApplicationGoodputRate (const Flow &flow, ResultsContainer& 
   NS_LOG_INFO ("Flow throughput: " << flow.dataRate << "\n"
                                    << "Flow goodput: " << m_dataRateBps << "bps");
 
-  resContainer.LogFlowGoodputRate(flow.id, (m_dataRateBps / static_cast<double> (1000000)));
+  resContainer.LogFlowTxGoodputRate (flow.id, (m_dataRateBps / static_cast<double> (1000000)));
 }

@@ -39,7 +39,7 @@ public:
   // TODO At construction phase we need to pass the flags of whether or not to keep all entries
   ResultsContainer (const Flow::flowContainer_t &flows);
 
-  void LogFlowGoodputRate (id_t flowId, double goodputRate);
+  void LogFlowTxGoodputRate (id_t flowId, double goodputRate);
   void LogPacketTransmission (id_t flowId, ns3::Time time, packetNumber_t pktNumber,
                               packetSize_t dataSize);
   void LogPacketReception (id_t flowId, ns3::Time time, packetNumber_t pktNumber,
