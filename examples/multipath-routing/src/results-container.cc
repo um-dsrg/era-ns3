@@ -157,8 +157,11 @@ ResultsContainer::AddFlowResults ()
 
           XMLElement *packetElement{m_xmlDoc.NewElement ("Packet")};
           packetElement->SetAttribute ("Id", packetNumber);
-          packetElement->SetAttribute ("Transmitted", packetDetails.transmitted.GetNanoSeconds ());
-          packetElement->SetAttribute ("Received", packetDetails.received.GetNanoSeconds ());
+          packetElement->SetAttribute (
+              "Transmitted",
+              boost::numeric_cast<unsigned int> (packetDetails.transmitted.GetNanoSeconds ()));
+          packetElement->SetAttribute ("Received", boost::numeric_cast<unsigned int> (
+                                                       packetDetails.received.GetNanoSeconds ()));
           packetElement->SetAttribute ("TxDataSize", packetDetails.transmittedDataSize);
           packetElement->SetAttribute ("RxDataSize", packetDetails.receivedDataSize);
 
