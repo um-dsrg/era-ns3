@@ -122,58 +122,81 @@ ResultsContainer::AddFlowResults ()
 {
   /*
    * NOTE: We may need to delete the pending items here if the GEANT simulation result files
-   * become too big
+   * become too big.
    */
 
   NS_LOG_INFO ("Saving the flow results");
 
-  XMLElement *resultsElement = m_xmlDoc.NewElement ("Results");
+  using boost::numeric_cast;
 
-  for (const auto &flowResultsPair : m_flowResults)
+  using boost::numeric::bad_numeric_cast;
+  using boost::numeric::negative_overflow;
+  using boost::numeric::positive_overflow;
+
+  auto flowId = id_t{0};
+
+  try
     {
-      auto flowId = flowResultsPair.first;
-      auto &flowResult = flowResultsPair.second;
+      XMLElement *resultsElement = m_xmlDoc.NewElement ("Results");
 
-      NS_LOG_INFO ("Saving the results of Flow: " << flowId);
-
-      XMLElement *flowElement{m_xmlDoc.NewElement ("Flow")};
-      flowElement->SetAttribute ("Id", flowId);
-      flowElement->SetAttribute ("TxGoodput", flowResult.txGoodput);
-      flowElement->SetAttribute ("TimeFirstRx", boost::numeric_cast<unsigned int> (
-                                                    flowResult.firstReception.GetNanoSeconds ()));
-      flowElement->SetAttribute ("TimeLastRx", boost::numeric_cast<unsigned int> (
-                                                   flowResult.lastReception.GetNanoSeconds ()));
-      flowElement->SetAttribute ("NumRecvPackets",
-                                 boost::numeric_cast<unsigned int> (flowResult.totalRecvPackets));
-      flowElement->SetAttribute ("TotalRecvBytes",
-                                 boost::numeric_cast<unsigned int> (flowResult.totalRecvBytes));
-      flowElement->SetAttribute ("TotalDelay", boost::numeric_cast<unsigned int> (
-                                                   flowResult.totalDelay.GetNanoSeconds ()));
-
-      for (const auto &packetResult : flowResult.packetResults)
+      for (const auto &flowResultsPair : m_flowResults)
         {
-          auto &packetNumber{packetResult.first};
-          auto &packetDetails{packetResult.second};
+          flowId = flowResultsPair.first;
+          auto &flowResult = flowResultsPair.second;
 
-          XMLElement *packetElement{m_xmlDoc.NewElement ("Packet")};
-          packetElement->SetAttribute ("Id", packetNumber);
-          packetElement->SetAttribute (
-              "Transmitted",
-              boost::numeric_cast<unsigned int> (packetDetails.transmitted.GetNanoSeconds ()));
-          packetElement->SetAttribute ("Received", boost::numeric_cast<unsigned int> (
-                                                       packetDetails.received.GetNanoSeconds ()));
-          packetElement->SetAttribute ("TxDataSize", packetDetails.transmittedDataSize);
-          packetElement->SetAttribute ("RxDataSize", packetDetails.receivedDataSize);
+          NS_LOG_INFO ("Saving the results of Flow: " << flowId);
 
-          flowElement->InsertEndChild (packetElement);
+          XMLElement *flowElement{m_xmlDoc.NewElement ("Flow")};
+          flowElement->SetAttribute ("Id", flowId);
+          flowElement->SetAttribute ("TxGoodput", flowResult.txGoodput);
+          flowElement->SetAttribute (
+              "TimeFirstRx", numeric_cast<double> (flowResult.firstReception.GetNanoSeconds ()));
+          flowElement->SetAttribute (
+              "TimeLastRx", numeric_cast<double> (flowResult.lastReception.GetNanoSeconds ()));
+          flowElement->SetAttribute ("NumRecvPackets",
+                                     numeric_cast<double> (flowResult.totalRecvPackets));
+          flowElement->SetAttribute ("TotalRecvBytes",
+                                     numeric_cast<double> (flowResult.totalRecvBytes));
+          flowElement->SetAttribute (
+              "TotalDelay", numeric_cast<double> (flowResult.totalDelay.GetNanoSeconds ()));
+
+          for (const auto &packetResult : flowResult.packetResults)
+            {
+              auto &packetNumber{packetResult.first};
+              auto &packetDetails{packetResult.second};
+
+              XMLElement *packetElement{m_xmlDoc.NewElement ("Packet")};
+              packetElement->SetAttribute ("Id", packetNumber);
+              packetElement->SetAttribute (
+                  "Transmitted",
+                  numeric_cast<double> (packetDetails.transmitted.GetNanoSeconds ()));
+              packetElement->SetAttribute (
+                  "Received", numeric_cast<double> (packetDetails.received.GetNanoSeconds ()));
+              packetElement->SetAttribute ("TxDataSize", packetDetails.transmittedDataSize);
+              packetElement->SetAttribute ("RxDataSize", packetDetails.receivedDataSize);
+
+              flowElement->InsertEndChild (packetElement);
+            }
+          resultsElement->InsertEndChild (flowElement);
         }
-      resultsElement->InsertEndChild (flowElement);
-    }
 
-  XMLComment *comment = m_xmlDoc.NewComment ("Timings are given in NanoSeconds");
-  resultsElement->InsertFirstChild (comment);
+      XMLComment *comment = m_xmlDoc.NewComment ("Timings are given in NanoSeconds");
+      resultsElement->InsertFirstChild (comment);
 
-  m_rootNode->InsertEndChild (resultsElement);
+      m_rootNode->InsertEndChild (resultsElement);
+  } catch (const positive_overflow &e)
+    {
+      NS_ABORT_MSG ("Saving the flow results of flow "
+                    << flowId << "caused a positive overflow.\nError message: " << e.what ());
+  } catch (const negative_overflow &e)
+    {
+      NS_ABORT_MSG ("Saving the flow results of flow "
+                    << flowId << "caused a negative overflow.\nError message: " << e.what ());
+  } catch (const bad_numeric_cast &e)
+    {
+      NS_ABORT_MSG ("Saving the flow results of flow "
+                    << flowId << "caused a bad numeric cast.\nError message: " << e.what ());
+  }
 }
 
 void
