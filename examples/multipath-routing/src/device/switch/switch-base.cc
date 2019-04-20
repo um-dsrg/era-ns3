@@ -68,7 +68,8 @@ operator<< (std::ostream &os, const RtFlow &flow)
 /* SwitchBase                               */
 /********************************************/
 
-SwitchBase::SwitchBase (id_t id) : CustomDevice (id)
+SwitchBase::SwitchBase (id_t id)
+    : CustomDevice (id), m_bufferSize (100), m_freeBufferSpace (m_bufferSize)
 {
 }
 
@@ -159,4 +160,58 @@ SwitchBase::ExtractFlowFromPacket (Ptr<const Packet> packet, uint16_t protocol)
     }
 
   return flow;
+}
+
+/********************************************/
+/* Buffer                                   */
+/********************************************/
+
+/**
+ * @brief      Returns whether there is space available in the Buffer.
+ *
+ * @param[in]  packetSize  The packet size.
+ *
+ * @return     True if there is enough space; False if not.
+ */
+bool
+SwitchBase::EnoughSpaceInBuffer (packetSize_t packetSize)
+{
+  return (m_freeBufferSpace >= packetSize);
+}
+
+/**
+ * @brief      Adds a packet to a buffer and updates the remaining free buffer size.
+ *
+ * @param[in]  packetSize  The packet size
+ */
+void
+SwitchBase::AddPacketToBuffer (packetSize_t packetSize)
+{
+  NS_LOG_INFO ("Adding packet to Switch "
+               << m_id << "\nSwitch Buffer size: " << m_bufferSize
+               << "bytes\nFree Space before adding packet: " << m_freeBufferSpace << "bytes");
+  m_freeBufferSpace -= packetSize;
+  NS_LOG_INFO ("Free space after adding packet: " << m_freeBufferSpace);
+
+  // Ensure that the free buffer size is never smaller than zero
+  NS_ABORT_MSG_IF (m_freeBufferSpace < 0,
+                   "The buffer for switch "
+                       << m_id
+                       << " has a negative buffer size value. Buffer size: " << m_freeBufferSpace);
+}
+
+void
+SwitchBase::RemovePacketFromBuffer (packetSize_t packetSize)
+{
+  NS_LOG_INFO ("Removing packet from Switch "
+               << m_id << "\nSwitch Buffer size: " << m_bufferSize
+               << "bytes\nFree space before removing packet: " << m_freeBufferSpace);
+  m_freeBufferSpace += packetSize;
+  NS_LOG_INFO ("Free space after removing packet: " << m_freeBufferSpace);
+
+  // Ensure that the free buffer space is never larger than the actual buffer size
+  NS_ABORT_MSG_IF (m_freeBufferSpace > m_bufferSize,
+                   "The buffer for switch "
+                       << m_id << " has grown beyond the permitted size. Buffer Size: "
+                       << m_bufferSize << "bytes, Buffer actual size: " << m_freeBufferSpace);
 }

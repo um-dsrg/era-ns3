@@ -30,6 +30,7 @@ struct RtFlow
 class SwitchBase : public CustomDevice
 {
 public:
+  // TODO: Add the buffer size value as parameter to the constructor
   SwitchBase (id_t id);
   virtual ~SwitchBase ();
 
@@ -45,7 +46,17 @@ protected:
                                ns3::Ptr<const ns3::Packet> packet, uint16_t protocol,
                                const ns3::Address &src, const ns3::Address &dst,
                                ns3::NetDevice::PacketType packetType) = 0;
+
   RtFlow ExtractFlowFromPacket (ns3::Ptr<const ns3::Packet> packet, uint16_t protocol);
+
+  /* Buffer Related settings */
+  bool EnoughSpaceInBuffer (packetSize_t packetSize);
+  void AddPacketToBuffer (packetSize_t packetSize);
+  void RemovePacketFromBuffer (packetSize_t packetSize);
+
+  // Buffer sizes are in bytes
+  const uint64_t m_bufferSize;
+  uint64_t m_freeBufferSpace;
 };
 
 #endif /* switch_base_h */
