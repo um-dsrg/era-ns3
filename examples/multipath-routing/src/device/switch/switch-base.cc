@@ -101,48 +101,62 @@ SwitchBase::ExtractFlowFromPacket (Ptr<const Packet> packet, uint16_t protocol)
           receivedPacket->RemoveHeader (ipHeader); // Removing the IP header
         }
 
-        if (ipProtocol == UdpL4Protocol::PROT_NUMBER) { // UDP Packet
-            UdpHeader udpHeader;
-            if (receivedPacket->PeekHeader (udpHeader)) {
-                flow.srcPort = udpHeader.GetSourcePort();
-                flow.dstPort = udpHeader.GetDestinationPort();
-                flow.protocol = FlowProtocol::Udp;
+      if (ipProtocol == UdpL4Protocol::PROT_NUMBER)
+        { // UDP Packet
+          UdpHeader udpHeader;
+          if (receivedPacket->PeekHeader (udpHeader))
+            {
+              flow.srcPort = udpHeader.GetSourcePort ();
+              flow.dstPort = udpHeader.GetDestinationPort ();
+              flow.protocol = FlowProtocol::Udp;
             }
-        } else if (ipProtocol == TcpL4Protocol::PROT_NUMBER) { // TCP Packet
-            TcpHeader tcpHeader;
-            if (receivedPacket->PeekHeader (tcpHeader)) {
-                flow.srcPort = tcpHeader.GetSourcePort();
-                flow.dstPort = tcpHeader.GetDestinationPort();
-                flow.protocol = FlowProtocol::Tcp;
+        }
+      else if (ipProtocol == TcpL4Protocol::PROT_NUMBER)
+        { // TCP Packet
+          TcpHeader tcpHeader;
+          if (receivedPacket->PeekHeader (tcpHeader))
+            {
+              flow.srcPort = tcpHeader.GetSourcePort ();
+              flow.dstPort = tcpHeader.GetDestinationPort ();
+              flow.protocol = FlowProtocol::Tcp;
             }
-        } else if (ipProtocol == Icmpv4L4Protocol::PROT_NUMBER) { // ICMP Packet
-            Icmpv4Header icmpHeader;
-            if (receivedPacket->PeekHeader (icmpHeader)) {
-                flow.protocol = FlowProtocol::Icmp;
-                switch (icmpHeader.GetType ()) {
-                    case Icmpv4Header::Type_e::ICMPV4_ECHO:
-                        NS_LOG_INFO ("ICMP Echo message received at Switch " << m_id);
-                        break;
-                    case Icmpv4Header::Type_e::ICMPV4_ECHO_REPLY:
-                        NS_LOG_INFO ("ICMP Echo reply message received at Switch " << m_id);
-                        break;
-                    case Icmpv4Header::Type_e::ICMPV4_DEST_UNREACH:
-                        NS_LOG_INFO ("ICMP Destination Unreachable message received at Switch " << m_id);
-                        break;
-                    case Icmpv4Header::Type_e::ICMPV4_TIME_EXCEEDED:
-                        NS_LOG_INFO ("ICMP Time exceeded message received at Switch " << m_id);
-                        break;
-                    default:
-                        NS_ABORT_MSG ("ICMP unidentified message received at Switch " << m_id);
-                        break;
+        }
+      else if (ipProtocol == Icmpv4L4Protocol::PROT_NUMBER)
+        { // ICMP Packet
+          Icmpv4Header icmpHeader;
+          if (receivedPacket->PeekHeader (icmpHeader))
+            {
+              flow.protocol = FlowProtocol::Icmp;
+              switch (icmpHeader.GetType ())
+                {
+                case Icmpv4Header::Type_e::ICMPV4_ECHO:
+                  NS_LOG_INFO ("ICMP Echo message received at Switch " << m_id);
+                  break;
+                case Icmpv4Header::Type_e::ICMPV4_ECHO_REPLY:
+                  NS_LOG_INFO ("ICMP Echo reply message received at Switch " << m_id);
+                  break;
+                case Icmpv4Header::Type_e::ICMPV4_DEST_UNREACH:
+                  NS_LOG_INFO ("ICMP Destination Unreachable message received at Switch " << m_id);
+                  break;
+                case Icmpv4Header::Type_e::ICMPV4_TIME_EXCEEDED:
+                  NS_LOG_INFO ("ICMP Time exceeded message received at Switch " << m_id);
+                  break;
+                default:
+                  NS_ABORT_MSG ("ICMP unidentified message received at Switch " << m_id);
+                  break;
                 }
             }
-        } else {
-            NS_ABORT_MSG ("Unknown packet type received. Packet Type " << std::to_string (ipProtocol));
         }
-    }  else {
-        NS_ABORT_MSG ("Non-IP Packet received. Protocol value " << protocol);
+      else
+        {
+          NS_ABORT_MSG ("Unknown packet type received. Packet Type "
+                        << std::to_string (ipProtocol));
+        }
+    }
+  else
+    {
+      NS_ABORT_MSG ("Non-IP Packet received. Protocol value " << protocol);
     }
 
-    return flow;
+  return flow;
 }

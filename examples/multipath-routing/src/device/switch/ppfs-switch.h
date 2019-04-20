@@ -7,7 +7,8 @@
 
 #include "switch-base.h"
 
-class PpfsSwitch : public SwitchBase {
+class PpfsSwitch : public SwitchBase
+{
 public:
   explicit PpfsSwitch (id_t id);
   void AddEntryToRoutingTable (uint32_t srcIp, uint32_t dstIp, portNum_t srcPort, portNum_t dstPort,
