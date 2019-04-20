@@ -20,7 +20,7 @@ public:
 private:
   void PacketReceived (ns3::Ptr<ns3::NetDevice> incomingPort, ns3::Ptr<const ns3::Packet> packet,
                        uint16_t protocol, const ns3::Address &src, const ns3::Address &dst,
-                       ns3::NetDevice::PacketType packetType);
+                       ns3::NetDevice::PacketType packetType) override;
 
   struct ForwardingAction
   {
