@@ -55,16 +55,29 @@ SdnSwitch::PacketReceived (Ptr<NetDevice> incomingPort, Ptr<const Packet> packet
 {
   NS_LOG_INFO ("Switch " << m_id << " received a packet at " << Simulator::Now ().GetSeconds ()
                          << "s");
-  auto parsedFlow = ExtractFlowFromPacket (packet, protocol);
 
-  try
+  if (!EnoughSpaceInBuffer (packet->GetSize ()))
     {
-      auto forwardingNetDevice = m_routingTable.at (parsedFlow);
-      auto sendSuccess = forwardingNetDevice->Send (packet->Copy (), dst, protocol);
-      NS_ABORT_MSG_IF (!sendSuccess, "Switch " << m_id << " failed to forward packet");
-      NS_LOG_INFO ("Switch " << m_id << " forwarded a packet at " << Simulator::Now ());
-  } catch (const std::out_of_range &oor)
+      NS_LOG_INFO ("Switch " << m_id << " dropped a packet at " << Simulator::Now ().GetSeconds ()
+                             << "s due to buffer overflow.");
+      // TODO Add counter to keep track of the number of dropped packets. The result manager will handle this.
+    }
+  else
     {
-      NS_ABORT_MSG ("Routing table Miss on Switch " << m_id << ".\nFlow Details\n" << parsedFlow);
-  }
+      auto parsedFlow = ExtractFlowFromPacket (packet, protocol);
+
+      try
+        {
+          AddPacketToBuffer (packet->GetSize ());
+
+          auto forwardingNetDevice = m_routingTable.at (parsedFlow);
+          auto sendSuccess = forwardingNetDevice->Send (packet->Copy (), dst, protocol);
+          NS_ABORT_MSG_IF (!sendSuccess, "Switch " << m_id << " failed to forward packet");
+          NS_LOG_INFO ("Switch " << m_id << " forwarded a packet at " << Simulator::Now ());
+      } catch (const std::out_of_range &oor)
+        {
+          NS_ABORT_MSG ("Routing table Miss on Switch " << m_id << ".\nFlow Details\n"
+                                                        << parsedFlow);
+      }
+    }
 }

@@ -81,32 +81,46 @@ PpfsSwitch::PacketReceived (Ptr<NetDevice> incomingPort, Ptr<const Packet> packe
 {
   NS_LOG_INFO ("Switch " << m_id << ": Received a packet at " << Simulator::Now ().GetSeconds ()
                          << "s");
-  auto parsedFlow = ExtractFlowFromPacket (packet, protocol);
 
-  try
+  if (!EnoughSpaceInBuffer (packet->GetSize ()))
     {
-      auto &forwardingActionList = m_routingTable.at (parsedFlow);
+      NS_LOG_INFO ("Switch " << m_id << " dropped a packet at " << Simulator::Now ().GetSeconds ()
+                             << "s due to buffer overflow.");
+      // TODO Add counter to keep track of the number of dropped packets. The result manager will handle this.
+    }
+  else
+    {
+      auto parsedFlow = ExtractFlowFromPacket (packet, protocol);
 
-      auto randNum = m_uniformRandomVariable->GetValue ();
-      auto forwardingNetDevice = ns3::Ptr<ns3::NetDevice>{nullptr};
-
-      for (const auto &forwardingAction : forwardingActionList)
+      try
         {
-          if (randNum <= forwardingAction.splitRatio)
-            {
-              forwardingNetDevice = forwardingAction.forwardingPort;
-              break;
-            }
-        }
+          auto &forwardingActionList = m_routingTable.at (parsedFlow);
 
-      NS_ABORT_MSG_IF (forwardingNetDevice == nullptr,
-                       "Switch " << m_id << ": Failed to find the forwarding port");
-      auto sendSuccess = forwardingNetDevice->Send (packet->Copy (), dst, protocol);
-      NS_ABORT_MSG_IF (sendSuccess == false, "Switch " << m_id << " failed to forward packet");
-  } catch (const std::out_of_range &oor)
-    {
-      NS_ABORT_MSG ("Routing table Miss on Switch " << m_id << ".\nFlow Details\n" << parsedFlow);
-  }
+          auto randNum = m_uniformRandomVariable->GetValue ();
+          auto forwardingNetDevice = ns3::Ptr<ns3::NetDevice>{nullptr};
+
+          for (const auto &forwardingAction : forwardingActionList)
+            {
+              if (randNum <= forwardingAction.splitRatio)
+                {
+                  forwardingNetDevice = forwardingAction.forwardingPort;
+                  break;
+                }
+            }
+
+          NS_ABORT_MSG_IF (forwardingNetDevice == nullptr,
+                           "Switch " << m_id << ": Failed to find the forwarding port");
+
+          AddPacketToBuffer (packet->GetSize ());
+
+          auto sendSuccess = forwardingNetDevice->Send (packet->Copy (), dst, protocol);
+          NS_ABORT_MSG_IF (sendSuccess == false, "Switch " << m_id << " failed to forward packet");
+      } catch (const std::out_of_range &oor)
+        {
+          NS_ABORT_MSG ("Routing table Miss on Switch " << m_id << ".\nFlow Details\n"
+                                                        << parsedFlow);
+      }
+    }
 }
 
 void
