@@ -60,8 +60,8 @@ ResultsContainer::LogPacketTransmission (id_t flowId, Time time, packetNumber_t 
                            << " has been already logged for transmission");
 
   flowResult.packetResults.emplace (pktNumber, PacketDetails (time, dataSize));
-  NS_LOG_INFO ("Flow " << flowId << " transmitted packet " << pktNumber << " (" << dataSize
-                       << " data bytes) at " << time.GetSeconds () << "s");
+  NS_LOG_INFO (time.GetSeconds () << "s: Flow " << flowId << " transmitted packet " << pktNumber
+                                  << " (" << dataSize << " data bytes)");
 }
 
 void
@@ -101,8 +101,8 @@ ResultsContainer::LogPacketReception (id_t flowId, Time time, packetNumber_t pkt
               << pktNumber << ". Transmitted size: " << packetDetail.transmittedDataSize
               << " Received Size: " << packetDetail.receivedDataSize);
 
-  NS_LOG_INFO ("Flow " << flowId << " received packet " << pktNumber << " (" << dataSize
-                       << " data bytes) at " << time.GetSeconds () << "s");
+  NS_LOG_INFO (time.GetSeconds () << "s: Flow " << flowId << " received packet " << pktNumber
+                                  << " (" << dataSize << " data bytes)");
 
   // We calculate the total delay here
   flowResult.totalDelay += packetDetail.received - packetDetail.transmitted;

@@ -2,6 +2,7 @@
 
 #include "ns3/log.h"
 #include "ns3/simulator.h"
+#include "ns3/ppp-header.h"
 
 #include "../../random-generator-manager.h"
 
@@ -79,14 +80,16 @@ PpfsSwitch::PacketReceived (Ptr<NetDevice> incomingPort, Ptr<const Packet> packe
                             uint16_t protocol, const Address &src, const Address &dst,
                             NetDevice::PacketType packetType)
 {
-  NS_LOG_INFO ("Switch " << m_id << ": Received a packet at " << Simulator::Now ().GetSeconds ()
-                         << "s");
+  NS_LOG_INFO (Simulator::Now ().GetSeconds () << "s: Switch " << m_id << " received a packet");
+  auto pktSizeInclPppHeader = packetSize_t{packet->GetSize () + PppHeader ().GetSerializedSize ()};
 
-  if (!EnoughSpaceInBuffer (packet->GetSize ()))
+  if (!EnoughSpaceInBuffer (pktSizeInclPppHeader))
     {
-      NS_LOG_INFO ("Switch " << m_id << " dropped a packet at " << Simulator::Now ().GetSeconds ()
-                             << "s due to buffer overflow.");
-      // TODO Add counter to keep track of the number of dropped packets. The result manager will handle this.
+      // TODO: Add counter to keep track of the number of dropped packets. The result manager will
+      // handle this.
+      NS_LOG_INFO (Simulator::Now ().GetSeconds ()
+                   << "s: Switch " << m_id << " dropped a packet of " << pktSizeInclPppHeader
+                   << "bytes due to buffer overflow.");
     }
   else
     {
@@ -111,7 +114,7 @@ PpfsSwitch::PacketReceived (Ptr<NetDevice> incomingPort, Ptr<const Packet> packe
           NS_ABORT_MSG_IF (forwardingNetDevice == nullptr,
                            "Switch " << m_id << ": Failed to find the forwarding port");
 
-          AddPacketToBuffer (packet->GetSize ());
+          AddPacketToBuffer (pktSizeInclPppHeader);
 
           auto sendSuccess = forwardingNetDevice->Send (packet->Copy (), dst, protocol);
           NS_ABORT_MSG_IF (sendSuccess == false, "Switch " << m_id << " failed to forward packet");

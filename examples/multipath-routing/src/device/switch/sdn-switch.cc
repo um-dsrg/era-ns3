@@ -2,6 +2,7 @@
 #include "ns3/queue.h"
 #include "ns3/abort.h"
 #include "ns3/double.h"
+#include "ns3/ppp-header.h"
 #include "ns3/tcp-header.h"
 #include "ns3/udp-header.h"
 #include "ns3/ipv4-header.h"
@@ -54,13 +55,15 @@ SdnSwitch::PacketReceived (Ptr<NetDevice> incomingPort, Ptr<const Packet> packet
                            const Address &src, const Address &dst, NetDevice::PacketType packetType)
 {
   NS_LOG_INFO (Simulator::Now ().GetSeconds () << "s: Switch " << m_id << " received a packet");
+  auto pktSizeInclPppHeader = packetSize_t{packet->GetSize () + PppHeader ().GetSerializedSize ()};
 
-  if (!EnoughSpaceInBuffer (packet->GetSize ()))
+  if (!EnoughSpaceInBuffer (pktSizeInclPppHeader))
     {
-      NS_LOG_INFO ("Switch " << m_id << " dropped a packet at " << Simulator::Now ().GetSeconds ()
-                             << "s due to buffer overflow.");
-      // TODO Add counter to keep track of the number of dropped packets. The result manager will
+      // TODO: Add counter to keep track of the number of dropped packets. The result manager will
       // handle this.
+      NS_LOG_INFO (Simulator::Now ().GetSeconds ()
+                   << "s: Switch " << m_id << " dropped a packet of " << pktSizeInclPppHeader
+                   << "bytes due to buffer overflow.");
     }
   else
     {
@@ -68,12 +71,13 @@ SdnSwitch::PacketReceived (Ptr<NetDevice> incomingPort, Ptr<const Packet> packet
 
       try
         {
-          AddPacketToBuffer (packet->GetSize ());
+          AddPacketToBuffer (pktSizeInclPppHeader);
 
           auto forwardingNetDevice = m_routingTable.at (parsedFlow);
           auto sendSuccess = forwardingNetDevice->Send (packet->Copy (), dst, protocol);
           NS_ABORT_MSG_IF (!sendSuccess, "Switch " << m_id << " failed to forward packet");
-          NS_LOG_INFO ("Switch " << m_id << " forwarded a packet at " << Simulator::Now ());
+          NS_LOG_INFO (Simulator::Now ().GetSeconds ()
+                       << "s: Switch " << m_id << " forwarded a packet at " << Simulator::Now ());
       } catch (const std::out_of_range &oor)
         {
           NS_ABORT_MSG ("Routing table Miss on Switch " << m_id << ".\nFlow Details\n"

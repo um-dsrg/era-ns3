@@ -102,6 +102,8 @@ SwitchBase::PacketFinishedTransmissionOnPort (ns3::Ptr<const ns3::Packet> packet
   NS_LOG_INFO (Simulator::Now ().GetSeconds ()
                << "s: Switch " << m_id << " finished transmission of a packet of size "
                << packet->GetSize () << "bytes");
+
+  RemovePacketFromBuffer (packet->GetSize ());
 }
 
 RtFlow
@@ -208,11 +210,13 @@ SwitchBase::EnoughSpaceInBuffer (packetSize_t packetSize)
 void
 SwitchBase::AddPacketToBuffer (packetSize_t packetSize)
 {
-  NS_LOG_INFO ("Adding packet to Switch "
-               << m_id << "\nSwitch Buffer size: " << m_bufferSize
-               << "bytes\nFree Space before adding packet: " << m_freeBufferSpace << "bytes");
+  NS_LOG_INFO (Simulator::Now ().GetSeconds ()
+               << "s: Adding packet to Switch " << m_id << "'s buffer"
+               << "\n  Switch Buffer size: " << m_bufferSize
+               << "bytes\n  Packet Size: " << packetSize
+               << "bytes\n  Free Space before adding packet: " << m_freeBufferSpace << "bytes");
   m_freeBufferSpace -= packetSize;
-  NS_LOG_INFO ("Free space after adding packet: " << m_freeBufferSpace);
+  NS_LOG_INFO ("  Free space after adding packet: " << m_freeBufferSpace);
 
   // Ensure that the free buffer size is never smaller than zero
   NS_ABORT_MSG_IF (m_freeBufferSpace < 0,
@@ -224,11 +228,12 @@ SwitchBase::AddPacketToBuffer (packetSize_t packetSize)
 void
 SwitchBase::RemovePacketFromBuffer (packetSize_t packetSize)
 {
-  NS_LOG_INFO ("Removing packet from Switch "
-               << m_id << "\nSwitch Buffer size: " << m_bufferSize
-               << "bytes\nFree space before removing packet: " << m_freeBufferSpace);
+  NS_LOG_INFO (Simulator::Now ().GetSeconds ()
+               << "s: Removing packet from Switch " << m_id << "\n  Switch Buffer size: "
+               << m_bufferSize << "bytes\n  Packet Size: " << packetSize
+               << "bytes\n  Free space before removing packet: " << m_freeBufferSpace);
   m_freeBufferSpace += packetSize;
-  NS_LOG_INFO ("Free space after removing packet: " << m_freeBufferSpace);
+  NS_LOG_INFO ("  Free space after removing packet: " << m_freeBufferSpace);
 
   // Ensure that the free buffer space is never larger than the actual buffer size
   NS_ABORT_MSG_IF (m_freeBufferSpace > m_bufferSize,
