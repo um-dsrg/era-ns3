@@ -32,7 +32,7 @@ PpfsSwitch::ForwardingAction::operator< (const PpfsSwitch::ForwardingAction &oth
  PpfsSwitch implementation
  */
 
-PpfsSwitch::PpfsSwitch (id_t id) : SwitchBase (id)
+PpfsSwitch::PpfsSwitch (id_t id, uint64_t switchBufferSize) : SwitchBase (id, switchBufferSize)
 {
   m_uniformRandomVariable = RandomGeneratorManager::CreateUniformRandomVariable (0.0, 1.0);
 }

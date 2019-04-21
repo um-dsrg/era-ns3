@@ -9,6 +9,10 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("SwitchContainer");
 
+SwitchContainer::SwitchContainer (uint64_t switchBufferSize) : m_switchBufferSize (switchBufferSize)
+{
+}
+
 SwitchBase *
 SwitchContainer::GetSwitch (id_t switchId)
 {
@@ -31,13 +35,13 @@ SwitchContainer::AddSwitch (id_t switchId, SwitchType switchType)
   std::pair<switchContainer_t::iterator, bool> ret;
   if (switchType == SwitchType::SdnSwitch)
     {
-      ret =
-          m_switchContainer.emplace (switchId, std::make_unique<SdnSwitch> (SdnSwitch (switchId)));
+      ret = m_switchContainer.emplace (
+          switchId, std::make_unique<SdnSwitch> (SdnSwitch (switchId, m_switchBufferSize)));
     }
   else if (switchType == SwitchType::PpfsSwitch)
     {
-      ret = m_switchContainer.emplace (switchId,
-                                       std::make_unique<PpfsSwitch> (PpfsSwitch (switchId)));
+      ret = m_switchContainer.emplace (
+          switchId, std::make_unique<PpfsSwitch> (PpfsSwitch (switchId, m_switchBufferSize)));
     }
   else
     {

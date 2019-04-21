@@ -20,7 +20,7 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("SdnSwitch");
 
-SdnSwitch::SdnSwitch (id_t id) : SwitchBase (id)
+SdnSwitch::SdnSwitch (id_t id, uint64_t switchBufferSize) : SwitchBase (id, switchBufferSize)
 {
 }
 

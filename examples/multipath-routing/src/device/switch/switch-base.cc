@@ -68,8 +68,10 @@ operator<< (std::ostream &os, const RtFlow &flow)
 /* SwitchBase                               */
 /********************************************/
 
-SwitchBase::SwitchBase (id_t id)
-    : CustomDevice (id), m_bufferSize (100000), m_freeBufferSpace (m_bufferSize)
+SwitchBase::SwitchBase (id_t id, uint64_t switchBufferSize)
+    : CustomDevice (id),
+      m_switchBufferSize (switchBufferSize),
+      m_freeBufferSpace (m_switchBufferSize)
 {
 }
 
@@ -212,7 +214,7 @@ SwitchBase::AddPacketToBuffer (packetSize_t packetSize)
 {
   NS_LOG_INFO (Simulator::Now ().GetSeconds ()
                << "s: Adding packet to Switch " << m_id << "'s buffer"
-               << "\n  Switch Buffer size: " << m_bufferSize
+               << "\n  Switch Buffer size: " << m_switchBufferSize
                << "bytes\n  Packet Size: " << packetSize
                << "bytes\n  Free Space before adding packet: " << m_freeBufferSpace << "bytes");
   m_freeBufferSpace -= packetSize;
@@ -230,14 +232,14 @@ SwitchBase::RemovePacketFromBuffer (packetSize_t packetSize)
 {
   NS_LOG_INFO (Simulator::Now ().GetSeconds ()
                << "s: Removing packet from Switch " << m_id << "\n  Switch Buffer size: "
-               << m_bufferSize << "bytes\n  Packet Size: " << packetSize
+               << m_switchBufferSize << "bytes\n  Packet Size: " << packetSize
                << "bytes\n  Free space before removing packet: " << m_freeBufferSpace);
   m_freeBufferSpace += packetSize;
   NS_LOG_INFO ("  Free space after removing packet: " << m_freeBufferSpace);
 
   // Ensure that the free buffer space is never larger than the actual buffer size
-  NS_ABORT_MSG_IF (m_freeBufferSpace > m_bufferSize,
+  NS_ABORT_MSG_IF (m_freeBufferSpace > m_switchBufferSize,
                    "The buffer for switch "
                        << m_id << " has grown beyond the permitted size. Buffer Size: "
-                       << m_bufferSize << "bytes, Buffer actual size: " << m_freeBufferSpace);
+                       << m_switchBufferSize << "bytes, Buffer actual size: " << m_freeBufferSpace);
 }

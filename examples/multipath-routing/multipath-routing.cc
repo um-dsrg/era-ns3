@@ -36,11 +36,13 @@ main (int argc, char *argv[])
   uint32_t initRun{1};
   uint32_t seedValue{1};
 
+  uint64_t switchBufferSize{100'000};
+
   std::string stopTime{""};
   std::string inputFile{""};
   std::string outputFile{""};
   std::string flowMonitorOutputFile{""};
-  std::string bufferSize{"100p"};
+  std::string switchPortBufferSize{"100p"};
 
   // Set the command line parameters
   CommandLine cmdLine;
@@ -66,10 +68,14 @@ main (int argc, char *argv[])
                     "By default this feature is disabled due to "
                     "the high memory requirements.",
                     perPacketDelayLog);
-  cmdLine.AddValue ("bufferSize",
-                    "The Net Device buffer size each switch will be setup with. The default size "
-                    "is equal to 100 packet.",
-                    bufferSize);
+  cmdLine.AddValue ("switchPortBufferSize",
+                    "The Net Device/Per Port buffer size each switch will be setup with. The "
+                    "default size is equal to 100 packets.",
+                    switchPortBufferSize);
+  cmdLine.AddValue ("switchBufferSize",
+                    "The buffer size in bytes each swith is equipped with. The default switch "
+                    "buffer size is equal to 100,000bytes",
+                    switchBufferSize);
   cmdLine.AddValue ("logPacketResults",
                     "When set, log all the packet results for each flow. Enabling this feature "
                     "might result in very large result files.",
@@ -119,7 +125,7 @@ main (int argc, char *argv[])
   else
     NS_ABORT_MSG ("No switch type is defined");
 
-  SwitchContainer switchContainer;
+  SwitchContainer switchContainer (switchBufferSize);
   Terminal::terminalContainer_t terminalContainer;
   Link::linkContainer_t linkContainer;
 
@@ -163,7 +169,7 @@ main (int argc, char *argv[])
   // Set the NetDevice buffer size
   Config::Set ("/NodeList/*/DeviceList/*/$ns3::PointToPointNetDevice/TxQueue/"
                "$ns3::DropTailQueue<Packet>/MaxSize",
-               QueueSizeValue (QueueSize (bufferSize)));
+               QueueSizeValue (QueueSize (switchPortBufferSize)));
 
   Simulator::Run ();
   Simulator::Stop ();

@@ -30,8 +30,7 @@ struct RtFlow
 class SwitchBase : public CustomDevice
 {
 public:
-  // TODO: Add the buffer size value as parameter to the constructor
-  SwitchBase (id_t id);
+  SwitchBase (id_t id, uint64_t switchBufferSize);
   virtual ~SwitchBase ();
 
   virtual void SetPacketReception () = 0;
@@ -58,7 +57,7 @@ protected:
   void RemovePacketFromBuffer (packetSize_t packetSize);
 
   // Buffer sizes are in bytes
-  const uint64_t m_bufferSize;
+  const uint64_t m_switchBufferSize;
   uint64_t m_freeBufferSpace;
 };
 
