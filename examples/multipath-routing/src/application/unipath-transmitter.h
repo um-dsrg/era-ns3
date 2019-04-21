@@ -18,13 +18,13 @@
 class UnipathTransmitter : public TransmitterBase
 {
 public:
-  explicit UnipathTransmitter (const Flow &flow, ResultsContainer& resContainer);
+  explicit UnipathTransmitter (const Flow &flow, ResultsContainer &resContainer);
   ~UnipathTransmitter () override;
 
 private:
   void StartApplication () override;
   void StopApplication () override;
-  void TransmitPacket ();
+  void TransmitPacket () override;
 
   void RtoChanged (ns3::Time oldVal, ns3::Time newVal);
 
