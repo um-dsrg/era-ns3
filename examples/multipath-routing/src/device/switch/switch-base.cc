@@ -92,15 +92,16 @@ SwitchBase::EnablePacketTransmissionCompletionTrace ()
     {
       auto netDevice = m_node->GetDevice (currentDevice);
       netDevice->TraceConnectWithoutContext (
-          "PhyRxEnd", MakeCallback (&SwitchBase::PacketFinishedTransmissionOnPort, this));
+          "PhyTxEnd", MakeCallback (&SwitchBase::PacketFinishedTransmissionOnPort, this));
     }
 }
 
 void
 SwitchBase::PacketFinishedTransmissionOnPort (ns3::Ptr<const ns3::Packet> packet)
 {
-  NS_LOG_INFO ("Switch " << m_id << "finished transmission of a packet of size "
-                         << packet->GetSize () << "bytes");
+  NS_LOG_INFO (Simulator::Now ().GetSeconds ()
+               << "s: Switch " << m_id << " finished transmission of a packet of size "
+               << packet->GetSize () << "bytes");
 }
 
 RtFlow
