@@ -208,9 +208,10 @@ MultipathTransmitter::TransmitPacket ()
 void
 MultipathTransmitter::RtoChanged (std::string context, ns3::Time oldVal, ns3::Time newVal)
 {
-  NS_LOG_INFO ("RTO value changed for path " << context << ".\n"
-                                             << "  Old Value " << oldVal.GetSeconds () << "\n"
-                                             << "  New Value: " << newVal.GetSeconds ());
+  NS_LOG_INFO (Simulator::Now ().GetSeconds ()
+               << "s: RTO value changed for path " << context << ".\n"
+               << "  Old Value " << oldVal.GetSeconds () << "\n"
+               << "  New Value: " << newVal.GetSeconds ());
 }
 
 packetSize_t
