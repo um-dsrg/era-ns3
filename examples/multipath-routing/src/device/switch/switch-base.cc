@@ -69,7 +69,7 @@ operator<< (std::ostream &os, const RtFlow &flow)
 /********************************************/
 
 SwitchBase::SwitchBase (id_t id)
-    : CustomDevice (id), m_bufferSize (100), m_freeBufferSpace (m_bufferSize)
+    : CustomDevice (id), m_bufferSize (100000), m_freeBufferSpace (m_bufferSize)
 {
 }
 
@@ -81,6 +81,26 @@ void
 SwitchBase::ReconcileSplitRatios ()
 {
   return; // NOTE: This function is only used by the PPFS Switch
+}
+
+void
+SwitchBase::TracePacketTransmissionOnPort ()
+{
+  uint32_t numOfDevices = m_node->GetNDevices ();
+  NS_ASSERT (numOfDevices > 0);
+  for (uint32_t currentDevice = 0; currentDevice < numOfDevices; ++currentDevice)
+    {
+      auto netDevice = m_node->GetDevice (currentDevice);
+      netDevice->TraceConnectWithoutContext (
+          "PhyRxEnd", MakeCallback (&SwitchBase::PacketFinishedTransmissionOnPort, this));
+    }
+}
+
+void
+SwitchBase::PacketFinishedTransmissionOnPort (ns3::Ptr<const ns3::Packet> packet)
+{
+  NS_LOG_INFO ("Switch " << m_id << "finished transmission of a packet of size "
+                         << packet->GetSize () << "bytes");
 }
 
 RtFlow

@@ -60,7 +60,8 @@ SdnSwitch::PacketReceived (Ptr<NetDevice> incomingPort, Ptr<const Packet> packet
     {
       NS_LOG_INFO ("Switch " << m_id << " dropped a packet at " << Simulator::Now ().GetSeconds ()
                              << "s due to buffer overflow.");
-      // TODO Add counter to keep track of the number of dropped packets. The result manager will handle this.
+      // TODO Add counter to keep track of the number of dropped packets. The result manager will
+      // handle this.
     }
   else
     {
