@@ -136,8 +136,10 @@ main (int argc, char *argv[])
   // Build the switch routing table
   BuildRoutingTable (flows, transmitOnLink);
 
-  // Enable packet reception and reconcile the routing tables */
+  // Enable packet reception and transmission trace
+  switchContainer.EnablePacketTransmissionTrace ();
   switchContainer.EnablePacketReceptionOnSwitches ();
+  // Reconcile the routing tables
   switchContainer.ReconcileRoutingTables ();
 
   ResultsContainer resContainer (flows, logPacketResults);

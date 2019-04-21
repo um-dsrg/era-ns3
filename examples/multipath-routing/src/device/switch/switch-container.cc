@@ -59,6 +59,18 @@ SwitchContainer::EnablePacketReceptionOnSwitches ()
 }
 
 void
+SwitchContainer::EnablePacketTransmissionTrace ()
+{
+  NS_LOG_INFO ("Enabling packet transmission complete trace on all switches");
+
+  for (auto &switchPair : m_switchContainer)
+    {
+      auto &switchInstance = switchPair.second;
+      switchInstance->EnablePacketTransmissionCompletionTrace ();
+    }
+}
+
+void
 SwitchContainer::ReconcileRoutingTables ()
 {
   NS_LOG_INFO ("Reconciling the routing tables.\n"

@@ -41,7 +41,7 @@ public:
                                        splitRatio_t splitRatio) = 0;
   virtual void ReconcileSplitRatios ();
 
-  void TracePacketTransmissionOnPort ();
+  void EnablePacketTransmissionCompletionTrace ();
 
 protected:
   void PacketFinishedTransmissionOnPort (ns3::Ptr<const ns3::Packet> packet);

@@ -18,6 +18,7 @@ public:
 
   void ReconcileRoutingTables ();
   void EnablePacketReceptionOnSwitches ();
+  void EnablePacketTransmissionTrace ();
 
   inline switchContainer_t::iterator begin ();
   inline switchContainer_t::iterator end ();

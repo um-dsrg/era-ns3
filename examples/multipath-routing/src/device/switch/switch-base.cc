@@ -84,7 +84,7 @@ SwitchBase::ReconcileSplitRatios ()
 }
 
 void
-SwitchBase::TracePacketTransmissionOnPort ()
+SwitchBase::EnablePacketTransmissionCompletionTrace ()
 {
   uint32_t numOfDevices = m_node->GetNDevices ();
   NS_ASSERT (numOfDevices > 0);
