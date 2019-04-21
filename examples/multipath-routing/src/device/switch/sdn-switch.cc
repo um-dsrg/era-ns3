@@ -63,7 +63,7 @@ SdnSwitch::PacketReceived (Ptr<NetDevice> incomingPort, Ptr<const Packet> packet
       // handle this.
       NS_LOG_INFO (Simulator::Now ().GetSeconds ()
                    << "s: Switch " << m_id << " dropped a packet of " << pktSizeInclPppHeader
-                   << "bytes due to buffer overflow.");
+                   << "bytes due to buffer overflow");
     }
   else
     {
