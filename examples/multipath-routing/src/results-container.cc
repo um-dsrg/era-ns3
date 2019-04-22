@@ -139,7 +139,7 @@ ResultsContainer::LogPacketDrop (id_t switchId, const ns3::Time &time)
 
   NS_LOG_INFO (time.GetSeconds ()
                << "s: Switch " << switchId
-               << "dropped a packet due to buffer overflow.\n  Total number of dropped packets: "
+               << " dropped a packet due to buffer overflow.\n  Total number of dropped packets: "
                << switchResult.numDroppedPackets);
 }
 

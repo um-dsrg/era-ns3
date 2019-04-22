@@ -151,6 +151,10 @@ main (int argc, char *argv[])
   // Reconcile the routing tables
   switchContainer.ReconcileRoutingTables ();
 
+  // Setup the results container
+  resContainer.SetupFlowResults (flows);
+  resContainer.SetupSwitchResults (switchContainer);
+
   AppContainer appContainer;
   appContainer.InstallApplicationsOnTerminals (flows, usePpfsSwitches, resContainer);
 
@@ -163,10 +167,6 @@ main (int argc, char *argv[])
   // Setup Flow Monitor
   FlowMonitorHelper flowMonHelper;
   flowMonHelper.InstallAll ();
-
-  // Setup the results container
-  resContainer.SetupFlowResults (flows);
-  resContainer.SetupSwitchResults (switchContainer);
 
   // Set the simulation stop time
   Simulator::Stop (Time (stopTime));
