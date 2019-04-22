@@ -199,11 +199,11 @@ ResultsContainer::AddFlowResults ()
   }
 }
 
-void
-ResultsContainer::AddQueueStatistics (XMLElement *queueElement)
-{
-  m_rootNode->InsertEndChild (queueElement);
-}
+// void
+// ResultsContainer::AddQueueStatistics (XMLElement *queueElement)
+// {
+//   m_rootNode->InsertEndChild (queueElement);
+// }
 
 void
 ResultsContainer::SaveFile (const std::string &path)

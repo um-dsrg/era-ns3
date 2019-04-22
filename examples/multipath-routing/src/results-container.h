@@ -47,7 +47,7 @@ public:
                            packetSize_t dataSize);
 
   void AddFlowResults ();
-  void AddQueueStatistics (tinyxml2::XMLElement *queueElement);
+  // void AddQueueStatistics (tinyxml2::XMLElement *queueElement);
   void SaveFile (const std::string &path);
 
 private:
