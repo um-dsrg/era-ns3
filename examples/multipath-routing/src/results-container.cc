@@ -226,6 +226,54 @@ ResultsContainer::AddFlowResults ()
 }
 
 void
+ResultsContainer::AddSwitchResults ()
+{
+  NS_LOG_INFO ("Saving the switch results");
+
+  using boost::numeric_cast;
+
+  using boost::numeric::bad_numeric_cast;
+  using boost::numeric::negative_overflow;
+  using boost::numeric::positive_overflow;
+
+  auto switchId = id_t{0};
+
+  XMLElement *switchResultsElement = m_xmlDoc.NewElement ("SwitchResults");
+
+  try
+    {
+      for (const auto &switchResultsPair : m_switchResults)
+        {
+          switchId = switchResultsPair.first;
+          auto numDroppedPackets = switchResultsPair.second.numDroppedPackets;
+
+          NS_LOG_INFO ("Saving the results of switch " << switchId);
+
+          XMLElement *switchElement{m_xmlDoc.NewElement ("Switch")};
+          switchElement->SetAttribute ("Id", switchId);
+          switchElement->SetAttribute ("NumDroppedPackets",
+                                       numeric_cast<double> (numDroppedPackets));
+
+          switchResultsElement->InsertEndChild (switchElement);
+        }
+
+      m_rootNode->InsertEndChild (switchResultsElement);
+  } catch (const positive_overflow &e)
+    {
+      NS_ABORT_MSG ("Saving the results of switch "
+                    << switchId << "caused a positive overflow.\nError message: " << e.what ());
+  } catch (const negative_overflow &e)
+    {
+      NS_ABORT_MSG ("Saving the results of switch "
+                    << switchId << "caused a negative overflow.\nError message: " << e.what ());
+  } catch (const bad_numeric_cast &e)
+    {
+      NS_ABORT_MSG ("Saving the results of switch "
+                    << switchId << "caused a bad numeric cast.\nError message: " << e.what ());
+  }
+}
+
+void
 ResultsContainer::SaveFile (const std::string &path)
 {
   if (m_xmlDoc.SaveFile (path.c_str ()) != tinyxml2::XML_SUCCESS)

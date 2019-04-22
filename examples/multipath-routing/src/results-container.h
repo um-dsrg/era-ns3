@@ -61,6 +61,7 @@ public:
 
   // Save results to XML file
   void AddFlowResults ();
+  void AddSwitchResults ();
   void SaveFile (const std::string &path);
 
 private:

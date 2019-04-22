@@ -179,8 +179,9 @@ main (int argc, char *argv[])
   Simulator::Run ();
   Simulator::Stop ();
 
-  // Add the results to the XML file and save it
+  // Add the flow and switch results to the XML file and save it
   resContainer.AddFlowResults ();
+  resContainer.AddSwitchResults ();
   resContainer.SaveFile (outputFile);
 
   // Save the flow monitor result file
