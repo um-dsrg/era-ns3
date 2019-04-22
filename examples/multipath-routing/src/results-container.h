@@ -9,6 +9,7 @@
 
 #include "flow.h"
 #include "definitions.h"
+#include "device/switch/switch-container.h"
 
 struct PacketDetails
 {
@@ -35,19 +36,31 @@ struct FlowResults
   std::map<id_t, PacketDetails> packetResults; /**< Key: Packet Id | Value: Packet Details */
 };
 
+struct SwitchResults
+{
+  uint64_t numDroppedPackets{0};
+};
+
 class ResultsContainer
 {
 public:
-  ResultsContainer (const Flow::flowContainer_t &flows, bool logPacketResults);
+  ResultsContainer (bool logPacketResults);
 
+  void SetupFlowResults (const Flow::flowContainer_t &flows);
+  void SetupSwitchResults (const SwitchContainer &switchContainer);
+
+  // Log Flow results
   void LogFlowTxGoodputRate (id_t flowId, double goodputRate);
-  void LogPacketTransmission (id_t flowId, ns3::Time time, packetNumber_t pktNumber,
+  void LogPacketTransmission (id_t flowId, const ns3::Time &time, packetNumber_t pktNumber,
                               packetSize_t dataSize);
-  void LogPacketReception (id_t flowId, ns3::Time time, packetNumber_t pktNumber,
+  void LogPacketReception (id_t flowId, const ns3::Time &time, packetNumber_t pktNumber,
                            packetSize_t dataSize);
 
+  // Log Switch results
+  void LogPacketDrop (id_t switchId, const ns3::Time &time);
+
+  // Save results to XML file
   void AddFlowResults ();
-  // void AddQueueStatistics (tinyxml2::XMLElement *queueElement);
   void SaveFile (const std::string &path);
 
 private:
@@ -56,6 +69,8 @@ private:
 
   bool m_logPacketResults{false};
   std::map<id_t, FlowResults> m_flowResults; /**< Key: Flow Id | Value: Flow Results */
+  std::map<id_t, SwitchResults> m_switchResults; /**< Key: Switch Id | Value: Switch Results */
+
   tinyxml2::XMLDocument m_xmlDoc; /**< XML Document */
 };
 #endif /* results_container_h */

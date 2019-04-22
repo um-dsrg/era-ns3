@@ -68,10 +68,11 @@ operator<< (std::ostream &os, const RtFlow &flow)
 /* SwitchBase                               */
 /********************************************/
 
-SwitchBase::SwitchBase (id_t id, uint64_t switchBufferSize)
+SwitchBase::SwitchBase (id_t id, uint64_t switchBufferSize, ResultsContainer &resContainer)
     : CustomDevice (id),
       m_switchBufferSize (switchBufferSize),
-      m_freeBufferSpace (m_switchBufferSize)
+      m_freeBufferSpace (m_switchBufferSize),
+      m_resContainer (resContainer)
 {
 }
 

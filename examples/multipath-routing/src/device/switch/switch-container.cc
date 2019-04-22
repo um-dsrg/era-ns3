@@ -29,19 +29,19 @@ SwitchContainer::SwitchExists (id_t switchId)
 }
 
 void
-SwitchContainer::AddSwitch (id_t switchId, SwitchType switchType)
+SwitchContainer::AddSwitch (id_t switchId, SwitchType switchType, ResultsContainer &resContainer)
 {
   NS_LOG_INFO ("Adding switch " << switchId);
   std::pair<switchContainer_t::iterator, bool> ret;
   if (switchType == SwitchType::SdnSwitch)
     {
-      ret = m_switchContainer.emplace (
-          switchId, std::make_unique<SdnSwitch> (SdnSwitch (switchId, m_switchBufferSize)));
+      ret = m_switchContainer.emplace (switchId, std::make_unique<SdnSwitch> (SdnSwitch (
+                                                     switchId, m_switchBufferSize, resContainer)));
     }
   else if (switchType == SwitchType::PpfsSwitch)
     {
-      ret = m_switchContainer.emplace (
-          switchId, std::make_unique<PpfsSwitch> (PpfsSwitch (switchId, m_switchBufferSize)));
+      ret = m_switchContainer.emplace (switchId, std::make_unique<PpfsSwitch> (PpfsSwitch (
+                                                     switchId, m_switchBufferSize, resContainer)));
     }
   else
     {
@@ -49,6 +49,19 @@ SwitchContainer::AddSwitch (id_t switchId, SwitchType switchType)
     }
   NS_ABORT_MSG_IF (ret.second == false,
                    "Trying to insert a duplicate switch with id: " << switchId);
+}
+
+void
+SwitchContainer::ReconcileRoutingTables ()
+{
+  NS_LOG_INFO ("Reconciling the routing tables.\n"
+               "NOTE This function should only be invoked for PPFS switches");
+
+  for (auto &switchPair : m_switchContainer)
+    {
+      auto &switchObject{switchPair.second};
+      switchObject->ReconcileSplitRatios ();
+    }
 }
 
 void
@@ -71,18 +84,5 @@ SwitchContainer::EnablePacketTransmissionTrace ()
     {
       auto &switchInstance = switchPair.second;
       switchInstance->EnablePacketTransmissionCompletionTrace ();
-    }
-}
-
-void
-SwitchContainer::ReconcileRoutingTables ()
-{
-  NS_LOG_INFO ("Reconciling the routing tables.\n"
-               "NOTE This function should only be invoked for PPFS switches");
-
-  for (auto &switchPair : m_switchContainer)
-    {
-      auto &switchObject{switchPair.second};
-      switchObject->ReconcileSplitRatios ();
     }
 }

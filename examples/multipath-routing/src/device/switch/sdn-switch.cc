@@ -14,13 +14,15 @@
 #include "ns3/point-to-point-net-device.h"
 
 #include "sdn-switch.h"
+#include "../../results-container.h"
 #include "../../random-generator-manager.h"
 
 using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("SdnSwitch");
 
-SdnSwitch::SdnSwitch (id_t id, uint64_t switchBufferSize) : SwitchBase (id, switchBufferSize)
+SdnSwitch::SdnSwitch (id_t id, uint64_t switchBufferSize, ResultsContainer &resContainer)
+    : SwitchBase (id, switchBufferSize, resContainer)
 {
 }
 
@@ -59,11 +61,7 @@ SdnSwitch::PacketReceived (Ptr<NetDevice> incomingPort, Ptr<const Packet> packet
 
   if (!EnoughSpaceInBuffer (pktSizeInclPppHeader))
     {
-      // TODO: Add counter to keep track of the number of dropped packets. The result manager will
-      // handle this.
-      NS_LOG_INFO (Simulator::Now ().GetSeconds ()
-                   << "s: Switch " << m_id << " dropped a packet of " << pktSizeInclPppHeader
-                   << "bytes due to buffer overflow");
+      m_resContainer.LogPacketDrop (m_id, Simulator::Now ());
     }
   else
     {

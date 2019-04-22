@@ -14,7 +14,7 @@
 class SdnSwitch : public SwitchBase
 {
 public:
-  SdnSwitch (id_t id, uint64_t switchBufferSize);
+  SdnSwitch (id_t id, uint64_t switchBufferSize, ResultsContainer &resContainer);
 
   void AddEntryToRoutingTable (uint32_t srcIp, uint32_t dstIp, portNum_t srcPort, portNum_t dstPort,
                                FlowProtocol protocol, ns3::Ptr<ns3::NetDevice> forwardingPort,

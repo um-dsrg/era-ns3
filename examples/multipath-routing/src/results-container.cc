@@ -21,8 +21,7 @@ PacketDetails::PacketDetails (Time transmitted, packetSize_t transmittedDataSize
 {
 }
 
-ResultsContainer::ResultsContainer (const Flow::flowContainer_t &flows, bool logPacketResults)
-    : m_logPacketResults (logPacketResults)
+ResultsContainer::ResultsContainer (bool logPacketResults) : m_logPacketResults (logPacketResults)
 {
   XMLNode *rootElement = m_xmlDoc.NewElement ("Log");
   m_rootNode = m_xmlDoc.InsertFirstChild (rootElement);
@@ -32,12 +31,27 @@ ResultsContainer::ResultsContainer (const Flow::flowContainer_t &flows, bool log
     {
       throw std::runtime_error ("Could not create element node");
     }
+}
 
+void
+ResultsContainer::SetupFlowResults (const Flow::flowContainer_t &flows)
+{
   // Generate a new FlowResults entry for every existing flow
   for (const auto &flowPair : flows)
     {
       auto flowId = flowPair.first;
       m_flowResults.emplace (flowId, FlowResults ());
+    }
+}
+
+void
+ResultsContainer::SetupSwitchResults (const SwitchContainer &switchContainer)
+{
+  // Generate a new SwitchResults entry for every existing switch
+  for (const auto &switchPair : switchContainer)
+    {
+      auto switchId = switchPair.first;
+      m_switchResults.emplace (switchId, SwitchResults ());
     }
 }
 
@@ -49,7 +63,7 @@ ResultsContainer::LogFlowTxGoodputRate (id_t flowId, double goodputRate)
 }
 
 void
-ResultsContainer::LogPacketTransmission (id_t flowId, Time time, packetNumber_t pktNumber,
+ResultsContainer::LogPacketTransmission (id_t flowId, const Time &time, packetNumber_t pktNumber,
                                          packetSize_t dataSize)
 {
   auto &flowResult = m_flowResults.at (flowId);
@@ -65,7 +79,7 @@ ResultsContainer::LogPacketTransmission (id_t flowId, Time time, packetNumber_t 
 }
 
 void
-ResultsContainer::LogPacketReception (id_t flowId, Time time, packetNumber_t pktNumber,
+ResultsContainer::LogPacketReception (id_t flowId, const Time &time, packetNumber_t pktNumber,
                                       packetSize_t dataSize)
 {
   auto &flowResult = m_flowResults.at (flowId);
@@ -115,6 +129,18 @@ ResultsContainer::LogPacketReception (id_t flowId, Time time, packetNumber_t pkt
                                                                        << pktNumber
                                                                        << " have not been removed");
     }
+}
+
+void
+ResultsContainer::LogPacketDrop (id_t switchId, const ns3::Time &time)
+{
+  auto &switchResult = m_switchResults.at (switchId);
+  switchResult.numDroppedPackets++;
+
+  NS_LOG_INFO (time.GetSeconds ()
+               << "s: Switch " << switchId
+               << "dropped a packet due to buffer overflow.\n  Total number of dropped packets: "
+               << switchResult.numDroppedPackets);
 }
 
 void
@@ -198,12 +224,6 @@ ResultsContainer::AddFlowResults ()
                     << flowId << "caused a bad numeric cast.\nError message: " << e.what ());
   }
 }
-
-// void
-// ResultsContainer::AddQueueStatistics (XMLElement *queueElement)
-// {
-//   m_rootNode->InsertEndChild (queueElement);
-// }
 
 void
 ResultsContainer::SaveFile (const std::string &path)

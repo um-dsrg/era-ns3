@@ -4,9 +4,9 @@
 #include "ns3/simulator.h"
 #include "ns3/ppp-header.h"
 
-#include "../../random-generator-manager.h"
-
 #include "ppfs-switch.h"
+#include "../../results-container.h"
+#include "../../random-generator-manager.h"
 
 using namespace ns3;
 
@@ -32,7 +32,8 @@ PpfsSwitch::ForwardingAction::operator< (const PpfsSwitch::ForwardingAction &oth
  PpfsSwitch implementation
  */
 
-PpfsSwitch::PpfsSwitch (id_t id, uint64_t switchBufferSize) : SwitchBase (id, switchBufferSize)
+PpfsSwitch::PpfsSwitch (id_t id, uint64_t switchBufferSize, ResultsContainer &resContainer)
+    : SwitchBase (id, switchBufferSize, resContainer)
 {
   m_uniformRandomVariable = RandomGeneratorManager::CreateUniformRandomVariable (0.0, 1.0);
 }
@@ -85,11 +86,7 @@ PpfsSwitch::PacketReceived (Ptr<NetDevice> incomingPort, Ptr<const Packet> packe
 
   if (!EnoughSpaceInBuffer (pktSizeInclPppHeader))
     {
-      // TODO: Add counter to keep track of the number of dropped packets. The result manager will
-      // handle this.
-      NS_LOG_INFO (Simulator::Now ().GetSeconds ()
-                   << "s: Switch " << m_id << " dropped a packet of " << pktSizeInclPppHeader
-                   << "bytes due to buffer overflow.");
+      m_resContainer.LogPacketDrop (m_id, Simulator::Now ());
     }
   else
     {

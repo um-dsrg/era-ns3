@@ -129,8 +129,11 @@ main (int argc, char *argv[])
   Terminal::terminalContainer_t terminalContainer;
   Link::linkContainer_t linkContainer;
 
+  // Create an instance of the result container
+  ResultsContainer resContainer (logPacketResults);
+
   // Create the nodes and build the topology
-  TopologyBuilder topologyBuilder (switchType, switchContainer, terminalContainer);
+  TopologyBuilder topologyBuilder (switchType, switchContainer, terminalContainer, resContainer);
 
   topologyBuilder.CreateNodes (rootNode);
   auto transmitOnLink = topologyBuilder.BuildNetworkTopology (rootNode, linkContainer);
@@ -148,8 +151,6 @@ main (int argc, char *argv[])
   // Reconcile the routing tables
   switchContainer.ReconcileRoutingTables ();
 
-  ResultsContainer resContainer (flows, logPacketResults);
-
   AppContainer appContainer;
   appContainer.InstallApplicationsOnTerminals (flows, usePpfsSwitches, resContainer);
 
@@ -162,6 +163,10 @@ main (int argc, char *argv[])
   // Setup Flow Monitor
   FlowMonitorHelper flowMonHelper;
   flowMonHelper.InstallAll ();
+
+  // Setup the results container
+  resContainer.SetupFlowResults (flows);
+  resContainer.SetupSwitchResults (switchContainer);
 
   // Set the simulation stop time
   Simulator::Stop (Time (stopTime));

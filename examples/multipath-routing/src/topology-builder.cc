@@ -8,10 +8,12 @@
 NS_LOG_COMPONENT_DEFINE ("TopologyBuilder");
 
 TopologyBuilder::TopologyBuilder (SwitchType switchType, SwitchContainer &switchContainer,
-                                  Terminal::terminalContainer_t &terminalContainer)
+                                  Terminal::terminalContainer_t &terminalContainer,
+                                  ResultsContainer &resContainer)
     : m_switchType (switchType),
       m_switchContainer (switchContainer),
-      m_terminalContainer (terminalContainer)
+      m_terminalContainer (terminalContainer),
+      m_resContainer (resContainer)
 {
 }
 
@@ -161,7 +163,7 @@ TopologyBuilder::CreateUniqueNode (id_t nodeId, NodeType nodeType)
   if (nodeType == NodeType::Switch)
     {
       if (m_switchContainer.SwitchExists (nodeId) == false)
-        m_switchContainer.AddSwitch (nodeId, m_switchType);
+        m_switchContainer.AddSwitch (nodeId, m_switchType, m_resContainer);
     }
   else if (nodeType == NodeType::Terminal)
     {

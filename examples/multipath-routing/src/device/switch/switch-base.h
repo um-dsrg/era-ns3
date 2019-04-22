@@ -8,6 +8,9 @@
 #include "../custom-device.h"
 #include "../../definitions.h"
 
+// Forward declaration of the ResultsContainer class to avoid cyclic references
+class ResultsContainer;
+
 /**
  * @brief Represents the Flow entry in the Routing Table
  */
@@ -30,7 +33,7 @@ struct RtFlow
 class SwitchBase : public CustomDevice
 {
 public:
-  SwitchBase (id_t id, uint64_t switchBufferSize);
+  SwitchBase (id_t id, uint64_t switchBufferSize, ResultsContainer &resContainer);
   virtual ~SwitchBase ();
 
   virtual void SetPacketReception () = 0;
@@ -59,6 +62,9 @@ protected:
   // Buffer sizes are in bytes
   const uint64_t m_switchBufferSize;
   uint64_t m_freeBufferSpace;
+
+  // Results Container
+  ResultsContainer &m_resContainer;
 };
 
 #endif /* switch_base_h */

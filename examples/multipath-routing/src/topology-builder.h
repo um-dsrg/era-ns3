@@ -19,6 +19,7 @@
 
 #include "flow.h"
 #include "definitions.h"
+#include "results-container.h"
 #include "device/custom-device.h"
 #include "device/terminal/terminal.h"
 #include "device/switch/switch-container.h"
@@ -30,7 +31,8 @@ class TopologyBuilder
 {
 public:
   TopologyBuilder (SwitchType switchType, SwitchContainer &switchContainer,
-                   Terminal::terminalContainer_t &terminalContainer);
+                   Terminal::terminalContainer_t &terminalContainer,
+                   ResultsContainer &resContainer);
 
   void AssignIpToTerminals ();
   void CreateNodes (XMLNode *rootNode);
@@ -48,6 +50,7 @@ private:
   SwitchType m_switchType; // The type of switches to use
   SwitchContainer &m_switchContainer;
   Terminal::terminalContainer_t &m_terminalContainer;
+  ResultsContainer &m_resContainer;
 };
 
 void ShuffleLinkElements (std::vector<XMLElement *> &linkElements);
