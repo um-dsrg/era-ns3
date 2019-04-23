@@ -39,6 +39,7 @@ struct FlowResults
 struct SwitchResults
 {
   uint64_t numDroppedPackets{0};
+  uint64_t maxBufferUsage{0}; /**< The largest used buffer size. */
 };
 
 class ResultsContainer
@@ -58,6 +59,7 @@ public:
 
   // Log Switch results
   void LogPacketDrop (id_t switchId, const ns3::Time &time);
+  void LogBufferSize (id_t switchIt, uint64_t bufferSize);
 
   // Save results to XML file
   void AddFlowResults ();

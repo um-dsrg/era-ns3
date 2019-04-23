@@ -1,6 +1,7 @@
 #include <chrono>
 #include <sstream>
 #include <iomanip>
+#include <algorithm>
 #include <boost/numeric/conversion/cast.hpp>
 
 #include "device/switch/sdn-switch.h"
@@ -144,6 +145,14 @@ ResultsContainer::LogPacketDrop (id_t switchId, const ns3::Time &time)
 }
 
 void
+ResultsContainer::LogBufferSize (id_t switchId, uint64_t bufferSize)
+{
+  NS_ABORT_MSG_IF (bufferSize < 0, "The buffer size for switch " << switchId << " is below 0.");
+  auto &switchResult = m_switchResults.at (switchId);
+  switchResult.maxBufferUsage = std::max (bufferSize, switchResult.maxBufferUsage);
+}
+
+void
 ResultsContainer::AddFlowResults ()
 {
   /*
@@ -238,14 +247,15 @@ ResultsContainer::AddSwitchResults ()
 
   auto switchId = id_t{0};
 
-  XMLElement *switchResultsElement = m_xmlDoc.NewElement ("SwitchResults");
-
   try
     {
+      XMLElement *switchResultsElement = m_xmlDoc.NewElement ("SwitchResults");
+
       for (const auto &switchResultsPair : m_switchResults)
         {
           switchId = switchResultsPair.first;
-          auto numDroppedPackets = switchResultsPair.second.numDroppedPackets;
+          auto &numDroppedPackets = switchResultsPair.second.numDroppedPackets;
+          auto &maxBufferUsage = switchResultsPair.second.maxBufferUsage;
 
           NS_LOG_INFO ("Saving the results of switch " << switchId);
 
@@ -253,9 +263,13 @@ ResultsContainer::AddSwitchResults ()
           switchElement->SetAttribute ("Id", switchId);
           switchElement->SetAttribute ("NumDroppedPackets",
                                        numeric_cast<double> (numDroppedPackets));
+          switchElement->SetAttribute ("MaxBufferUsage", numeric_cast<double> (maxBufferUsage));
 
           switchResultsElement->InsertEndChild (switchElement);
         }
+
+      XMLComment *comment = m_xmlDoc.NewComment ("Buffer usage is in bytes");
+      switchResultsElement->InsertFirstChild (comment);
 
       m_rootNode->InsertEndChild (switchResultsElement);
   } catch (const positive_overflow &e)

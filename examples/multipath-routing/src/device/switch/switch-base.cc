@@ -11,6 +11,7 @@
 #include "ns3/point-to-point-net-device.h"
 
 #include "switch-base.h"
+#include "../../results-container.h"
 
 using namespace ns3;
 
@@ -220,6 +221,8 @@ SwitchBase::AddPacketToBuffer (packetSize_t packetSize)
                << "bytes\n  Free Space before adding packet: " << m_freeBufferSpace << "bytes");
   m_freeBufferSpace -= packetSize;
   NS_LOG_INFO ("  Free space after adding packet: " << m_freeBufferSpace);
+
+  m_resContainer.LogBufferSize (m_id, m_switchBufferSize - m_freeBufferSpace);
 
   // Ensure that the free buffer size is never smaller than zero
   NS_ABORT_MSG_IF (m_freeBufferSpace < 0,
