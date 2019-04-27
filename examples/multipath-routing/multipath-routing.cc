@@ -176,8 +176,12 @@ main (int argc, char *argv[])
                "$ns3::DropTailQueue<Packet>/MaxSize",
                QueueSizeValue (QueueSize (switchPortBufferSize)));
 
+  std::cout << "Starting Network Simulation..." << std::endl;
+
   Simulator::Run ();
   Simulator::Stop ();
+
+  std::cout << "Network Simulation Complete." << std::endl;
 
   // Add the flow and switch results to the XML file and save it
   resContainer.AddFlowResults ();
