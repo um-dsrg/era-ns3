@@ -40,16 +40,11 @@ operator<< (std::ostream &output, const Path &path)
   output << "Data Rate: " << path.dataRate << "\n";
   output << "Source Port: " << path.srcPort << "\n";
   output << "Destination Port: " << path.dstPort << "\n";
-  output << "Links \n";
+  output << "Links: ";
 
   for (Link const *link : path.m_links)
     {
-      output << "Link ID: " << link->id << " Address: " << link << "\n";
-    }
-  output << "Testing link ids\n";
-  for (auto test : path.m_testing)
-    {
-      output << "Link id: " << test << "\n";
+      output << link->id << " ";
     }
 
   return output;

@@ -61,7 +61,7 @@ operator<< (std::ostream &os, const RtFlow &flow)
   os << "Source IP " << flow.srcIp << "\n";
   os << "Source Port " << flow.srcPort << "\n";
   os << "Destination IP " << flow.dstIp << "\n";
-  os << "Destination Port " << flow.dstPort << "\n";
+  os << "Destination Port " << flow.dstPort;
   return os;
 }
 

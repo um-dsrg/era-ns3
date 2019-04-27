@@ -78,8 +78,9 @@ SdnSwitch::PacketReceived (Ptr<NetDevice> incomingPort, Ptr<const Packet> packet
                        << "s: Switch " << m_id << " forwarded a packet at " << Simulator::Now ());
       } catch (const std::out_of_range &oor)
         {
-          NS_ABORT_MSG ("Routing table Miss on Switch " << m_id << ".\nFlow Details\n"
-                                                        << parsedFlow);
+          NS_ABORT_MSG ("Routing table Miss on Switch "
+                        << m_id << ".\nFlow Details\n"
+                        << parsedFlow << "\nPacket Size: " << pktSizeInclPppHeader);
       }
     }
 }

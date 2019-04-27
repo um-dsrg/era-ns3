@@ -6,6 +6,7 @@
 #include <tinyxml2.h>
 
 #include "ns3/nstime.h"
+#include "ns3/socket.h"
 
 #include "flow.h"
 #include "definitions.h"
@@ -53,7 +54,7 @@ public:
   // Log Flow results
   void LogFlowTxGoodputRate (id_t flowId, double goodputRate);
   void LogPacketTransmission (id_t flowId, const ns3::Time &time, packetNumber_t pktNumber,
-                              packetSize_t dataSize);
+                              packetSize_t dataSize, ns3::Ptr<ns3::Socket> socket);
   void LogPacketReception (id_t flowId, const ns3::Time &time, packetNumber_t pktNumber,
                            packetSize_t dataSize);
 
@@ -67,13 +68,14 @@ public:
   void SaveFile (const std::string &path);
 
 private:
+  std::string GetSocketDetails (ns3::Ptr<ns3::Socket> socket);
   void InsertTimeStamp ();
-  tinyxml2::XMLNode *m_rootNode;
 
   bool m_logPacketResults{false};
   std::map<id_t, FlowResults> m_flowResults; /**< Key: Flow Id | Value: Flow Results */
   std::map<id_t, SwitchResults> m_switchResults; /**< Key: Switch Id | Value: Switch Results */
 
+  tinyxml2::XMLNode *m_rootNode; /**< XML Root Node */
   tinyxml2::XMLDocument m_xmlDoc; /**< XML Document */
 };
 #endif /* results_container_h */

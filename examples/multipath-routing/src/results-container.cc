@@ -4,6 +4,9 @@
 #include <algorithm>
 #include <boost/numeric/conversion/cast.hpp>
 
+#include "ns3/address.h"
+#include "ns3/inet-socket-address.h"
+
 #include "device/switch/sdn-switch.h"
 #include "device/switch/ppfs-switch.h"
 #include "results-container.h"
@@ -12,6 +15,10 @@
 #include "application/unipath-transmitter.h"
 #include "application/multipath-transmitter.h"
 
+using ns3::Address;
+using ns3::InetSocketAddress;
+using ns3::Ptr;
+using ns3::Socket;
 using ns3::Time;
 using namespace tinyxml2;
 
@@ -65,7 +72,7 @@ ResultsContainer::LogFlowTxGoodputRate (id_t flowId, double goodputRate)
 
 void
 ResultsContainer::LogPacketTransmission (id_t flowId, const Time &time, packetNumber_t pktNumber,
-                                         packetSize_t dataSize)
+                                         packetSize_t dataSize, Ptr<Socket> socket)
 {
   auto &flowResult = m_flowResults.at (flowId);
 
@@ -75,8 +82,10 @@ ResultsContainer::LogPacketTransmission (id_t flowId, const Time &time, packetNu
                            << " has been already logged for transmission");
 
   flowResult.packetResults.emplace (pktNumber, PacketDetails (time, dataSize));
+
   NS_LOG_INFO (time.GetSeconds () << "s: Flow " << flowId << " transmitted packet " << pktNumber
-                                  << " (" << dataSize << " data bytes)");
+                                  << " (" << dataSize << " data bytes). "
+                                  << GetSocketDetails (socket));
 }
 
 void
@@ -294,6 +303,26 @@ ResultsContainer::SaveFile (const std::string &path)
     {
       throw std::runtime_error ("Could not save the result file in " + path);
     }
+}
+
+std::string
+ResultsContainer::GetSocketDetails (Ptr<Socket> socket)
+{
+  Address srcAddr;
+  Address dstAddr;
+  socket->GetSockName (srcAddr);
+  socket->GetPeerName (dstAddr);
+
+  auto iSrcAddr = InetSocketAddress{InetSocketAddress::ConvertFrom (srcAddr)};
+  auto iDstAddr = InetSocketAddress{InetSocketAddress::ConvertFrom (dstAddr)};
+
+  std::stringstream ss;
+
+  ss << "Source Ip: " << iSrcAddr.GetIpv4 ().Get ()
+     << " Destination Ip: " << iDstAddr.GetIpv4 ().Get () << " |"
+     << " Source Port: " << iSrcAddr.GetPort () << " Destination Port: " << iDstAddr.GetPort ();
+
+  return ss.str ();
 }
 
 void
