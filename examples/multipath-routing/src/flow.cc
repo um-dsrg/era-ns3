@@ -9,15 +9,17 @@ NS_LOG_COMPONENT_DEFINE ("Flow");
  */
 
 /**
- * The global port number counter starting from 49152 as it is the start of the range of
- * dynamic/private port numbers. This was done to avoid any conflicts with any other
- * standards.
+ * The global port number counter is starting from 1 to cater for simulations with a large number
+ * of flows or paths. As all the devices used by the simulation are custom, we *should* not have any
+ * conflicts with any other standards.
  */
-portNum_t Path::portNumCounter = 49152;
+portNum_t Path::portNumCounter = 1;
 
 portNum_t
 Path::GeneratePortNumber ()
 {
+  NS_ABORT_MSG_IF (portNumCounter == 65535,
+                   "All port numbers were used. Simulation cannot continue.");
   return portNumCounter++;
 }
 
@@ -145,6 +147,8 @@ Flow::flowContainer_t
 ParseFlows (tinyxml2::XMLNode *rootNode, const Terminal::terminalContainer_t &terminalContainer,
             const Link::linkContainer_t &linkContainer, SwitchType switchType)
 {
+  NS_LOG_INFO ("Parsing Flows...");
+
   Flow::flowContainer_t flows;
 
   auto flowDetElement = rootNode->FirstChildElement ("FlowDetails");
@@ -185,6 +189,7 @@ ParseFlows (tinyxml2::XMLNode *rootNode, const Terminal::terminalContainer_t &te
       flowElement = flowElement->NextSiblingElement ("Flow");
     }
 
+  NS_LOG_INFO ("Paring flows complete.");
   return flows;
 }
 
