@@ -91,6 +91,7 @@ PpfsSwitch::PacketReceived (Ptr<NetDevice> incomingPort, Ptr<const Packet> packe
   else
     {
       auto parsedFlow = ExtractFlowFromPacket (packet, protocol);
+      NS_LOG_INFO ("  " << parsedFlow);
 
       try
         {

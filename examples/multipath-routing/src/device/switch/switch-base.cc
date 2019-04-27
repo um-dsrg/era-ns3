@@ -57,11 +57,9 @@ RtFlow::operator< (const RtFlow &other) const
 std::ostream &
 operator<< (std::ostream &os, const RtFlow &flow)
 {
-  os << "Protocol " << static_cast<char> (flow.protocol) << "\n";
-  os << "Source IP " << flow.srcIp << "\n";
-  os << "Source Port " << flow.srcPort << "\n";
-  os << "Destination IP " << flow.dstIp << "\n";
-  os << "Destination Port " << flow.dstPort;
+  os << "Protocol: " << static_cast<char> (flow.protocol) << " | "
+     << "Source IP: " << flow.srcIp << " Destination IP: " << flow.dstIp
+     << " | Source Port: " << flow.srcPort << " Destination Port: " << flow.dstPort;
   return os;
 }
 
