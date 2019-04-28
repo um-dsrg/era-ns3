@@ -297,6 +297,90 @@ ResultsContainer::AddSwitchResults ()
 }
 
 void
+ResultsContainer::AddSimulationParameters (
+    const std::string &inputFile, const std::string &outputFile,
+    const std::string &flowMonitorOutput, const std::string &stopTime, bool enablePcap,
+    bool useSack, bool usePpfsSwitches, bool useSdnSwitches, bool perPacketDelayLog,
+    const std::string &switchPortBufferSize, uint64_t switchBufferSize, bool logPacketResults)
+{
+  NS_LOG_INFO ("Adding simulation parameters to the result file");
+
+  XMLElement *parametersElement{m_xmlDoc.NewElement ("Parameters")};
+
+  // Input File
+  XMLElement *inputFileElement{m_xmlDoc.NewElement ("InputFile")};
+  inputFileElement->SetAttribute ("Path", inputFile.c_str ());
+  parametersElement->InsertEndChild (inputFileElement);
+
+  // Output File
+  XMLElement *outputFileElement{m_xmlDoc.NewElement ("OutputFile")};
+  outputFileElement->SetAttribute ("Path", outputFile.c_str ());
+  parametersElement->InsertEndChild (outputFileElement);
+
+  // Flow Monitor File
+  XMLElement *flowMonFileElement{m_xmlDoc.NewElement ("FlowMonitorFile")};
+  flowMonFileElement->SetAttribute ("Path", flowMonitorOutput.c_str ());
+  parametersElement->InsertEndChild (flowMonFileElement);
+
+  // Stop Time
+  XMLElement *stopTimeElement{m_xmlDoc.NewElement ("StopTime")};
+  stopTimeElement->SetAttribute ("Path", stopTime.c_str ());
+  parametersElement->InsertEndChild (stopTimeElement);
+
+  // Pcap trace status
+  XMLElement *pcapElement{m_xmlDoc.NewElement ("Pcap")};
+  if (enablePcap)
+    pcapElement->SetAttribute ("Enabled", "True");
+  else
+    pcapElement->SetAttribute ("Enabled", "False");
+  parametersElement->InsertEndChild (pcapElement);
+
+  // Sack status
+  XMLElement *sackElement{m_xmlDoc.NewElement ("Sack")};
+  if (useSack)
+    sackElement->SetAttribute ("Enabled", "True");
+  else
+    sackElement->SetAttribute ("Enabled", "False");
+  parametersElement->InsertEndChild (sackElement);
+
+  // Switches used
+  XMLElement *switchDetailsElement{m_xmlDoc.NewElement ("SwitchDetails")};
+  if (usePpfsSwitches)
+    {
+      switchDetailsElement->SetAttribute ("SwitchType", "PPFS");
+    }
+  else if (useSdnSwitches)
+    {
+      switchDetailsElement->SetAttribute ("SwitchType", "SDN");
+    }
+  else
+    {
+      NS_ABORT_MSG ("Unkown switches used");
+    }
+  switchDetailsElement->SetAttribute ("BufferSize(bytes)",
+                                      boost::numeric_cast<double> (switchBufferSize));
+  switchDetailsElement->SetAttribute ("PortBufferSize", switchPortBufferSize.c_str ());
+  parametersElement->InsertEndChild (switchDetailsElement);
+
+  // Per Packet delay log status
+  XMLElement *perPacketDelayLogElement{m_xmlDoc.NewElement ("PerPacketDelayLog")};
+  if (perPacketDelayLog)
+    perPacketDelayLogElement->SetAttribute ("Enabled", "True");
+  else
+    perPacketDelayLogElement->SetAttribute ("Enabled", "False");
+  parametersElement->InsertEndChild (perPacketDelayLogElement);
+
+  XMLElement *logPacketResultsElement{m_xmlDoc.NewElement ("LogPacketResults")};
+  if (logPacketResults)
+    logPacketResultsElement->SetAttribute ("Enabled", "True");
+  else
+    logPacketResultsElement->SetAttribute ("Enabled", "False");
+  parametersElement->InsertEndChild (logPacketResultsElement);
+
+  m_rootNode->InsertFirstChild (parametersElement);
+}
+
+void
 ResultsContainer::SaveFile (const std::string &path)
 {
   if (m_xmlDoc.SaveFile (path.c_str ()) != tinyxml2::XML_SUCCESS)
