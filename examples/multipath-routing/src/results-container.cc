@@ -357,7 +357,7 @@ ResultsContainer::AddSimulationParameters (
     {
       NS_ABORT_MSG ("Unkown switches used");
     }
-  switchDetailsElement->SetAttribute ("BufferSize(bytes)",
+  switchDetailsElement->SetAttribute ("BufferSizeInBytes",
                                       boost::numeric_cast<double> (switchBufferSize));
   switchDetailsElement->SetAttribute ("PortBufferSize", switchPortBufferSize.c_str ());
   parametersElement->InsertEndChild (switchDetailsElement);
