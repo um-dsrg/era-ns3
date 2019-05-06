@@ -33,9 +33,28 @@ public:
   std::list<ns3::Ptr<ns3::Packet>> RetrievePacketFromBuffer ();
 };
 
+class ReceiverBuffer
+{
+public:
+  using bufferContents_t = std::pair<packetNumber_t, packetSize_t>;
+
+  ReceiverBuffer (id_t flowId, ResultsContainer &resContainer);
+
+  void AddPacketToBuffer (packetNumber_t packetNumber, packetSize_t packetSize);
+  std::pair<bufferContents_t, bool> RetrievePacketFromBuffer (packetNumber_t packetNumber);
+
+private:
+  id_t m_flowId{0};
+  uint64_t m_bufferSize{0};
+  std::priority_queue<bufferContents_t, std::vector<bufferContents_t>, std::greater<>> m_recvBuffer;
+
+  ResultsContainer &m_resContainer;
+};
+
 class MultipathReceiver : public ReceiverBase
 {
 
+  // TODO: Fix the below put them in the private! as they are it's quite confusing
   struct PathInformation
   {
     portNum_t dstPort;
@@ -55,7 +74,7 @@ class MultipathReceiver : public ReceiverBase
   std::list<ns3::Ptr<ns3::Socket>> m_rxAcceptedSockets; /**< List of the accepted sockets. */
 
 public:
-  MultipathReceiver (const Flow &flow, ResultsContainer& resContainer);
+  MultipathReceiver (const Flow &flow, ResultsContainer &resContainer);
   virtual ~MultipathReceiver ();
 
 private:
@@ -68,14 +87,12 @@ private:
   void HandleAccept (ns3::Ptr<ns3::Socket> socket, const ns3::Address &from);
   void HandleRead (ns3::Ptr<ns3::Socket> socket);
 
+  void RetrievePacketsFromBuffer ();
+
   ResultsContainer &m_resContainer;
 
-  /* Buffer related variables */
-  // TODO: Set this to a class to make the code more readable, a class may be worthwhile because we need to log this
-  packetNumber_t m_expectedPacketNum{0};
-  void popInOrderPacketsFromQueue ();
-  typedef std::pair<packetNumber_t, packetSize_t> bufferContents_t;
-  std::priority_queue<bufferContents_t, std::vector<bufferContents_t>, std::greater<>> m_recvBuffer;
+  ReceiverBuffer m_receiverBuffer;
+  packetNumber_t m_expectedPacketNum{0}; /**< The id of the expected packet */
 };
 
 #endif /* multipath_receiver_h */

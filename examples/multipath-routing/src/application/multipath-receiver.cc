@@ -9,9 +9,9 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("MultipathReceiver");
 
-/**
- AggregateBuffer implementation
- */
+/**************************************************************************************************/
+/* Aggregate Buffer                                                                               */
+/**************************************************************************************************/
 
 AggregateBuffer::AggregateBuffer (packetSize_t packetSize) : m_packetSize (packetSize)
 {
@@ -52,13 +52,66 @@ AggregateBuffer::SetPacketSize (packetSize_t packetSize)
   NS_LOG_INFO ("The aggregate buffer packet size is: " << m_packetSize);
 }
 
-/**
- ReceiverApp implementation
- */
+/**************************************************************************************************/
+/* Receiver Buffer                                                                                */
+/**************************************************************************************************/
+
+ReceiverBuffer::ReceiverBuffer (id_t flowId, ResultsContainer &resContainer)
+    : m_flowId (flowId), m_resContainer (resContainer)
+{
+}
+
+void
+ReceiverBuffer::AddPacketToBuffer (packetNumber_t packetNumber, packetSize_t packetSize)
+{
+  m_recvBuffer.push (std::make_pair (packetNumber, packetSize));
+  m_bufferSize += packetSize;
+  NS_LOG_INFO (Simulator::Now ().GetSeconds ()
+               << "s: Packet " << packetNumber << ", " << packetSize
+               << "bytes stored in the buffer. Buffer size: " << m_bufferSize << "bytes");
+  // TODO: Call the function LogMstcpReceiverBufferSize() here and pass the buffer size as parameter
+  // TODO: together with the flow id.
+}
+
+std::pair<ReceiverBuffer::bufferContents_t, bool>
+ReceiverBuffer::RetrievePacketFromBuffer (packetNumber_t packetNumber)
+{
+  auto packetRetrieved = bool{false};
+  ReceiverBuffer::bufferContents_t retrievedPacket (0, 0);
+
+  const auto &topPacket{m_recvBuffer.top ()};
+
+  if (m_recvBuffer.top ().first == packetNumber)
+    {
+      packetRetrieved = true;
+      retrievedPacket = topPacket;
+
+      m_recvBuffer.pop ();
+      m_bufferSize -= topPacket.second;
+      NS_LOG_INFO (Simulator::Now ().GetSeconds ()
+                   << "s: Packet " << retrievedPacket.first
+                   << " retrieved from the buffer. Buffer size: " << m_bufferSize << "bytes");
+    }
+  else
+    {
+      NS_LOG_INFO (Simulator::Now ().GetSeconds ()
+                   << "s: Packet " << packetNumber
+                   << " no found in buffer. Buffer size:" << m_bufferSize << "bytes");
+    }
+
+  return std::make_pair (retrievedPacket, packetRetrieved);
+}
+
+/**************************************************************************************************/
+/* Multipath Receiver                                                                             */
+/**************************************************************************************************/
 std::tuple<packetNumber_t, packetSize_t> ExtractPacketDetails (ns3::Ptr<ns3::Packet> packet);
 
 MultipathReceiver::MultipathReceiver (const Flow &flow, ResultsContainer &resContainer)
-    : ReceiverBase (flow.id), protocol (flow.protocol), m_resContainer (resContainer)
+    : ReceiverBase (flow.id),
+      protocol (flow.protocol),
+      m_resContainer (resContainer),
+      m_receiverBuffer (m_id, m_resContainer)
 {
 
   SetDataPacketSize (flow);
@@ -185,33 +238,36 @@ MultipathReceiver::HandleRead (Ptr<Socket> socket)
             {
               m_resContainer.LogPacketReception (m_id, Simulator::Now (), packetNumber, packetSize);
               m_expectedPacketNum++;
-              popInOrderPacketsFromQueue ();
+              RetrievePacketsFromBuffer ();
             }
           else
             {
-              NS_LOG_INFO ("Packet " << packetNumber << " stored in the buffer");
-              m_recvBuffer.push (std::make_pair (packetNumber, packetSize));
+              m_receiverBuffer.AddPacketToBuffer (packetNumber, packetSize);
             }
         }
     }
 }
 
 void
-MultipathReceiver::popInOrderPacketsFromQueue ()
+MultipathReceiver::RetrievePacketsFromBuffer ()
 {
-  bufferContents_t const *topElement = &m_recvBuffer.top ();
+  auto packetRetrieved = bool{false};
+  ReceiverBuffer::bufferContents_t bufferContents (0, 0);
 
-  NS_LOG_INFO ("Checking contents of the buffer. Expected packet number: " << m_expectedPacketNum);
-
-  while (!m_recvBuffer.empty () && topElement->first == m_expectedPacketNum)
+  do
     {
-      m_resContainer.LogPacketReception (m_id, Simulator::Now (), m_expectedPacketNum,
-                                         topElement->second);
-      m_expectedPacketNum++;
-      m_recvBuffer.pop ();
-      topElement = &m_recvBuffer.top ();
-      NS_LOG_INFO ("Expected packet number: " << m_expectedPacketNum);
+      std::tie (bufferContents, packetRetrieved) =
+          m_receiverBuffer.RetrievePacketFromBuffer (m_expectedPacketNum);
+
+      if (packetRetrieved)
+        {
+          m_resContainer.LogPacketReception (m_id, Simulator::Now (), bufferContents.first,
+                                             bufferContents.second);
+          m_expectedPacketNum++;
+          NS_LOG_INFO ("Expected packet number: " << m_expectedPacketNum);
+        }
     }
+  while (packetRetrieved == true);
 }
 
 std::tuple<packetNumber_t, packetSize_t>
