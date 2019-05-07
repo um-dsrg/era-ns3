@@ -34,15 +34,15 @@ AggregateBuffer::AddPacketToBuffer (ns3::Ptr<ns3::Packet> packet)
 std::list<Ptr<Packet>>
 AggregateBuffer::RetrievePacketFromBuffer ()
 {
-  std::list<Ptr<Packet>> retreivedPackets;
+  std::list<Ptr<Packet>> retrievedPackets;
 
   while (m_buffer.size () >= m_packetSize)
     {
-      retreivedPackets.emplace_back (Create<Packet> (m_buffer.data (), m_packetSize));
+      retrievedPackets.emplace_back (Create<Packet> (m_buffer.data (), m_packetSize));
       m_buffer.erase (m_buffer.begin (), m_buffer.begin () + m_packetSize);
     }
 
-  return retreivedPackets;
+  return retrievedPackets;
 }
 
 void
@@ -69,8 +69,7 @@ ReceiverBuffer::AddPacketToBuffer (packetNumber_t packetNumber, packetSize_t pac
   NS_LOG_INFO (Simulator::Now ().GetSeconds ()
                << "s: Packet " << packetNumber << ", " << packetSize
                << "bytes stored in the buffer. Buffer size: " << m_bufferSize << "bytes");
-  // TODO: Call the function LogMstcpReceiverBufferSize() here and pass the buffer size as parameter
-  // TODO: together with the flow id.
+  m_resContainer.LogMstcpReceiverBufferSize (m_flowId, m_bufferSize);
 }
 
 std::pair<ReceiverBuffer::bufferContents_t, bool>
@@ -113,7 +112,6 @@ MultipathReceiver::MultipathReceiver (const Flow &flow, ResultsContainer &resCon
       m_resContainer (resContainer),
       m_receiverBuffer (m_id, m_resContainer)
 {
-
   SetDataPacketSize (flow);
   aggregateBuffer.SetPacketSize (m_dataPacketSize + MptcpHeader ().GetSerializedSize ());
 

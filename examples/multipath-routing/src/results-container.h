@@ -34,6 +34,8 @@ struct FlowResults
   uint64_t totalRecvPackets{0}; /**< The total number of received packets */
   bool firstPacketReceived{false}; /**< Flag that is enabled when the first packet is received */
 
+  bufferSize_t maxMstcpRecvBufferSize{0}; /**< The largest receiver buffer size in bytes */
+
   std::map<id_t, PacketDetails> packetResults; /**< Key: Packet Id | Value: Packet Details */
 };
 
@@ -57,6 +59,7 @@ public:
                               packetSize_t dataSize, ns3::Ptr<ns3::Socket> socket);
   void LogPacketReception (id_t flowId, const ns3::Time &time, packetNumber_t pktNumber,
                            packetSize_t dataSize);
+  void LogMstcpReceiverBufferSize (id_t flowId, bufferSize_t bufferSize);
 
   // Log Switch results
   void LogPacketDrop (id_t switchId, const ns3::Time &time);

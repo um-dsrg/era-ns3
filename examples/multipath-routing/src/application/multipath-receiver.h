@@ -45,7 +45,7 @@ public:
 
 private:
   id_t m_flowId{0};
-  uint64_t m_bufferSize{0};
+  bufferSize_t m_bufferSize{0};
   std::priority_queue<bufferContents_t, std::vector<bufferContents_t>, std::greater<>> m_recvBuffer;
 
   ResultsContainer &m_resContainer;

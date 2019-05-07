@@ -142,6 +142,13 @@ ResultsContainer::LogPacketReception (id_t flowId, const Time &time, packetNumbe
 }
 
 void
+ResultsContainer::LogMstcpReceiverBufferSize (id_t flowId, bufferSize_t bufferSize)
+{
+  auto &flowResult = m_flowResults.at (flowId);
+  flowResult.maxMstcpRecvBufferSize = std::max (flowResult.maxMstcpRecvBufferSize, bufferSize);
+}
+
+void
 ResultsContainer::LogPacketDrop (id_t switchId, const ns3::Time &time)
 {
   auto &switchResult = m_switchResults.at (switchId);
@@ -203,6 +210,8 @@ ResultsContainer::AddFlowResults ()
                                      numeric_cast<double> (flowResult.totalRecvBytes));
           flowElement->SetAttribute (
               "TotalDelay", numeric_cast<double> (flowResult.totalDelay.GetNanoSeconds ()));
+          flowElement->SetAttribute ("MaxMstcpBufferSize",
+                                     numeric_cast<double> (flowResult.maxMstcpRecvBufferSize));
 
           for (const auto &packetResult : flowResult.packetResults)
             {
@@ -224,7 +233,8 @@ ResultsContainer::AddFlowResults ()
           resultsElement->InsertEndChild (flowElement);
         }
 
-      XMLComment *comment = m_xmlDoc.NewComment ("Timings are given in NanoSeconds");
+      XMLComment *comment = m_xmlDoc.NewComment ("Timings are given in NanoSeconds. "
+                                                 "Buffer sizes are in bytes");
       resultsElement->InsertFirstChild (comment);
 
       m_rootNode->InsertEndChild (resultsElement);
@@ -277,7 +287,7 @@ ResultsContainer::AddSwitchResults ()
           switchResultsElement->InsertEndChild (switchElement);
         }
 
-      XMLComment *comment = m_xmlDoc.NewComment ("Buffer usage is in bytes");
+      XMLComment *comment = m_xmlDoc.NewComment ("Buffer sizes are in bytes");
       switchResultsElement->InsertFirstChild (comment);
 
       m_rootNode->InsertEndChild (switchResultsElement);

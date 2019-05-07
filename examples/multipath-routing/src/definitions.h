@@ -9,6 +9,7 @@ using delay_t = double;
 using dataRate_t = double;
 using packetSize_t = uint32_t;
 using packetNumber_t = uint64_t;
+using bufferSize_t = uint64_t;
 using splitRatio_t = double;
 
 enum class NodeType : char { Switch = 'S', Terminal = 'T' };
