@@ -53,26 +53,6 @@ private:
 
 class MultipathReceiver : public ReceiverBase
 {
-
-  // TODO: Fix the below put them in the private! as they are it's quite confusing
-  struct PathInformation
-  {
-    portNum_t dstPort;
-    ns3::Ptr<ns3::Socket> rxListenSocket; /**< The socket to listen for incoming connections. */
-    ns3::Address dstAddress; /**< The path's destination address. */
-  };
-  std::vector<PathInformation> m_pathInfoContainer;
-
-  FlowProtocol protocol{FlowProtocol::Undefined};
-  packetSize_t m_dataPacketSize{0}; /**< The data packet size in bytes. */
-  AggregateBuffer aggregateBuffer;
-
-  /**
-     In the case of TCP, each socket accept returns a new socket, so the
-     listening socket is stored separately from the accepted sockets.
-     */
-  std::list<ns3::Ptr<ns3::Socket>> m_rxAcceptedSockets; /**< List of the accepted sockets. */
-
 public:
   MultipathReceiver (const Flow &flow, ResultsContainer &resContainer);
   virtual ~MultipathReceiver ();
@@ -89,10 +69,26 @@ private:
 
   void RetrievePacketsFromBuffer ();
 
-  ResultsContainer &m_resContainer;
-
   ReceiverBuffer m_receiverBuffer;
+  AggregateBuffer m_aggregateBuffer;
+  ResultsContainer &m_resContainer;
+  packetSize_t m_dataPacketSize{0}; /**< The data packet size in bytes. */
   packetNumber_t m_expectedPacketNum{0}; /**< The id of the expected packet */
+  FlowProtocol m_protocol{FlowProtocol::Undefined}; /**< The flow's protocol */
+
+  /**
+     In the case of TCP, each socket accept returns a new socket, so the
+     listening socket is stored separately from the accepted sockets.
+     */
+  std::list<ns3::Ptr<ns3::Socket>> m_rxAcceptedSockets;
+
+  struct PathInformation
+  {
+    portNum_t dstPort;
+    ns3::Ptr<ns3::Socket> rxListenSocket; /**< The socket to listen for incoming connections. */
+    ns3::Address dstAddress; /**< The path's destination address. */
+  };
+  std::vector<PathInformation> m_pathInfoContainer;
 };
 
 #endif /* multipath_receiver_h */

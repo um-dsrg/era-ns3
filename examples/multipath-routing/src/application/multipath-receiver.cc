@@ -108,12 +108,12 @@ std::tuple<packetNumber_t, packetSize_t> ExtractPacketDetails (ns3::Ptr<ns3::Pac
 
 MultipathReceiver::MultipathReceiver (const Flow &flow, ResultsContainer &resContainer)
     : ReceiverBase (flow.id),
-      protocol (flow.protocol),
+      m_receiverBuffer (flow.id, resContainer),
       m_resContainer (resContainer),
-      m_receiverBuffer (m_id, m_resContainer)
+      m_protocol (flow.protocol)
 {
   SetDataPacketSize (flow);
-  aggregateBuffer.SetPacketSize (m_dataPacketSize + MptcpHeader ().GetSerializedSize ());
+  m_aggregateBuffer.SetPacketSize (m_dataPacketSize + MptcpHeader ().GetSerializedSize ());
 
   for (const auto &path : flow.GetDataPaths ())
     {
@@ -156,7 +156,7 @@ MultipathReceiver::StartApplication ()
       pathInfo.rxListenSocket->SetRecvCallback (
           MakeCallback (&MultipathReceiver::HandleRead, this));
 
-      if (protocol == FlowProtocol::Tcp)
+      if (m_protocol == FlowProtocol::Tcp)
         {
           pathInfo.rxListenSocket->Listen ();
           pathInfo.rxListenSocket->ShutdownSend (); // Half close the connection;
@@ -216,9 +216,9 @@ MultipathReceiver::HandleRead (Ptr<Socket> socket)
           break;
         }
 
-      aggregateBuffer.AddPacketToBuffer (packet);
+      m_aggregateBuffer.AddPacketToBuffer (packet);
 
-      auto retrievedPackets{aggregateBuffer.RetrievePacketFromBuffer ()};
+      auto retrievedPackets{m_aggregateBuffer.RetrievePacketFromBuffer ()};
 
       for (auto &retrievedPacket : retrievedPackets)
         {
