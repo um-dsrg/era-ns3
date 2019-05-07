@@ -78,24 +78,27 @@ ReceiverBuffer::RetrievePacketFromBuffer (packetNumber_t packetNumber)
   auto packetRetrieved = bool{false};
   ReceiverBuffer::bufferContents_t retrievedPacket (0, 0);
 
-  const auto &topPacket{m_recvBuffer.top ()};
-
-  if (m_recvBuffer.top ().first == packetNumber)
+  if (m_recvBuffer.empty () == false)
     {
-      packetRetrieved = true;
-      retrievedPacket = topPacket;
+      const auto &topPacket{m_recvBuffer.top ()};
 
-      m_recvBuffer.pop ();
-      m_bufferSize -= topPacket.second;
-      NS_LOG_INFO (Simulator::Now ().GetSeconds ()
-                   << "s: Packet " << retrievedPacket.first
-                   << " retrieved from the buffer. Buffer size: " << m_bufferSize << "bytes");
-    }
-  else
-    {
-      NS_LOG_INFO (Simulator::Now ().GetSeconds ()
-                   << "s: Packet " << packetNumber
-                   << " no found in buffer. Buffer size:" << m_bufferSize << "bytes");
+      if (m_recvBuffer.top ().first == packetNumber)
+        {
+          packetRetrieved = true;
+          retrievedPacket = topPacket;
+
+          m_recvBuffer.pop ();
+          m_bufferSize -= topPacket.second;
+          NS_LOG_INFO (Simulator::Now ().GetSeconds ()
+                       << "s: Packet " << retrievedPacket.first
+                       << " retrieved from the buffer. Buffer size: " << m_bufferSize << "bytes");
+        }
+      else
+        {
+          NS_LOG_INFO (Simulator::Now ().GetSeconds ()
+                       << "s: Packet " << packetNumber
+                       << " no found in buffer. Buffer size:" << m_bufferSize << "bytes");
+        }
     }
 
   return std::make_pair (retrievedPacket, packetRetrieved);
@@ -143,7 +146,7 @@ MultipathReceiver::~MultipathReceiver ()
 void
 MultipathReceiver::StartApplication ()
 {
-  NS_LOG_INFO ("Flow " << m_id << " started reception.");
+  NS_LOG_INFO (Simulator::Now ().GetSeconds () << "s: Flow " << m_id << " started reception.");
 
   // Initialise socket connections
   for (const auto &pathInfo : m_pathInfoContainer)
@@ -204,7 +207,7 @@ MultipathReceiver::HandleAccept (Ptr<Socket> socket, const Address &from)
 void
 MultipathReceiver::HandleRead (Ptr<Socket> socket)
 {
-  NS_LOG_INFO ("Flow " << m_id << " received some packets at " << Simulator::Now ());
+  NS_LOG_INFO (Simulator::Now ().GetSeconds () << "s: Flow " << m_id << " received some packets");
 
   Ptr<Packet> packet;
   Address from;
@@ -226,9 +229,9 @@ MultipathReceiver::HandleRead (Ptr<Socket> socket)
           packetSize_t packetSize;
           std::tie (packetNumber, packetSize) = ExtractPacketDetails (retrievedPacket);
 
-          NS_LOG_INFO ("Expected packet number: " << m_expectedPacketNum);
-          NS_LOG_INFO ("Packet " << packetNumber << " received at " << Simulator::Now ()
-                                 << " data packet size " << packetSize << "bytes");
+          NS_LOG_INFO (Simulator::Now ().GetSeconds ()
+                       << "s: Packet " << packetNumber << " received. Data packet size "
+                       << packetSize << "bytes | Expected packet number: " << m_expectedPacketNum);
 
           NS_ASSERT (packetNumber >= m_expectedPacketNum);
 
