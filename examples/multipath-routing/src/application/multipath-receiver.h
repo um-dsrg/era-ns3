@@ -40,7 +40,8 @@ public:
 
   ReceiverBuffer (id_t flowId, ResultsContainer &resContainer);
 
-  void AddPacketToBuffer (packetNumber_t packetNumber, packetSize_t packetSize);
+  void AddPacketToBuffer (packetNumber_t packetNumber, packetNumber_t expectedPacketNumber,
+                          packetSize_t packetSize);
   std::pair<bufferContents_t, bool> RetrievePacketFromBuffer (packetNumber_t packetNumber);
 
 private:

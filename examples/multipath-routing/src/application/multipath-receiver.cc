@@ -62,13 +62,18 @@ ReceiverBuffer::ReceiverBuffer (id_t flowId, ResultsContainer &resContainer)
 }
 
 void
-ReceiverBuffer::AddPacketToBuffer (packetNumber_t packetNumber, packetSize_t packetSize)
+ReceiverBuffer::AddPacketToBuffer (packetNumber_t packetNumber, packetNumber_t expectedPacketNumber,
+                                   packetSize_t packetSize)
 {
   m_recvBuffer.push (std::make_pair (packetNumber, packetSize));
   m_bufferSize += packetSize;
+
   NS_LOG_INFO (Simulator::Now ().GetSeconds ()
-               << "s: Packet " << packetNumber << ", " << packetSize
-               << "bytes stored in the buffer. Buffer size: " << m_bufferSize << "bytes");
+               << "s: Flow " << m_flowId << " Packet " << packetNumber
+               << " received. Data packet size " << packetSize << " | Expected packet number "
+               << expectedPacketNumber << ". "
+               << "Packet stored in the receiver buffer. Buffer size: " << m_bufferSize << "bytes");
+
   m_resContainer.LogMstcpReceiverBufferSize (m_flowId, m_bufferSize);
 }
 
@@ -229,21 +234,18 @@ MultipathReceiver::HandleRead (Ptr<Socket> socket)
           packetSize_t packetSize;
           std::tie (packetNumber, packetSize) = ExtractPacketDetails (retrievedPacket);
 
-          NS_LOG_INFO (Simulator::Now ().GetSeconds ()
-                       << "s: Packet " << packetNumber << " received. Data packet size "
-                       << packetSize << "bytes | Expected packet number: " << m_expectedPacketNum);
-
           NS_ASSERT (packetNumber >= m_expectedPacketNum);
 
           if (packetNumber == m_expectedPacketNum)
             {
-              m_resContainer.LogPacketReception (m_id, Simulator::Now (), packetNumber, packetSize);
+              m_resContainer.LogPacketReception (m_id, Simulator::Now (), packetNumber,
+                                                 m_expectedPacketNum, packetSize);
               m_expectedPacketNum++;
               RetrievePacketsFromBuffer ();
             }
           else
             {
-              m_receiverBuffer.AddPacketToBuffer (packetNumber, packetSize);
+              m_receiverBuffer.AddPacketToBuffer (packetNumber, m_expectedPacketNum, packetSize);
             }
         }
     }
@@ -263,9 +265,8 @@ MultipathReceiver::RetrievePacketsFromBuffer ()
       if (packetRetrieved)
         {
           m_resContainer.LogPacketReception (m_id, Simulator::Now (), bufferContents.first,
-                                             bufferContents.second);
+                                             m_expectedPacketNum, bufferContents.second);
           m_expectedPacketNum++;
-          NS_LOG_INFO ("Expected packet number: " << m_expectedPacketNum);
         }
     }
   while (packetRetrieved == true);

@@ -56,9 +56,9 @@ public:
   // Log Flow results
   void LogFlowTxGoodputRate (id_t flowId, double goodputRate);
   void LogPacketTransmission (id_t flowId, const ns3::Time &time, packetNumber_t pktNumber,
-                              packetSize_t dataSize, ns3::Ptr<ns3::Socket> socket);
+                              packetSize_t dataSize, id_t pathId, ns3::Ptr<ns3::Socket> socket);
   void LogPacketReception (id_t flowId, const ns3::Time &time, packetNumber_t pktNumber,
-                           packetSize_t dataSize);
+                           packetNumber_t expectedPktNumber, packetSize_t dataSize);
   void LogMstcpReceiverBufferSize (id_t flowId, bufferSize_t bufferSize);
 
   // Log Switch results

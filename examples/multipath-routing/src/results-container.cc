@@ -72,7 +72,7 @@ ResultsContainer::LogFlowTxGoodputRate (id_t flowId, double goodputRate)
 
 void
 ResultsContainer::LogPacketTransmission (id_t flowId, const Time &time, packetNumber_t pktNumber,
-                                         packetSize_t dataSize, Ptr<Socket> socket)
+                                         packetSize_t dataSize, id_t pathId, Ptr<Socket> socket)
 {
   auto &flowResult = m_flowResults.at (flowId);
 
@@ -84,13 +84,13 @@ ResultsContainer::LogPacketTransmission (id_t flowId, const Time &time, packetNu
   flowResult.packetResults.emplace (pktNumber, PacketDetails (time, dataSize));
 
   NS_LOG_INFO (time.GetSeconds () << "s: Flow " << flowId << " transmitted packet " << pktNumber
-                                  << " (" << dataSize << " data bytes). "
+                                  << " (" << dataSize << " data bytes) on path " << pathId << ". "
                                   << GetSocketDetails (socket));
 }
 
 void
 ResultsContainer::LogPacketReception (id_t flowId, const Time &time, packetNumber_t pktNumber,
-                                      packetSize_t dataSize)
+                                      packetNumber_t expectedPktNumber, packetSize_t dataSize)
 {
   auto &flowResult = m_flowResults.at (flowId);
 
@@ -125,8 +125,9 @@ ResultsContainer::LogPacketReception (id_t flowId, const Time &time, packetNumbe
               << pktNumber << ". Transmitted size: " << packetDetail.transmittedDataSize
               << " Received Size: " << packetDetail.receivedDataSize);
 
-  NS_LOG_INFO (time.GetSeconds () << "s: Flow " << flowId << " received packet " << pktNumber
-                                  << " (" << dataSize << " data bytes)");
+  NS_LOG_INFO (time.GetSeconds () << "s: Flow " << flowId << " Packet " << pktNumber
+                                  << " received. Data packet size " << dataSize
+                                  << "bytes | Expected packet number: " << expectedPktNumber);
 
   // We calculate the total delay here
   flowResult.totalDelay += packetDetail.received - packetDetail.transmitted;

@@ -94,7 +94,7 @@ UnipathReceiver::HandleRead (Ptr<Socket> socket)
       for (auto i = 0; i < packetsReceived; ++i)
         {
           m_resContainer.LogPacketReception (m_id, Simulator::Now (), m_packetNumber,
-                                             m_dataPacketSize);
+                                             m_packetNumber, m_dataPacketSize);
           m_packetNumber++;
         }
 

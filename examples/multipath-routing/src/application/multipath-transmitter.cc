@@ -198,7 +198,7 @@ MultipathTransmitter::TransmitPacket ()
       SendPacket (txSocket, packet, packetNumber);
 
       m_resContainer.LogPacketTransmission (m_id, Simulator::Now (), packetNumber, m_dataPacketSize,
-                                            txSocket);
+                                            transmitPathId, txSocket);
     }
 
   m_sendEvent =
