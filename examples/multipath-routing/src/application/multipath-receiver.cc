@@ -97,7 +97,7 @@ ReceiverBuffer::RetrievePacketFromBuffer (packetNumber_t packetNumber)
         {
           NS_LOG_INFO (Simulator::Now ().GetSeconds ()
                        << "s: Packet " << packetNumber
-                       << " no found in buffer. Buffer size:" << m_bufferSize << "bytes");
+                       << " not found in buffer. Buffer size:" << m_bufferSize << "bytes");
         }
     }
 
