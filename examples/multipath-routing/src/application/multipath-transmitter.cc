@@ -1,4 +1,4 @@
-#include <math.h>
+#include <cmath>
 #include <algorithm>
 #include <boost/numeric/conversion/cast.hpp>
 
@@ -12,7 +12,16 @@
 #include "multipath-transmitter.h"
 #include "../random-generator-manager.h"
 
-using namespace ns3;
+using ns3::Address;
+using ns3::Create;
+using ns3::DataRate;
+using ns3::InetSocketAddress;
+using ns3::Ipv4Address;
+using ns3::Packet;
+using ns3::Ptr;
+using ns3::Seconds;
+using ns3::Simulator;
+using std::abs;
 
 NS_LOG_COMPONENT_DEFINE ("MultipathTransmitter");
 
@@ -27,6 +36,9 @@ MultipathTransmitter::MultipathTransmitter (const Flow &flow, ResultsContainer &
 
   for (const auto &path : flow.GetDataPaths ())
     {
+      if (path.dataRate == DataRate (0))
+        continue;
+
       PathInformation pathInfo;
       pathInfo.srcPort = path.srcPort;
       pathInfo.txSocket = CreateSocket (flow.srcNode->GetNode (), flow.protocol);
@@ -86,7 +98,7 @@ MultipathTransmitter::MultipathTransmitter (const Flow &flow, ResultsContainer &
   m_uniformRandomVariable = RandomGeneratorManager::CreateUniformRandomVariable (0.0, 1.0);
 
   // If the number is very close to 1, set it equal to 1
-  if (Abs (m_pathSplitRatio.back ().first - 1.0) <= 1e-5)
+  if (abs (m_pathSplitRatio.back ().first - 1.0) <= 1e-5)
     {
       m_pathSplitRatio.back ().first = 1.0;
     }
