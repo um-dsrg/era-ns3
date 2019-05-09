@@ -115,7 +115,7 @@ operator<< (std::ostream &output, const Flow &flow)
       for (const auto &dataPath : flow.m_dataPaths)
         {
           output << dataPath;
-          output << "---\n";
+          output << "\n---\n";
         }
     }
 
@@ -125,7 +125,7 @@ operator<< (std::ostream &output, const Flow &flow)
       for (const auto &ackPath : flow.m_ackPaths)
         {
           output << ackPath;
-          output << "---\n";
+          output << "\n---\n";
         }
     }
   return output;
