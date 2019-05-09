@@ -189,7 +189,7 @@ ParseFlows (tinyxml2::XMLNode *rootNode, const Terminal::terminalContainer_t &te
       flowElement = flowElement->NextSiblingElement ("Flow");
     }
 
-  NS_LOG_INFO ("Paring flows complete.");
+  NS_LOG_INFO ("Parsing flows complete.");
   return flows;
 }
 
