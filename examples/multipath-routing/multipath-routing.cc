@@ -74,7 +74,7 @@ main (int argc, char *argv[])
                     "default size is equal to 100 packets.",
                     switchPortBufferSize);
   cmdLine.AddValue ("switchBufferSize",
-                    "The buffer size in bytes each swith is equipped with. The default switch "
+                    "The buffer size in bytes each switch is equipped with. The default switch "
                     "buffer size is equal to 100,000bytes",
                     switchBufferSize);
   cmdLine.AddValue ("logPacketResults",
