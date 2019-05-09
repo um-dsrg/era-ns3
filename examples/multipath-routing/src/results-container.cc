@@ -24,12 +24,30 @@ using namespace tinyxml2;
 
 NS_LOG_COMPONENT_DEFINE ("ResultsContainer");
 
+/**************************************************************************************************/
+/* Packet Details                                                                                 */
+/**************************************************************************************************/
+
 PacketDetails::PacketDetails (Time transmitted, packetSize_t transmittedDataSize)
     : transmitted (transmitted), transmittedDataSize (transmittedDataSize)
 {
 }
 
-ResultsContainer::ResultsContainer (bool logPacketResults) : m_logPacketResults (logPacketResults)
+/**************************************************************************************************/
+/* Buffer Log                                                                                     */
+/**************************************************************************************************/
+
+BufferLog::BufferLog (const Time &time, bufferSize_t bufferSize)
+    : time (time), bufferSize (bufferSize)
+{
+}
+
+/**************************************************************************************************/
+/* Results Container                                                                              */
+/**************************************************************************************************/
+
+ResultsContainer::ResultsContainer (bool logPacketResults, bool logBufferSizeWithTime)
+    : m_logPacketResults (logPacketResults), m_logBufferSizeWithTime (logBufferSizeWithTime)
 {
   XMLNode *rootElement = m_xmlDoc.NewElement ("Log");
   m_rootNode = m_xmlDoc.InsertFirstChild (rootElement);
@@ -143,10 +161,16 @@ ResultsContainer::LogPacketReception (id_t flowId, const Time &time, packetNumbe
 }
 
 void
-ResultsContainer::LogMstcpReceiverBufferSize (id_t flowId, bufferSize_t bufferSize)
+ResultsContainer::LogMstcpReceiverBufferSize (id_t flowId, const ns3::Time &time,
+                                              bufferSize_t bufferSize)
 {
   auto &flowResult = m_flowResults.at (flowId);
   flowResult.maxMstcpRecvBufferSize = std::max (flowResult.maxMstcpRecvBufferSize, bufferSize);
+
+  if (m_logBufferSizeWithTime)
+    {
+      flowResult.bufferLog.emplace_back (BufferLog (time, bufferSize));
+    }
 }
 
 void
@@ -214,6 +238,8 @@ ResultsContainer::AddFlowResults ()
           flowElement->SetAttribute ("MaxMstcpBufferSize",
                                      numeric_cast<double> (flowResult.maxMstcpRecvBufferSize));
 
+          // Save the packet results
+          XMLElement *packetResults{m_xmlDoc.NewElement ("PacketLog")};
           for (const auto &packetResult : flowResult.packetResults)
             {
               auto &packetNumber{packetResult.first};
@@ -229,8 +255,22 @@ ResultsContainer::AddFlowResults ()
               packetElement->SetAttribute ("TxDataSize", packetDetails.transmittedDataSize);
               packetElement->SetAttribute ("RxDataSize", packetDetails.receivedDataSize);
 
-              flowElement->InsertEndChild (packetElement);
+              packetResults->InsertEndChild (packetElement);
             }
+          flowElement->InsertEndChild (packetResults);
+
+          // Save the receiver buffer results
+          XMLElement *bufferLogElement{m_xmlDoc.NewElement ("ReceiverBufferLog")};
+          for (const auto &bufferLog : flowResult.bufferLog)
+            {
+              XMLElement *bufferElement{m_xmlDoc.NewElement ("Log")};
+              bufferElement->SetAttribute ("Time",
+                                           numeric_cast<double> (bufferLog.time.GetNanoSeconds ()));
+              bufferElement->SetAttribute ("Size", numeric_cast<double> (bufferLog.bufferSize));
+              bufferLogElement->InsertEndChild (bufferElement);
+            }
+          flowElement->InsertEndChild (bufferLogElement);
+
           resultsElement->InsertEndChild (flowElement);
         }
 

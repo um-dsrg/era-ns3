@@ -2,6 +2,7 @@
 #define results_container_h
 
 #include <map>
+#include <list>
 #include <string>
 #include <tinyxml2.h>
 
@@ -23,6 +24,14 @@ struct PacketDetails
   packetSize_t receivedDataSize = 0;
 };
 
+struct BufferLog
+{
+  BufferLog (const ns3::Time &time, bufferSize_t bufferSize);
+
+  ns3::Time time;
+  bufferSize_t bufferSize;
+};
+
 struct FlowResults
 {
   double txGoodput{0.0}; /**<The rate at which the application is generating its data */
@@ -34,6 +43,7 @@ struct FlowResults
   uint64_t totalRecvPackets{0}; /**< The total number of received packets */
   bool firstPacketReceived{false}; /**< Flag that is enabled when the first packet is received */
 
+  std::list<BufferLog> bufferLog; /**< A log that tracks the buffer size with time */
   bufferSize_t maxMstcpRecvBufferSize{0}; /**< The largest receiver buffer size in bytes */
 
   std::map<id_t, PacketDetails> packetResults; /**< Key: Packet Id | Value: Packet Details */
@@ -48,7 +58,7 @@ struct SwitchResults
 class ResultsContainer
 {
 public:
-  ResultsContainer (bool logPacketResults);
+  ResultsContainer (bool logPacketResults, bool logBufferSizeWithTime);
 
   void SetupFlowResults (const Flow::flowContainer_t &flows);
   void SetupSwitchResults (const SwitchContainer &switchContainer);
@@ -59,7 +69,7 @@ public:
                               packetSize_t dataSize, id_t pathId, ns3::Ptr<ns3::Socket> socket);
   void LogPacketReception (id_t flowId, const ns3::Time &time, packetNumber_t pktNumber,
                            packetNumber_t expectedPktNumber, packetSize_t dataSize);
-  void LogMstcpReceiverBufferSize (id_t flowId, bufferSize_t bufferSize);
+  void LogMstcpReceiverBufferSize (id_t flowId, const ns3::Time &time, bufferSize_t bufferSize);
 
   // Log Switch results
   void LogPacketDrop (id_t switchId, const ns3::Time &time);
@@ -81,6 +91,7 @@ private:
   void InsertTimeStamp ();
 
   bool m_logPacketResults{false};
+  bool m_logBufferSizeWithTime{false};
   std::map<id_t, FlowResults> m_flowResults; /**< Key: Flow Id | Value: Flow Results */
   std::map<id_t, SwitchResults> m_switchResults; /**< Key: Switch Id | Value: Switch Results */
 

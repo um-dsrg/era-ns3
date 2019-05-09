@@ -30,8 +30,9 @@ main (int argc, char *argv[])
   bool enablePcap{false};
   bool useSdnSwitches{false};
   bool usePpfsSwitches{false};
-  bool perPacketDelayLog{false};
   bool logPacketResults{false};
+  bool perPacketDelayLog{false};
+  bool logBufferSizeWithTime{false};
 
   uint32_t initRun{1};
   uint32_t seedValue{1};
@@ -80,6 +81,9 @@ main (int argc, char *argv[])
                     "When set, log all the packet results for each flow. Enabling this feature "
                     "might result in very large result files.",
                     logPacketResults);
+  cmdLine.AddValue ("logBufferSizeWithTime",
+                    "When set, log the time the MSTCP receiver buffer size changes.",
+                    logBufferSizeWithTime);
   cmdLine.Parse (argc, argv);
 
   if (verbose)
@@ -130,7 +134,7 @@ main (int argc, char *argv[])
   Link::linkContainer_t linkContainer;
 
   // Create an instance of the result container
-  ResultsContainer resContainer (logPacketResults);
+  ResultsContainer resContainer (logPacketResults, logBufferSizeWithTime);
 
   // Create the nodes and build the topology
   TopologyBuilder topologyBuilder (switchType, switchContainer, terminalContainer, resContainer);

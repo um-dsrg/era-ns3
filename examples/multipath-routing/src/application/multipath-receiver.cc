@@ -74,7 +74,7 @@ ReceiverBuffer::AddPacketToBuffer (packetNumber_t packetNumber, packetNumber_t e
                << expectedPacketNumber << ". "
                << "Packet stored in the receiver buffer. Buffer size: " << m_bufferSize << "bytes");
 
-  m_resContainer.LogMstcpReceiverBufferSize (m_flowId, m_bufferSize);
+  m_resContainer.LogMstcpReceiverBufferSize (m_flowId, Simulator::Now (), m_bufferSize);
 }
 
 std::pair<ReceiverBuffer::bufferContents_t, bool>
