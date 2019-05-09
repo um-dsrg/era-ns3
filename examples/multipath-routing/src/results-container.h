@@ -15,25 +15,30 @@
 
 struct PacketDetails
 {
-  PacketDetails (ns3::Time transmitted, packetSize_t transmittedDataSize);
+  PacketDetails (id_t pathId, ns3::Time transmitted, packetSize_t transmittedDataSize);
 
-  ns3::Time received;
-  ns3::Time transmitted;
-  // The number of data bytes stored in the packet
-  packetSize_t transmittedDataSize = 0;
-  packetSize_t receivedDataSize = 0;
+  id_t pathId; /**< The path this packet is transmitted on */
+
+  ns3::Time received; /**< The time the packet is received */
+  ns3::Time transmitted; /**< The time the packet is transmitted */
+
+  /* The below metrics are kept to verify that the transmitted packet size matches the received */
+  packetSize_t transmittedDataSize = 0; /**< The transmitted packet's data size */
+  packetSize_t receivedDataSize = 0; /**< The received packet's data size */
 };
 
 struct BufferLog
 {
   BufferLog (const ns3::Time &time, bufferSize_t bufferSize);
 
-  ns3::Time time;
-  bufferSize_t bufferSize;
+  ns3::Time time; /**< The time when the buffer size is equal to bufferSize */
+  bufferSize_t bufferSize; /**< The buffer size at time time */
 };
 
 struct FlowResults
 {
+  FlowResults (const Flow &flow);
+
   double txGoodput{0.0}; /**<The rate at which the application is generating its data */
   ns3::Time firstReception{0}; /**< The time the first packet was received */
   ns3::Time lastReception{0}; /**< The time the last packet was received */
@@ -46,6 +51,11 @@ struct FlowResults
   std::list<BufferLog> bufferLog; /**< A log that tracks the buffer size with time */
   bufferSize_t maxMstcpRecvBufferSize{0}; /**< The largest receiver buffer size in bytes */
 
+  /**
+   * Key: Path Id
+   * Value: Number of packets transmitted on the given path.
+   */
+  std::map<id_t, uint64_t> pathPacketCounter;
   std::map<id_t, PacketDetails> packetResults; /**< Key: Packet Id | Value: Packet Details */
 };
 

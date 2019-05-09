@@ -28,8 +28,8 @@ NS_LOG_COMPONENT_DEFINE ("ResultsContainer");
 /* Packet Details                                                                                 */
 /**************************************************************************************************/
 
-PacketDetails::PacketDetails (Time transmitted, packetSize_t transmittedDataSize)
-    : transmitted (transmitted), transmittedDataSize (transmittedDataSize)
+PacketDetails::PacketDetails (id_t pathId, Time transmitted, packetSize_t transmittedDataSize)
+    : pathId (pathId), transmitted (transmitted), transmittedDataSize (transmittedDataSize)
 {
 }
 
@@ -40,6 +40,19 @@ PacketDetails::PacketDetails (Time transmitted, packetSize_t transmittedDataSize
 BufferLog::BufferLog (const Time &time, bufferSize_t bufferSize)
     : time (time), bufferSize (bufferSize)
 {
+}
+
+/**************************************************************************************************/
+/* Flow Results                                                                                   */
+/**************************************************************************************************/
+
+FlowResults::FlowResults (const Flow &flow)
+{
+  // Initialise the path packet counter to 0 for all paths a flow has
+  for (const auto &dataPath : flow.GetDataPaths ())
+    {
+      pathPacketCounter.emplace (dataPath.id, 0);
+    }
 }
 
 /**************************************************************************************************/
@@ -65,8 +78,9 @@ ResultsContainer::SetupFlowResults (const Flow::flowContainer_t &flows)
   // Generate a new FlowResults entry for every existing flow
   for (const auto &flowPair : flows)
     {
-      auto flowId = flowPair.first;
-      m_flowResults.emplace (flowId, FlowResults ());
+      const auto flowId = flowPair.first;
+      const auto &flow{flowPair.second};
+      m_flowResults.emplace (flowId, FlowResults (flow));
     }
 }
 
@@ -99,7 +113,11 @@ ResultsContainer::LogPacketTransmission (id_t flowId, const Time &time, packetNu
                    "Flow " << flowId << ": The packet " << pktNumber
                            << " has been already logged for transmission");
 
-  flowResult.packetResults.emplace (pktNumber, PacketDetails (time, dataSize));
+  flowResult.packetResults.emplace (pktNumber, PacketDetails (pathId, time, dataSize));
+
+  // Update the path transmission counter
+  auto &pathCounter = flowResult.pathPacketCounter.at (pathId);
+  pathCounter++;
 
   NS_LOG_INFO (time.GetSeconds () << "s: Flow " << flowId << " transmitted packet " << pktNumber
                                   << " (" << dataSize << " data bytes) on path " << pathId << ". "
@@ -238,6 +256,18 @@ ResultsContainer::AddFlowResults ()
           flowElement->SetAttribute ("MaxMstcpBufferSize",
                                      numeric_cast<double> (flowResult.maxMstcpRecvBufferSize));
 
+          // Save the path details
+          XMLElement *pathResultsElement{m_xmlDoc.NewElement ("PathResults")};
+          for (const auto &packetCounter : flowResult.pathPacketCounter)
+            {
+              XMLElement *pathElement{m_xmlDoc.NewElement ("Path")};
+              pathElement->SetAttribute ("Id", packetCounter.first);
+              pathElement->SetAttribute ("NumPkts", numeric_cast<double> (packetCounter.second));
+
+              pathResultsElement->InsertEndChild (pathElement);
+            }
+          flowElement->InsertEndChild (pathResultsElement);
+
           // Save the packet results
           XMLElement *packetResults{m_xmlDoc.NewElement ("PacketLog")};
           for (const auto &packetResult : flowResult.packetResults)
@@ -247,6 +277,7 @@ ResultsContainer::AddFlowResults ()
 
               XMLElement *packetElement{m_xmlDoc.NewElement ("Packet")};
               packetElement->SetAttribute ("Id", packetNumber);
+              packetElement->SetAttribute ("PathId", packetDetails.pathId);
               packetElement->SetAttribute (
                   "Transmitted",
                   numeric_cast<double> (packetDetails.transmitted.GetNanoSeconds ()));
@@ -260,16 +291,19 @@ ResultsContainer::AddFlowResults ()
           flowElement->InsertEndChild (packetResults);
 
           // Save the receiver buffer results
-          XMLElement *bufferLogElement{m_xmlDoc.NewElement ("ReceiverBufferLog")};
-          for (const auto &bufferLog : flowResult.bufferLog)
+          if (m_logBufferSizeWithTime)
             {
-              XMLElement *bufferElement{m_xmlDoc.NewElement ("Log")};
-              bufferElement->SetAttribute ("Time",
-                                           numeric_cast<double> (bufferLog.time.GetNanoSeconds ()));
-              bufferElement->SetAttribute ("Size", numeric_cast<double> (bufferLog.bufferSize));
-              bufferLogElement->InsertEndChild (bufferElement);
+              XMLElement *bufferLogElement{m_xmlDoc.NewElement ("ReceiverBufferLog")};
+              for (const auto &bufferLog : flowResult.bufferLog)
+                {
+                  XMLElement *bufferElement{m_xmlDoc.NewElement ("Log")};
+                  bufferElement->SetAttribute (
+                      "Time", numeric_cast<double> (bufferLog.time.GetNanoSeconds ()));
+                  bufferElement->SetAttribute ("Size", numeric_cast<double> (bufferLog.bufferSize));
+                  bufferLogElement->InsertEndChild (bufferElement);
+                }
+              flowElement->InsertEndChild (bufferLogElement);
             }
-          flowElement->InsertEndChild (bufferLogElement);
 
           resultsElement->InsertEndChild (flowElement);
         }
