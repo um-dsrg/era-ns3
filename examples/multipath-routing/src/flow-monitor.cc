@@ -72,71 +72,76 @@ SaveFlowMonitorResultFile (ns3::FlowMonitorHelper &flowMonHelper,
   using tinyxml2::XMLError;
   using tinyxml2::XMLNode;
 
-  XMLDocument flowMonDocument;
-
-  XMLError parseResult =
-      flowMonDocument.Parse (flowMonHelper.SerializeToXmlString (2, false, false).c_str ());
-
-  // TODO: Update this to raise an exception so we'll handle all errors in one go.
-  if (parseResult != tinyxml2::XML_SUCCESS)
+  try
     {
-      std::cerr << "Tinyxml was unable to parse the flow monitor results. An unmodified version of "
-                   "the Flow Monitor XML file is generated instead."
-                << std::endl;
-      flowMonHelper.SerializeToXmlFile (flowMonitorOutputLocation, false, false);
-    }
+      XMLDocument flowMonDocument;
 
-  XMLNode *rootNode = flowMonDocument.FirstChild ();
+      XMLError parseResult =
+          flowMonDocument.Parse (flowMonHelper.SerializeToXmlString (2, false, false).c_str ());
 
-  /**< Key: Flow Monitor Flow Id | Value: Pair (flow id, path id) */
-  std::map<id_t, FlowDetails> flowMonMap;
-
-  auto flowClassifierElement = rootNode->FirstChildElement ("Ipv4FlowClassifier");
-  auto flowElement = flowClassifierElement->FirstChildElement ("Flow");
-
-  while (flowElement != nullptr)
-    {
-      auto flowId = id_t{0};
-      auto tmpPort = int{0};
-
-      flowElement->QueryAttribute ("flowId", &flowId);
-
-      // Get flow's Ip address
-      auto srcIpAddr = Ipv4Address{flowElement->Attribute ("sourceAddress")};
-      auto dstIpAddr = Ipv4Address{flowElement->Attribute ("destinationAddress")};
-
-      // Get flow's port numbers
-      flowElement->QueryAttribute ("sourcePort", &tmpPort);
-      auto srcPort = portNum_t{numeric_cast<portNum_t> (tmpPort)};
-
-      flowElement->QueryAttribute ("destinationPort", &tmpPort);
-      auto dstPort = portNum_t{numeric_cast<portNum_t> (tmpPort)};
-
-      FlowDetails matchingFlowDetails;
-      auto flowMatchFound = bool{false};
-
-      std::tie (matchingFlowDetails, flowMatchFound) =
-          GetMatchingFlowDetails (srcIpAddr, dstIpAddr, srcPort, dstPort, flows);
-
-      if (!flowMatchFound)
+      if (parseResult != tinyxml2::XML_SUCCESS)
         {
-          // TODO: Update to throw an exception here and save it as usual
-          std::cerr << "Something went wrong" << std::endl;
+          throw std::runtime_error ("Tinyxml was unable to parse the flow monitor results");
         }
 
-      // Update the flow element values
-      flowElement->SetAttribute ("flowId", matchingFlowDetails.flowId);
-      flowElement->SetAttribute ("pathId", matchingFlowDetails.pathId);
+      XMLNode *rootNode = flowMonDocument.FirstChild ();
 
-      // Save the mapping to update the FlowStats element
-      flowMonMap.emplace (flowId, matchingFlowDetails);
+      /**< Key: Flow Monitor Flow Id | Value: Pair (flow id, path id) */
+      std::map<id_t, FlowDetails> flowMonMap;
 
-      flowElement = flowElement->NextSiblingElement ("Flow");
-    }
+      auto flowClassifierElement = rootNode->FirstChildElement ("Ipv4FlowClassifier");
+      auto flowElement = flowClassifierElement->FirstChildElement ("Flow");
 
-  // Save the XML file
-  if (flowMonDocument.SaveFile (flowMonitorOutputLocation.c_str ()) != tinyxml2::XML_SUCCESS)
+      while (flowElement != nullptr)
+        {
+          auto flowId = id_t{0};
+          auto tmpPort = int{0};
+
+          flowElement->QueryAttribute ("flowId", &flowId);
+
+          // Get flow's Ip address
+          auto srcIpAddr = Ipv4Address{flowElement->Attribute ("sourceAddress")};
+          auto dstIpAddr = Ipv4Address{flowElement->Attribute ("destinationAddress")};
+
+          // Get flow's port numbers
+          flowElement->QueryAttribute ("sourcePort", &tmpPort);
+          auto srcPort = portNum_t{numeric_cast<portNum_t> (tmpPort)};
+
+          flowElement->QueryAttribute ("destinationPort", &tmpPort);
+          auto dstPort = portNum_t{numeric_cast<portNum_t> (tmpPort)};
+
+          FlowDetails matchingFlowDetails;
+          auto flowMatchFound = bool{false};
+
+          std::tie (matchingFlowDetails, flowMatchFound) =
+              GetMatchingFlowDetails (srcIpAddr, dstIpAddr, srcPort, dstPort, flows);
+
+          if (!flowMatchFound)
+            {
+              throw std::runtime_error ("No match for Flow " + std::to_string (flowId) + " found");
+            }
+
+          // Update the flow element values
+          flowElement->SetAttribute ("flowId", matchingFlowDetails.flowId);
+          flowElement->SetAttribute ("pathId", matchingFlowDetails.pathId);
+
+          // Save the mapping to update the FlowStats element
+          flowMonMap.emplace (flowId, matchingFlowDetails);
+
+          flowElement = flowElement->NextSiblingElement ("Flow");
+        }
+
+      // Save the XML file
+      if (flowMonDocument.SaveFile (flowMonitorOutputLocation.c_str ()) != tinyxml2::XML_SUCCESS)
+        {
+          throw std::runtime_error ("Could not save the result file in " +
+                                    flowMonitorOutputLocation);
+        }
+  } catch (const std::runtime_error &e)
     {
-      throw std::runtime_error ("Could not save the result file in " + flowMonitorOutputLocation);
-    }
+      std::cerr << e.what ()
+                << "\nAn unmodified version of the Flow Monitor XML result file will be saved."
+                << std::endl;
+      flowMonHelper.SerializeToXmlFile (flowMonitorOutputLocation, false, false);
+  }
 }
