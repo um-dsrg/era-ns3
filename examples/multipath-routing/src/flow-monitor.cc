@@ -89,6 +89,8 @@ SaveFlowMonitorResultFile (ns3::FlowMonitorHelper &flowMonHelper,
       /**< Key: Flow Monitor Flow Id | Value: Pair (flow id, path id) */
       std::map<id_t, FlowDetails> flowMonMap;
 
+      /* Build the Flow Id Map & update the Ipv4FlowClassifier element */
+
       auto flowClassifierElement = rootNode->FirstChildElement ("Ipv4FlowClassifier");
       auto flowElement = flowClassifierElement->FirstChildElement ("Flow");
 
@@ -127,6 +129,23 @@ SaveFlowMonitorResultFile (ns3::FlowMonitorHelper &flowMonHelper,
 
           // Save the mapping to update the FlowStats element
           flowMonMap.emplace (flowId, matchingFlowDetails);
+
+          flowElement = flowElement->NextSiblingElement ("Flow");
+        }
+
+      /* Update the FlowStats element with the correct flow id */
+
+      auto flowStatsElement = rootNode->FirstChildElement ("FlowStats");
+      flowElement = flowStatsElement->FirstChildElement ("Flow");
+
+      while (flowElement != nullptr)
+        {
+          auto fmFlowId = id_t{0};
+          flowElement->QueryAttribute ("flowId", &fmFlowId);
+
+          const auto &flowDetails = flowMonMap.at (fmFlowId);
+          flowElement->SetAttribute ("flowId", flowDetails.flowId);
+          flowElement->SetAttribute ("pathId", flowDetails.pathId);
 
           flowElement = flowElement->NextSiblingElement ("Flow");
         }
