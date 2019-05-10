@@ -11,6 +11,7 @@
 
 #include "src/flow.h"
 #include "src/definitions.h"
+#include "src/flow-monitor.h"
 #include "src/routing-helper.h"
 #include "src/topology-builder.h"
 #include "src/results-container.h"
@@ -195,8 +196,8 @@ main (int argc, char *argv[])
       useSdnSwitches, perPacketDelayLog, switchPortBufferSize, switchBufferSize, logPacketResults);
   resContainer.SaveFile (outputFile);
 
-  // Save the flow monitor result file
-  flowMonHelper.SerializeToXmlFile (flowMonitorOutputFile, false, false);
+  // Save the flow monitor result file and try to update the flow ids to match ours
+  SaveFlowMonitorResultFile (flowMonHelper, flows, flowMonitorOutputFile);
 
   Simulator::Destroy ();
 
