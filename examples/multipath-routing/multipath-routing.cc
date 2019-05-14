@@ -166,7 +166,7 @@ main (int argc, char *argv[])
   if (enablePcap)
     {
       PointToPointHelper myHelper;
-      myHelper.EnablePcapAll ("ppfs-pcap", false);
+      myHelper.EnablePcapAll ("multipath-routing-pcap", false);
     }
 
   // Setup Flow Monitor
