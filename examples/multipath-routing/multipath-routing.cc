@@ -181,7 +181,7 @@ main (int argc, char *argv[])
                "$ns3::DropTailQueue<Packet>/MaxSize",
                QueueSizeValue (QueueSize (switchPortBufferSize)));
 
-  std::cout << "Starting Network Simulation..." << std::endl;
+  std::cout << "Network Simulation in progress..." << std::endl;
 
   Simulator::Run ();
   Simulator::Stop ();
