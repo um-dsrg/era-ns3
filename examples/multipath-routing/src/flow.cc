@@ -177,7 +177,8 @@ ParseFlows (tinyxml2::XMLNode *rootNode, const Terminal::terminalContainer_t &te
 
       auto pathPortMap{AddDataPaths (flow, flowElement, linkContainer, switchType)};
 
-      if (flow.protocol == FlowProtocol::Tcp) // Parse ACK paths for TCP flows only
+      // Parse ACK paths only for TCP flows and flows that are assigned data rate
+      if (flow.protocol == FlowProtocol::Tcp && pathPortMap.size() > 0)
         {
           AddAckPaths (flow, flowElement, pathPortMap, linkContainer, switchType);
         }
