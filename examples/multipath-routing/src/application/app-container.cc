@@ -28,14 +28,17 @@ AppContainer::InstallApplicationsOnTerminals (const Flow::flowContainer_t &flows
       NS_LOG_INFO ("Installing flow " << flowPair.first);
       const auto &flow{flowPair.second};
 
-      if (flow.GetDataPaths ().size () == 1 || usePpfsSwitches)
+      if (flow.dataRate.GetBitRate() > 0)
         {
-          InstallApplicationOnTerminal<UnipathTransmitter, UnipathReceiver> (flow, resContainer);
-        }
-      else
-        {
-          InstallApplicationOnTerminal<MultipathTransmitter, MultipathReceiver> (flow,
-                                                                                 resContainer);
+          if (flow.GetDataPaths ().size () == 1 || usePpfsSwitches)
+            {
+              InstallApplicationOnTerminal<UnipathTransmitter, UnipathReceiver> (flow, resContainer);
+            }
+          else
+            {
+              InstallApplicationOnTerminal<MultipathTransmitter, MultipathReceiver> (flow,
+                                                                                     resContainer);
+            }
         }
     }
 }
