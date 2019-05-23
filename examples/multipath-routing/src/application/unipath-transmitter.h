@@ -28,6 +28,17 @@ private:
 
   void RtoChanged (ns3::Time oldVal, ns3::Time newVal);
 
+  /**
+   * The path id that all data is logged to be transmitted. A uni-path
+   * transmitter will only transmit flows over a single path, it is the switches
+   * that will take care of splitting the packets over multiple paths. However,
+   * for logging purposes a valid path id needs to be given when logging
+   * transmission because of the packet transmission counter. Therefore, all
+   * packets will be logged as they are transmitted on the first path id of the
+   * given flow.
+   */
+  id_t m_transmitPathId = 0;
+
   portNum_t srcPort;
   ns3::Ptr<ns3::Socket> txSocket; /**< The socket to transmit data on the given path. */
   ns3::Address dstAddress; /**< The path's destination address. */

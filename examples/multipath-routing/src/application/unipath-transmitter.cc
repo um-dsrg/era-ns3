@@ -22,6 +22,10 @@ UnipathTransmitter::UnipathTransmitter (const Flow &flow, ResultsContainer &resC
   // Set the data packet size
   SetDataPacketSize (flow);
 
+  // Set the transmit path id to the first path
+  const auto& dataPaths = flow.GetDataPaths();
+  m_transmitPathId = dataPaths.front().id;
+
   // Set the application's good put rate in bps
   SetApplicationGoodputRate (flow, resContainer);
 
@@ -82,7 +86,7 @@ UnipathTransmitter::TransmitPacket ()
       SendPacket (txSocket, packet, packetNumber);
 
       m_resContainer.LogPacketTransmission (m_id, Simulator::Now (), packetNumber,
-                                            packet->GetSize (), 0, txSocket);
+                                            packet->GetSize (), m_transmitPathId, txSocket);
     }
 
   m_sendEvent =
