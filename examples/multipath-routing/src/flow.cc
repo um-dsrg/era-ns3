@@ -190,14 +190,14 @@ ParseFlows (tinyxml2::XMLNode *rootNode, const Terminal::terminalContainer_t &te
       flowElement = flowElement->NextSiblingElement ("Flow");
 
       /**
-       * Check that the flow's allocated data rate is not larger than 33Mbps.
+       * Check that the flow's allocated data rate is not larger than 40Mbps.
        * This check is required to make sure that the TCP CWND size will be
        * appropriate because the calculation used for estimating the CWND size
        * assumes that the path will have at most a cost of 200ms.
        */
-      NS_ABORT_MSG_IF(flow.dataRate > ns3::DataRate("33Mbps"),
+      NS_ABORT_MSG_IF(flow.dataRate > ns3::DataRate("40Mbps"),
                       "Flow: " + std::to_string(flow.id) +
-                      " has a data rate that exceeds 33Mbps."
+                      " has a data rate that exceeds 40Mbps."
                       " Flow Data Rate: " + std::to_string(dataRate) + "Mbps");
     }
 
