@@ -196,7 +196,8 @@ ParseFlows (tinyxml2::XMLNode *rootNode, const Terminal::terminalContainer_t &te
        */
       NS_ABORT_MSG_IF(flow.dataRate > ns3::DataRate("33Mbps"),
                       "Flow: " + std::to_string(flow.id) +
-                      "has a data rate that exceeds 33Mbps.");
+                      " has a data rate that exceeds 33Mbps."
+                      " Flow Data Rate: " + std::to_string(dataRate) + "Mbps");
     }
 
   NS_LOG_INFO ("Parsing flows complete.");
