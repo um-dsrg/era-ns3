@@ -103,9 +103,10 @@ MultipathTransmitter::MultipathTransmitter (const Flow &flow, ResultsContainer &
       m_pathSplitRatio.back ().first = 1.0;
     }
 
-  NS_ABORT_MSG_IF (
-      m_pathSplitRatio.back ().first != 1.0,
-      "The final split ratio is not equal to 1. Split Ratio: " << m_pathSplitRatio.back ().first);
+  NS_ABORT_MSG_IF (m_pathSplitRatio.back ().first != 1.0,
+                   "Flow " << m_id << " | "
+                           << "The final split ratio is not equal to 1. Split Ratio: "
+                           << m_pathSplitRatio.back ().first);
 
   // Set the data packet size
   SetDataPacketSize (flow);
