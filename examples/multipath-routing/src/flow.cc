@@ -178,7 +178,7 @@ ParseFlows (tinyxml2::XMLNode *rootNode, const Terminal::terminalContainer_t &te
       auto pathPortMap{AddDataPaths (flow, flowElement, linkContainer, switchType)};
 
       // Parse ACK paths only for TCP flows and flows that are assigned data rate
-      if (flow.protocol == FlowProtocol::Tcp && pathPortMap.size() > 0)
+      if (flow.protocol == FlowProtocol::Tcp && pathPortMap.size () > 0)
         {
           AddAckPaths (flow, flowElement, pathPortMap, linkContainer, switchType);
         }
@@ -195,10 +195,11 @@ ParseFlows (tinyxml2::XMLNode *rootNode, const Terminal::terminalContainer_t &te
        * appropriate because the calculation used for estimating the CWND size
        * assumes that the path will have at most a cost of 200ms.
        */
-      NS_ABORT_MSG_IF(flow.dataRate > ns3::DataRate("40Mbps"),
-                      "Flow: " + std::to_string(flow.id) +
-                      " has a data rate that exceeds 40Mbps."
-                      " Flow Data Rate: " + std::to_string(dataRate) + "Mbps");
+      NS_ABORT_MSG_IF (flow.dataRate > ns3::DataRate ("40Mbps"),
+                       "Flow: " + std::to_string (flow.id) +
+                           " has a data rate that exceeds 40Mbps."
+                           " Flow Data Rate: " +
+                           std::to_string (dataRate) + "Mbps");
     }
 
   NS_LOG_INFO ("Parsing flows complete.");
@@ -236,36 +237,36 @@ AddDataPaths (Flow &flow, tinyxml2::XMLElement *flowElement,
       pathElement->QueryAttribute ("DataRate", &dataRate);
 
       if (dataRate > 0) // Only add paths to the flow if is allocated some data rate
-      {
-        path.dataRate = ns3::DataRate (std::string{std::to_string (dataRate) + "Mbps"});
+        {
+          path.dataRate = ns3::DataRate (std::string{std::to_string (dataRate) + "Mbps"});
 
-        auto linkElement = pathElement->FirstChildElement ("Link");
-        while (linkElement != nullptr)
-          {
-            id_t linkId;
-            linkElement->QueryAttribute ("Id", &linkId);
-            path.AddLink (linkContainer.at (linkId).get ());
-            linkElement = linkElement->NextSiblingElement ("Link");
-          }
+          auto linkElement = pathElement->FirstChildElement ("Link");
+          while (linkElement != nullptr)
+            {
+              id_t linkId;
+              linkElement->QueryAttribute ("Id", &linkId);
+              path.AddLink (linkContainer.at (linkId).get ());
+              linkElement = linkElement->NextSiblingElement ("Link");
+            }
 
-        auto ret = pathPortMap.emplace (path.id, std::make_pair (path.srcPort, path.dstPort));
-        NS_ABORT_MSG_IF (ret.second == false, "Trying to insert a duplicate path " << path.id);
+          auto ret = pathPortMap.emplace (path.id, std::make_pair (path.srcPort, path.dstPort));
+          NS_ABORT_MSG_IF (ret.second == false, "Trying to insert a duplicate path " << path.id);
 
-        /**
-         * Check that the path does not have a cost > 200ms. This check is
-         * required to make sure that the TCP CWND size will be appropriate
-         * because the calculation used for estimating the CWND size assumes
-         * that the path will have at most a cost of 200ms.
-         */
-        double pathCost;
-        pathElement->QueryAttribute("Cost", &pathCost);
-        NS_ABORT_MSG_IF(pathCost > 200.0, "Flow: " + std::to_string(flow.id) +
-                                          " Path: " + std::to_string(path.id) +
-                                          " has a cost greater than 200. Path Cost: "
-                                          + std::to_string(pathCost));
+          /**
+           * Check that the path does not have a cost > 200ms. This check is
+           * required to make sure that the TCP CWND size will be appropriate
+           * because the calculation used for estimating the CWND size assumes
+           * that the path will have at most a cost of 200ms.
+           */
+          double pathCost;
+          pathElement->QueryAttribute ("Cost", &pathCost);
+          NS_ABORT_MSG_IF (
+              pathCost > 200.0,
+              "Flow: " + std::to_string (flow.id) + " Path: " + std::to_string (path.id) +
+                  " has a cost greater than 200. Path Cost: " + std::to_string (pathCost));
 
-        flow.AddDataPath (path);
-      }
+          flow.AddDataPath (path);
+        }
 
       pathElement = pathElement->NextSiblingElement ("Path");
     }
@@ -311,7 +312,7 @@ AddAckPaths (Flow &flow, tinyxml2::XMLElement *flowElement, const pathPortMap_t 
           pathElement->QueryAttribute ("Id", &path.id);
 
           // Check whether the path exists in the pathPortMap
-          if (pathPortMap.find(path.id) != pathPortMap.end())
+          if (pathPortMap.find (path.id) != pathPortMap.end ())
             {
               const auto &dataPathPortPair{pathPortMap.at (path.id)};
               /* Swapping the port numbers for the ACK flows */
