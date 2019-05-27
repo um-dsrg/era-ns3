@@ -98,7 +98,7 @@ MultipathTransmitter::MultipathTransmitter (const Flow &flow, ResultsContainer &
   m_uniformRandomVariable = RandomGeneratorManager::CreateUniformRandomVariable (0.0, 1.0);
 
   // If the number is very close to 1, set it equal to 1
-  if (abs (m_pathSplitRatio.back ().first - 1.0) <= 1e-5)
+  if (abs (m_pathSplitRatio.back ().first - 1.0) <= 1e-4)
     {
       m_pathSplitRatio.back ().first = 1.0;
     }
