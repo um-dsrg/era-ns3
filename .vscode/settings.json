@@ -1,18 +1,21 @@
 {
   "files.exclude": {
-    "**/.git": true,
-    "**/.svn": true,
+    "doc/": true,
+    ".waf*": true,
+    "build/": true,
+    "utils/": true,
     "**/.hg": true,
     "**/CVS": true,
-    "**/.DS_Store": true,
-    // Custom Excludes
-    "doc/": true,
-    "utils/": true,
     "waf.bat": true,
+    "**/.svn": true,
+    "**/.git": true,
     "contrib/": true,
     "bindings/": true,
     "waf-tools/": true,
-    ".waf*": true
+    "**/.DS_Store": true,
+  },
+  "files.watcherExclude": {
+    "build/**": true
   },
   "editor.rulers": [
     100
