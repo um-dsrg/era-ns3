@@ -82,21 +82,19 @@ PpfsSwitch::PacketReceived (Ptr<NetDevice> incomingPort, Ptr<const Packet> packe
                             NetDevice::PacketType packetType)
 {
   NS_LOG_INFO (Simulator::Now ().GetSeconds () << "s: Switch " << m_id << " received a packet");
-  auto pktSizeInclPppHeader = packetSize_t{packet->GetSize () + PppHeader ().GetSerializedSize ()};
 
-  if (!EnoughSpaceInBuffer (pktSizeInclPppHeader))
+  m_buffer.AddToBuffer (packet, protocol);
+  std::pair<bool, Ptr<Packet>> retrievedDetails = m_buffer.RetrievePacketFromBuffer ();
+
+  if (retrievedDetails.first) // A packet is retrieved from the buffer
     {
-      m_resContainer.LogPacketDrop (m_id, Simulator::Now ());
-    }
-  else
-    {
-      auto parsedFlow = ExtractFlowFromPacket (packet, protocol);
+      Ptr<Packet> retrievedPacket (retrievedDetails.second);
+      auto parsedFlow = ExtractFlowFromPacket (retrievedPacket, protocol);
       NS_LOG_INFO ("  " << parsedFlow);
 
       try
         {
           auto &forwardingActionList = m_routingTable.at (parsedFlow);
-
           auto randNum = m_uniformRandomVariable->GetValue ();
           auto forwardingNetDevice = ns3::Ptr<ns3::NetDevice>{nullptr};
 
@@ -110,16 +108,15 @@ PpfsSwitch::PacketReceived (Ptr<NetDevice> incomingPort, Ptr<const Packet> packe
             }
 
           NS_ABORT_MSG_IF (forwardingNetDevice == nullptr,
-                           "Switch " << m_id << ": Failed to find the forwarding port");
-
-          AddPacketToBuffer (pktSizeInclPppHeader);
+                           "Switch " << m_id << " failed to find the forwarding port");
 
           auto sendSuccess = forwardingNetDevice->Send (packet->Copy (), dst, protocol);
-          NS_ABORT_MSG_IF (sendSuccess == false, "Switch " << m_id << " failed to forward packet");
+          NS_ABORT_MSG_IF (!sendSuccess, "Switch " << m_id << " failed to forward packet");
+          NS_LOG_INFO (Simulator::Now ().GetSeconds ()
+                       << "s: Switch " << m_id << " forwarded a packet at " << Simulator::Now ());
       } catch (const std::out_of_range &oor)
         {
-          NS_ABORT_MSG ("Routing table Miss on Switch " << m_id << ".\nFlow Details\n"
-                                                        << parsedFlow);
+          NS_ABORT_MSG ("Routing table Miss on Switch " << m_id << ".Flow: " << parsedFlow);
       }
     }
 }

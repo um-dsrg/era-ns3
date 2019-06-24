@@ -57,21 +57,18 @@ SdnSwitch::PacketReceived (Ptr<NetDevice> incomingPort, Ptr<const Packet> packet
                            const Address &src, const Address &dst, NetDevice::PacketType packetType)
 {
   NS_LOG_INFO (Simulator::Now ().GetSeconds () << "s: Switch " << m_id << " received a packet");
-  auto pktSizeInclPppHeader = packetSize_t{packet->GetSize () + PppHeader ().GetSerializedSize ()};
 
-  if (!EnoughSpaceInBuffer (pktSizeInclPppHeader))
+  m_buffer.AddToBuffer (packet, protocol);
+  std::pair<bool, Ptr<Packet>> retrievedDetails = m_buffer.RetrievePacketFromBuffer ();
+
+  if (retrievedDetails.first) // A packet is retrieved from the buffer
     {
-      m_resContainer.LogPacketDrop (m_id, Simulator::Now ());
-    }
-  else
-    {
-      auto parsedFlow = ExtractFlowFromPacket (packet, protocol);
+      Ptr<Packet> retrievedPacket (retrievedDetails.second);
+      auto parsedFlow = ExtractFlowFromPacket (retrievedPacket, protocol);
       NS_LOG_INFO ("  " << parsedFlow);
 
       try
         {
-          AddPacketToBuffer (pktSizeInclPppHeader);
-
           auto forwardingNetDevice = m_routingTable.at (parsedFlow);
           auto sendSuccess = forwardingNetDevice->Send (packet->Copy (), dst, protocol);
           NS_ABORT_MSG_IF (!sendSuccess, "Switch " << m_id << " failed to forward packet");
@@ -79,9 +76,7 @@ SdnSwitch::PacketReceived (Ptr<NetDevice> incomingPort, Ptr<const Packet> packet
                        << "s: Switch " << m_id << " forwarded a packet at " << Simulator::Now ());
       } catch (const std::out_of_range &oor)
         {
-          NS_ABORT_MSG ("Routing table Miss on Switch "
-                        << m_id << ".\nFlow Details\n"
-                        << parsedFlow << "\nPacket Size: " << pktSizeInclPppHeader);
+          NS_ABORT_MSG ("Routing table Miss on Switch " << m_id << ". Flow: \n" << parsedFlow);
       }
     }
 }
