@@ -7,6 +7,7 @@
 #include "ns3/ipv4-l3-protocol.h"
 
 #include "buffer.h"
+#include "../../results-container.h"
 
 using ns3::Ipv4Header;
 using ns3::Ipv4L3Protocol;
@@ -26,7 +27,7 @@ Buffer::Buffer (const id_t switchId, uint64_t bufferSize, ResultsContainer &resC
 {
 }
 
-bool
+void
 Buffer::AddToBuffer (Ptr<const Packet> packet, uint16_t protocol)
 {
   auto packetSize = packetSize_t{packet->GetSize ()};
@@ -35,7 +36,7 @@ Buffer::AddToBuffer (Ptr<const Packet> packet, uint16_t protocol)
   if (freeSpace < packetSize)
     {
       m_resContainer.LogPacketDrop (m_switchId, Simulator::Now ());
-      return false;
+      return; // The buffer is full. Packet is dropped
     }
 
   if (AckPacket (packet, protocol))
@@ -63,11 +64,10 @@ Buffer::AddToBuffer (Ptr<const Packet> packet, uint16_t protocol)
   NS_ABORT_MSG_IF (m_usedCapacity > m_bufferSize,
                    "Switch " << m_switchId << ": Buffer used beyond capacity. Capacity: "
                              << m_bufferSize << "bytes | Used: " << m_usedCapacity << "bytes");
-  return true;
 }
 
 std::pair<bool, ns3::Ptr<ns3::Packet>>
-Buffer::RetrieveFromBuffer ()
+Buffer::RetrievePacketFromBuffer ()
 {
   Ptr<Packet> retrievedPacket;
 

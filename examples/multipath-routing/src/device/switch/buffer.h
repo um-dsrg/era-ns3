@@ -6,7 +6,9 @@
 #include "ns3/packet.h"
 
 #include "../../definitions.h"
-#include "../../results-container.h"
+
+// Forward declaration of the ResultsContainer class to avoid cyclic references
+class ResultsContainer;
 
 class Buffer
 {
@@ -22,12 +24,13 @@ public:
   /**
    * @brief Add a packet to the buffer
    *
+   * If there is not enough space in the buffer, the packet will be dropped and
+   * logged using the ResultsContainer instance stored in this class.
+   *
    * @param packet The packet to save in the buffer
    * @param protocol The packet's protocol
-   * @return true If packet successfully added to the buffer
-   * @return false If buffer is full and packet dropped
    */
-  bool AddToBuffer (ns3::Ptr<const ns3::Packet> packet, const uint16_t protocol);
+  void AddToBuffer (ns3::Ptr<const ns3::Packet> packet, const uint16_t protocol);
   /**
    * @brief Retrieves a packet from the buffer.
    *
@@ -39,7 +42,7 @@ public:
    * retrieved as all queues were empty. When the flag is set to true a packet
    * is retrieved from the queue.
    */
-  std::pair<bool, ns3::Ptr<ns3::Packet>> RetrieveFromBuffer ();
+  std::pair<bool, ns3::Ptr<ns3::Packet>> RetrievePacketFromBuffer ();
 
 private:
   /**
