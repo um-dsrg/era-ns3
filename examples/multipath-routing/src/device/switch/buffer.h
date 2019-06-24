@@ -28,7 +28,17 @@ public:
    * @return false If buffer is full and packet dropped
    */
   bool AddToBuffer (ns3::Ptr<const ns3::Packet> packet, const uint16_t protocol);
-  // FIXME: Add function documentation here
+  /**
+   * @brief Retrieves a packet from the buffer.
+   *
+   * A packet is retrieved from the buffer. Priority is given to ACK packets
+   * such that they do not wait for a long time in the buffer causing the
+   * respective TCP data flow to reduce its data rate
+   *
+   * @return A (bool, Packet) pair. If the boolean flag is false,  no packet is
+   * retrieved as all queues were empty. When the flag is set to true a packet
+   * is retrieved from the queue.
+   */
   std::pair<bool, ns3::Ptr<ns3::Packet>> RetrieveFromBuffer ();
 
 private:

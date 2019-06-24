@@ -69,8 +69,41 @@ Buffer::AddToBuffer (Ptr<const Packet> packet, uint16_t protocol)
 std::pair<bool, ns3::Ptr<ns3::Packet>>
 Buffer::RetrieveFromBuffer ()
 {
-  throw std::logic_error ("The function Buffer::RetrieveFromBuffer is not implemented yet");
-  return std::make_pair (false, nullptr);
+  Ptr<Packet> retrievedPacket;
+
+  if (m_ackPktsQueue.size () > 0)
+    {
+      retrievedPacket = m_ackPktsQueue.front ();
+      m_ackPktsQueue.pop ();
+      NS_LOG_INFO (Simulator::Now ().GetSeconds ()
+                   << "s: Packet retrieved from Switch " << m_switchId << " ACK buffer");
+    }
+  else if (m_dataPktsQueue.size () > 0)
+    {
+      retrievedPacket = m_dataPktsQueue.front ();
+      m_dataPktsQueue.pop ();
+      NS_LOG_INFO (Simulator::Now ().GetSeconds ()
+                   << "s: Packet retrieved from Switch " << m_switchId << " data buffer");
+    }
+  else
+    { // Both queues are empty
+      return std::make_pair (false, nullptr);
+    }
+
+  auto packetSize = packetSize_t{retrievedPacket->GetSize ()};
+  m_usedCapacity -= packetSize;
+
+  NS_ABORT_MSG_IF (m_usedCapacity < 0, "Switch " << m_switchId
+                                                 << " has a negative used buffer capacity. "
+                                                 << "Used capacity: " << m_usedCapacity);
+
+  m_resContainer.LogBufferSize (m_switchId, m_usedCapacity);
+
+  NS_LOG_INFO (Simulator::Now ().GetSeconds ()
+               << "s: Packet Size: " << packetSize << "bytes. "
+               << "Buffer Used capacity: " << m_usedCapacity << "bytes");
+
+  return std::make_pair (true, retrievedPacket);
 }
 
 bool
