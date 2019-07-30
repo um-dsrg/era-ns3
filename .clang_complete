@@ -1,5 +1,6 @@
 -std=c++14
 -I~/Documents/Git/Development/Ns3/build/debug
+-I~/Documents/Git/Development/Ns3/build/debug/ns3
 -I~/Documents/Git/Development/Ns3/examples/multipath-routing
 -I~/Documents/Git/Development/Ns3/examples/multipath-routing/src
 -I~/Documents/Git/Development/Ns3/examples/multipath-routing/src/device
