@@ -1,4 +1,11 @@
+#include "ns3/log.h"
+#include "ns3/simulator.h"
+
 #include "transmit-buffer.h"
+
+NS_LOG_COMPONENT_DEFINE ("TransmitBuffer");
+
+using namespace ns3;
 
 const std::map<std::string, RetrievalMethod> TransmitBuffer::RetreivalMethodMap =
   {{"RoundRobin", RetrievalMethod::RoundRobin},
@@ -16,13 +23,26 @@ TransmitBuffer::TransmitBuffer(const std::string& retrievalMethod)
   }
 }
 
-void
-TransmitBuffer::AddPacket (ns3::Ptr<ns3::Packet> packet, PacketType type)
+void // FIXME: Add logging + notes and comments
+TransmitBuffer::AddPacket (Ptr<Packet> packet, PacketType type)
 {
-  // FIXME: Implement this function
+  NS_LOG_INFO(Simulator::Now ().GetSeconds () << "s: Test Log message");
+
+  if ((m_retrievalMethod == RetrievalMethod::InOrder) || (type == PacketType::Data))
+  {
+    m_dataQueue.emplace(packet->Copy());
+  }
+  else if (type == PacketType::Ack)
+  {
+    m_ackQueue.emplace(packet->Copy());
+  }
+  else
+  {
+    NS_ABORT_MSG("Adding packet to transmit buffer failed.");
+  }
 }
 
-ns3::Ptr<ns3::Packet>
+Ptr<Packet>
 TransmitBuffer::RetrievePacket ()
 {
   // FIXME: Implement this function
