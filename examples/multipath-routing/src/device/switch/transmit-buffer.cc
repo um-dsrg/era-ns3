@@ -1,8 +1,19 @@
 #include "transmit-buffer.h"
 
-TransmitBuffer::TransmitBuffer()
+const std::map<std::string, RetrievalMethod> TransmitBuffer::RetreivalMethodMap =
+  {{"RoundRobin", RetrievalMethod::RoundRobin},
+   {"AckPriority", RetrievalMethod::AckPriority},
+   {"InOrder", RetrievalMethod::InOrder}};
+
+TransmitBuffer::TransmitBuffer(const std::string& retrievalMethod)
 {
-  // FIXME: Implement this function
+  try
+  {
+    m_retrievalMethod = TransmitBuffer::RetreivalMethodMap.at(retrievalMethod);
+  } catch (const std::out_of_range& e)
+  {
+    NS_ABORT_MSG("Retrieval method does not exist. Method: " << retrievalMethod);
+  }
 }
 
 void
