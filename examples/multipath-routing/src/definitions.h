@@ -12,6 +12,7 @@ using packetNumber_t = uint64_t;
 using bufferSize_t = uint64_t;
 using splitRatio_t = double;
 
+enum class PacketType {Ack, Data};
 enum class NodeType : char { Switch = 'S', Terminal = 'T' };
 enum class SwitchType : char { PpfsSwitch = 'P', SdnSwitch = 'S' };
 enum class FlowProtocol : char { Tcp = 'T', Udp = 'U', Icmp = 'I', Undefined = 'X' };
