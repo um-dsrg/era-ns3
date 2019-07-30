@@ -5,6 +5,7 @@
 
 #include "ns3/packet.h"
 
+#include "buffer.h"
 #include "../custom-device.h"
 #include "../../definitions.h"
 
@@ -54,17 +55,10 @@ protected:
                                const ns3::Address &src, const ns3::Address &dst,
                                ns3::NetDevice::PacketType packetType) = 0;
 
-  /* Buffer Related settings */
-  bool EnoughSpaceInBuffer (packetSize_t packetSize);
-  void AddPacketToBuffer (packetSize_t packetSize);
-  void RemovePacketFromBuffer (packetSize_t packetSize);
-
-  // Buffer sizes are in bytes
-  const uint64_t m_switchBufferSize;
-  uint64_t m_freeBufferSpace;
-
   // Results Container
   ResultsContainer &m_resContainer;
+
+  Buffer m_buffer;
 };
 
 #endif /* switch_base_h */

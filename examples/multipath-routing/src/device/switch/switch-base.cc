@@ -69,9 +69,8 @@ operator<< (std::ostream &os, const RtFlow &flow)
 
 SwitchBase::SwitchBase (id_t id, uint64_t switchBufferSize, ResultsContainer &resContainer)
     : CustomDevice (id),
-      m_switchBufferSize (switchBufferSize),
-      m_freeBufferSpace (m_switchBufferSize),
-      m_resContainer (resContainer)
+      m_resContainer (resContainer),
+      m_buffer (id, switchBufferSize, resContainer)
 {
 }
 
@@ -105,7 +104,8 @@ SwitchBase::PacketFinishedTransmissionOnPort (ns3::Ptr<const ns3::Packet> packet
                << "s: Switch " << m_id << " finished transmission of a packet of size "
                << packet->GetSize () << "bytes");
 
-  RemovePacketFromBuffer (packet->GetSize ());
+  // FIXME: Check that by commenting out the below line, the function still is still
+  // RemovePacketFromBuffer (packet->GetSize ());
 }
 
 RtFlow
@@ -185,63 +185,4 @@ SwitchBase::ExtractFlowFromPacket (Ptr<const Packet> packet, uint16_t protocol)
     }
 
   return flow;
-}
-
-/********************************************/
-/* Buffer                                   */
-/********************************************/
-
-/**
- * @brief      Returns whether there is space available in the Buffer.
- *
- * @param[in]  packetSize  The packet size.
- *
- * @return     True if there is enough space; False if not.
- */
-bool
-SwitchBase::EnoughSpaceInBuffer (packetSize_t packetSize)
-{
-  return (m_freeBufferSpace >= packetSize);
-}
-
-/**
- * @brief      Adds a packet to a buffer and updates the remaining free buffer size.
- *
- * @param[in]  packetSize  The packet size
- */
-void
-SwitchBase::AddPacketToBuffer (packetSize_t packetSize)
-{
-  NS_LOG_INFO (Simulator::Now ().GetSeconds ()
-               << "s: Adding packet to Switch " << m_id << "'s buffer"
-               << "\n  Switch Buffer size: " << m_switchBufferSize
-               << "bytes\n  Packet Size: " << packetSize
-               << "bytes\n  Free Space before adding packet: " << m_freeBufferSpace << "bytes");
-  m_freeBufferSpace -= packetSize;
-  NS_LOG_INFO ("  Free space after adding packet: " << m_freeBufferSpace);
-
-  m_resContainer.LogBufferSize (m_id, m_switchBufferSize - m_freeBufferSpace);
-
-  // Ensure that the free buffer size is never smaller than zero
-  NS_ABORT_MSG_IF (m_freeBufferSpace < 0,
-                   "The buffer for switch "
-                       << m_id
-                       << " has a negative buffer size value. Buffer size: " << m_freeBufferSpace);
-}
-
-void
-SwitchBase::RemovePacketFromBuffer (packetSize_t packetSize)
-{
-  NS_LOG_INFO (Simulator::Now ().GetSeconds ()
-               << "s: Removing packet from Switch " << m_id << "\n  Switch Buffer size: "
-               << m_switchBufferSize << "bytes\n  Packet Size: " << packetSize
-               << "bytes\n  Free space before removing packet: " << m_freeBufferSpace);
-  m_freeBufferSpace += packetSize;
-  NS_LOG_INFO ("  Free space after removing packet: " << m_freeBufferSpace);
-
-  // Ensure that the free buffer space is never larger than the actual buffer size
-  NS_ABORT_MSG_IF (m_freeBufferSpace > m_switchBufferSize,
-                   "The buffer for switch "
-                       << m_id << " has grown beyond the permitted size. Buffer Size: "
-                       << m_switchBufferSize << "bytes, Buffer actual size: " << m_freeBufferSpace);
 }

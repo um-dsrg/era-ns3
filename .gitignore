@@ -78,3 +78,6 @@ tags*
 
 # Sublime
 *.sublime-workspace
+
+ # Python
+.mypy_cache

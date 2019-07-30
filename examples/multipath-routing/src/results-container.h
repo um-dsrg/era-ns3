@@ -83,7 +83,7 @@ public:
 
   // Log Switch results
   void LogPacketDrop (id_t switchId, const ns3::Time &time);
-  void LogBufferSize (id_t switchIt, uint64_t bufferSize);
+  void LogBufferSize (id_t switchId, uint64_t bufferSize);
 
   // Save results to XML file
   void AddFlowResults ();
