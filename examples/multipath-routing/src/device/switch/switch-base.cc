@@ -70,7 +70,7 @@ operator<< (std::ostream &os, const RtFlow &flow)
 SwitchBase::SwitchBase (id_t id, uint64_t switchBufferSize, ResultsContainer &resContainer)
     : CustomDevice (id),
       m_resContainer (resContainer),
-      m_buffer (id, switchBufferSize, resContainer)
+      m_receiveBuffer (id, switchBufferSize)
 {
 }
 
@@ -103,9 +103,7 @@ SwitchBase::PacketFinishedTransmissionOnPort (ns3::Ptr<const ns3::Packet> packet
   NS_LOG_INFO (Simulator::Now ().GetSeconds ()
                << "s: Switch " << m_id << " finished transmission of a packet of size "
                << packet->GetSize () << "bytes");
-
-  // FIXME: Check that by commenting out the below line, the function still is still
-  // RemovePacketFromBuffer (packet->GetSize ());
+  // FIXME: Update the buffer size here
 }
 
 RtFlow

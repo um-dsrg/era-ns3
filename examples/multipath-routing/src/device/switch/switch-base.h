@@ -5,7 +5,7 @@
 
 #include "ns3/packet.h"
 
-#include "buffer.h"
+#include "receive-buffer.h"
 #include "../custom-device.h"
 #include "../../definitions.h"
 
@@ -56,9 +56,10 @@ protected:
                                ns3::NetDevice::PacketType packetType) = 0;
 
   // Results Container
+  // FIXME: Remove the below line of code
   ResultsContainer &m_resContainer;
 
-  Buffer m_buffer;
+  ReceiveBuffer m_receiveBuffer;
 };
 
 #endif /* switch_base_h */
