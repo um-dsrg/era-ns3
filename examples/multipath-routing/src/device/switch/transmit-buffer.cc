@@ -18,6 +18,20 @@ TransmitBuffer::TransmitBuffer(const std::string& retrievalMethod, id_t switchId
   try
   {
     m_retrievalMethod = TransmitBuffer::RetreivalMethodMap.at(retrievalMethod);
+
+    switch(m_retrievalMethod)
+    {
+      case RetrievalMethod::RoundRobin:
+        std::cout << "Hello" << std::endl;
+        break;
+      case RetrievalMethod::AckPriority:
+        std::cout << "Hello" << std::endl;
+        break;
+      case RetrievalMethod::InOrder:
+        m_retrievalFunction = std::bind(&TransmitBuffer::InOrderRetrieval, this);
+        break;
+    }
+
   } catch (const std::out_of_range& e)
   {
     NS_ABORT_MSG("Retrieval method does not exist. Method: " << retrievalMethod);
@@ -46,8 +60,7 @@ TransmitBuffer::AddPacket (Ptr<Packet> packet, PacketType type)
 std::pair<bool, Ptr<Packet>>
 TransmitBuffer::RetrievePacket ()
 {
-  // FIXME: Implement this function
-  return std::make_pair(false, nullptr);
+  return m_retrievalFunction();
 }
 
 std::pair<bool, Ptr<Packet>>

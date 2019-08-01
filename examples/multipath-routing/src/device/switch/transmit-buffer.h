@@ -3,6 +3,7 @@
 
 #include <map>
 #include <queue>
+#include <functional>
 
 #include "ns3/packet.h"
 
@@ -27,6 +28,7 @@ private:
   std::queue<ns3::Ptr<ns3::Packet>> m_dataQueue; /**< Queue storing Data packets */
 
   RetrievalMethod m_retrievalMethod;
+  std::function<std::pair<bool, ns3::Ptr<ns3::Packet>>(void)> m_retrievalFunction;
 
   static const std::map<std::string, RetrievalMethod> RetreivalMethodMap;
 };
