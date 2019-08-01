@@ -12,7 +12,8 @@ const std::map<std::string, RetrievalMethod> TransmitBuffer::RetreivalMethodMap 
    {"AckPriority", RetrievalMethod::AckPriority},
    {"InOrder", RetrievalMethod::InOrder}};
 
-TransmitBuffer::TransmitBuffer(const std::string& retrievalMethod)
+TransmitBuffer::TransmitBuffer(const std::string& retrievalMethod, id_t switchId):
+  m_switchId (switchId)
 {
   try
   {
@@ -42,9 +43,24 @@ TransmitBuffer::AddPacket (Ptr<Packet> packet, PacketType type)
   }
 }
 
-Ptr<Packet>
+std::pair<bool, Ptr<Packet>>
 TransmitBuffer::RetrievePacket ()
 {
   // FIXME: Implement this function
-  return nullptr;
+  return std::make_pair(false, nullptr);
+}
+
+std::pair<bool, Ptr<Packet>>
+TransmitBuffer::InOrderRetrieval()
+{
+  if (m_dataQueue.size() == 0)
+    return std::make_pair(false, nullptr);
+
+  auto retrievedPacket = m_dataQueue.front ();
+  m_dataQueue.pop ();
+
+  NS_LOG_INFO(Simulator::Now ().GetSeconds () << "s: InOrderRetrieval - Packet retrieved from "
+              "Switch " << m_switchId << " data buffer");
+
+  return std::make_pair(true, retrievedPacket);
 }

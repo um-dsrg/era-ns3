@@ -13,12 +13,16 @@ enum class RetrievalMethod {RoundRobin, AckPriority, InOrder};
 class TransmitBuffer
 {
 public:
-  TransmitBuffer (const std::string& retrievalMethod);
+  TransmitBuffer (const std::string& retrievalMethod, id_t switchId);
 
   void AddPacket (ns3::Ptr<ns3::Packet> packet, PacketType type);
-  ns3::Ptr<ns3::Packet> RetrievePacket ();
+  std::pair<bool, ns3::Ptr<ns3::Packet>> RetrievePacket ();
 
 private:
+  std::pair<bool, ns3::Ptr<ns3::Packet>> InOrderRetrieval();
+
+  const id_t m_switchId;
+
   std::queue<ns3::Ptr<ns3::Packet>> m_ackQueue; /**< Queue storing ACK packets */
   std::queue<ns3::Ptr<ns3::Packet>> m_dataQueue; /**< Queue storing Data packets */
 
