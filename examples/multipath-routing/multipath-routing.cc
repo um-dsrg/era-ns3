@@ -102,10 +102,11 @@ main (int argc, char *argv[])
       LogComponentEnable ("TopologyBuilder", LOG_LEVEL_ALL);
       LogComponentEnable ("ResultsContainer", LOG_LEVEL_ALL);
       /* Switches */
-      LogComponentEnable ("Buffer", LOG_LEVEL_ALL);
       LogComponentEnable ("SdnSwitch", LOG_LEVEL_ALL);
       LogComponentEnable ("PpfsSwitch", LOG_LEVEL_ALL);
       LogComponentEnable ("SwitchBase", LOG_LEVEL_ALL);
+      LogComponentEnable ("ReceiveBuffer", LOG_LEVEL_ALL);
+      LogComponentEnable ("TransmitBuffer", LOG_LEVEL_ALL);
       LogComponentEnable ("SwitchContainer", LOG_LEVEL_ALL);
       /* Applications */
       LogComponentEnable ("AppContainer", LOG_LEVEL_ALL);
