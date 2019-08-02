@@ -2,6 +2,7 @@
 #define switch_base_h
 
 #include <map>
+#include <unordered_map>
 
 #include "ns3/packet.h"
 
@@ -51,7 +52,7 @@ public:
                                        splitRatio_t splitRatio) = 0;
 
 protected:
-  void PacketFinishedTransmissionOnPort (ns3::Ptr<const ns3::Packet> packet);
+  void PacketTransmitted (std::string deviceIndex, ns3::Ptr<const ns3::Packet> packet);
   std::pair<PacketType, RtFlow> ExtractFlowFromPacket (ns3::Ptr<const ns3::Packet> packet,
                                                        uint16_t protocol);
 
@@ -63,6 +64,9 @@ protected:
   ReceiveBuffer m_receiveBuffer;
   const std::string m_txBufferRetrievalMethod;
   std::map<ns3::Ptr<ns3::NetDevice>, TransmitBuffer*> m_netDevToTxBuffer;
+
+  /**< Key: NetDevice Index | Val: NetDevice */
+  std::unordered_map<std::string, ns3::Ptr<ns3::NetDevice>> m_indexToNetDev;
 
   // Results Container
   // FIXME: Remove the below line of code

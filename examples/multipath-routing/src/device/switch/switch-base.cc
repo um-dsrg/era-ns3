@@ -91,10 +91,15 @@ SwitchBase::InstallTransmitBuffers()
   uint32_t numOfDevices = m_node->GetNDevices ();
   NS_ASSERT (numOfDevices > 0);
 
-  for (uint32_t currentDevice = 0; currentDevice < numOfDevices; ++currentDevice)
+  for (uint32_t deviceIndex = 0; deviceIndex < numOfDevices; ++deviceIndex)
   {
-    auto netDevice = m_node->GetDevice (currentDevice);
+    auto netDevice = m_node->GetDevice (deviceIndex);
     m_netDevToTxBuffer.emplace(netDevice, new TransmitBuffer(m_txBufferRetrievalMethod, m_id));
+
+    // Store the relationship between the device index and the device
+    NS_ABORT_MSG_IF(deviceIndex != netDevice->GetIfIndex(),
+                    "The Device index and IfIndex do not match");
+    m_indexToNetDev.emplace(std::to_string(deviceIndex), netDevice);
   }
 }
 
@@ -109,21 +114,24 @@ SwitchBase::EnablePacketTransmissionCompletionTrace ()
 {
   uint32_t numOfDevices = m_node->GetNDevices ();
   NS_ASSERT (numOfDevices > 0);
-  for (uint32_t currentDevice = 0; currentDevice < numOfDevices; ++currentDevice)
+
+  for (uint32_t deviceIndex = 0; deviceIndex < numOfDevices; ++deviceIndex)
     {
-      auto netDevice = m_node->GetDevice (currentDevice);
-      netDevice->TraceConnectWithoutContext (
-          "PhyTxEnd", MakeCallback (&SwitchBase::PacketFinishedTransmissionOnPort, this));
+      auto netDevice = m_node->GetDevice (deviceIndex);
+      netDevice->TraceConnect("PhyTxEnd", std::to_string(netDevice->GetIfIndex()),
+                              MakeCallback(&SwitchBase::PacketTransmitted, this));
     }
 }
 
 void
-SwitchBase::PacketFinishedTransmissionOnPort (ns3::Ptr<const ns3::Packet> packet)
+SwitchBase::PacketTransmitted (std::string deviceIndex, ns3::Ptr<const ns3::Packet> packet)
 {
   NS_LOG_INFO (Simulator::Now ().GetSeconds ()
                << "s: Switch " << m_id << " finished transmission of a packet of size "
                << packet->GetSize () << "bytes");
-  // FIXME: Update the buffer size here
+
+  // TODO: Update the receiver buffer size here
+  // TODO: Check the transmit buffer for any packets if there are, transmit.
 }
 
 std::pair<PacketType, RtFlow>
