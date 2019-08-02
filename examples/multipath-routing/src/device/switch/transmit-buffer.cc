@@ -38,18 +38,20 @@ TransmitBuffer::TransmitBuffer(const std::string& retrievalMethod, id_t switchId
   }
 }
 
-void // FIXME: Add logging + notes and comments
+void
 TransmitBuffer::AddPacket (Ptr<Packet> packet, PacketType type)
 {
-  NS_LOG_INFO(Simulator::Now ().GetSeconds () << "s: Test Log message");
-
   if ((m_retrievalMethod == RetrievalMethod::InOrder) || (type == PacketType::Data))
   {
     m_dataQueue.emplace(packet->Copy());
+    NS_LOG_INFO(Simulator::Now ().GetSeconds () << "s: Add DATA packet to Switch " << m_switchId <<
+                " transmit buffer");
   }
   else if (type == PacketType::Ack)
   {
     m_ackQueue.emplace(packet->Copy());
+    NS_LOG_INFO(Simulator::Now ().GetSeconds () << "s: Add ACK packet to Switch " << m_switchId <<
+                " transmit buffer");
   }
   else
   {
