@@ -17,7 +17,7 @@ private:
   const id_t m_switchId;
 
   /* Buffer related variables */
-  uint64_t m_usedCapacity;
+  uint64_t m_usedCapacity = 0;
   const uint64_t m_bufferSize;
   uint64_t m_numDroppedPackets = 0;
 };

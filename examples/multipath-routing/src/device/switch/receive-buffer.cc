@@ -3,7 +3,7 @@
 
 #include "receive-buffer.h"
 
-NS_LOG_COMPONENT_DEFINE ("TransmitBuffer");
+NS_LOG_COMPONENT_DEFINE ("ReceiveBuffer");
 
 using namespace ns3;
 
@@ -32,8 +32,8 @@ ReceiveBuffer::AddPacket(Ptr<const Packet> packet)
   else
   {
     m_numDroppedPackets++;
-    NS_LOG_INFO(Simulator::Now().GetSeconds() << "s: Switch: " << m_switchId << " packet DROPPED at"
-                "receive buffer. Packet size: " << packetSize << " Used capacity: " <<
+    NS_LOG_INFO(Simulator::Now().GetSeconds() << "s: Switch: " << m_switchId << " packet DROPPED "
+                "at receive buffer. Packet size: " << packetSize << " Used capacity: " <<
                 m_usedCapacity << " Num dropped packets: " << m_numDroppedPackets);
     return false;
   }
