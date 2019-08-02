@@ -15,7 +15,7 @@ class SwitchContainer
 public:
   using switchContainer_t = std::map<id_t, std::unique_ptr<SwitchBase>>;
 
-  explicit SwitchContainer (uint64_t switchBufferSize);
+  explicit SwitchContainer (uint64_t switchBufferSize, const std::string& txBufferRetrievalMethod);
 
   SwitchBase *GetSwitch (id_t switchId);
   bool SwitchExists (id_t switchId);
@@ -34,6 +34,7 @@ public:
 private:
   switchContainer_t m_switchContainer;
   const uint64_t m_switchBufferSize;
+  const std::string m_txBufferRetrievalMethod;
 };
 
 SwitchContainer::switchContainer_t::iterator

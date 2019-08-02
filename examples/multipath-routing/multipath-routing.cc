@@ -46,6 +46,7 @@ main (int argc, char *argv[])
   std::string outputFile{""};
   std::string flowMonitorOutputFile{""};
   std::string switchPortBufferSize{"100p"};
+  std::string transmitBufferRetrievalMethod {"InOrder"};
 
   // Set the command line parameters
   CommandLine cmdLine;
@@ -89,6 +90,9 @@ main (int argc, char *argv[])
                     "Set the TCP Sender/Receiver buffer size (in bytes). The default value is "
                     "equal to 131,072bytes ",
                     tcpBufferSize);
+  cmdLine.AddValue("txBufferRetrieval",
+                   "The method to use for the Transmit Buffer retrieval. Available options are:"
+                   "RoundRobin | AckPriority | InOrder", transmitBufferRetrievalMethod);
   cmdLine.Parse (argc, argv);
 
   if (verbose)
@@ -139,7 +143,7 @@ main (int argc, char *argv[])
   else
     NS_ABORT_MSG ("No switch type is defined");
 
-  SwitchContainer switchContainer (switchBufferSize);
+  SwitchContainer switchContainer (switchBufferSize, transmitBufferRetrievalMethod);
   Terminal::terminalContainer_t terminalContainer;
   Link::linkContainer_t linkContainer;
 

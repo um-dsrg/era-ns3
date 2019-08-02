@@ -6,6 +6,7 @@
 #include "ns3/packet.h"
 
 #include "receive-buffer.h"
+#include "transmit-buffer.h"
 #include "../custom-device.h"
 #include "../../definitions.h"
 
@@ -34,17 +35,20 @@ struct RtFlow
 class SwitchBase : public CustomDevice
 {
 public:
-  SwitchBase (id_t id, uint64_t switchBufferSize, ResultsContainer &resContainer);
+  SwitchBase (id_t id, uint64_t switchBufferSize, const std::string& txBufferRetrievalMethod,
+              ResultsContainer &resContainer);
   virtual ~SwitchBase ();
+
+
+  void InstallTransmitBuffers ();
+  virtual void ReconcileSplitRatios ();
+  void EnablePacketTransmissionCompletionTrace ();
 
   virtual void SetPacketReception () = 0;
   virtual void AddEntryToRoutingTable (uint32_t srcIp, uint32_t dstIp, portNum_t srcPort,
                                        portNum_t dstPort, FlowProtocol protocol,
                                        ns3::Ptr<ns3::NetDevice> forwardingPort,
                                        splitRatio_t splitRatio) = 0;
-  virtual void ReconcileSplitRatios ();
-
-  void EnablePacketTransmissionCompletionTrace ();
 
 protected:
   void PacketFinishedTransmissionOnPort (ns3::Ptr<const ns3::Packet> packet);
@@ -55,11 +59,13 @@ protected:
                                const ns3::Address &src, const ns3::Address &dst,
                                ns3::NetDevice::PacketType packetType) = 0;
 
+  ReceiveBuffer m_receiveBuffer;
+  const std::string m_txBufferRetrievalMethod;
+  std::map<ns3::Ptr<ns3::NetDevice>, TransmitBuffer*> m_netDevToTxBuffer;
+
   // Results Container
   // FIXME: Remove the below line of code
   ResultsContainer &m_resContainer;
-
-  ReceiveBuffer m_receiveBuffer;
 };
 
 #endif /* switch_base_h */

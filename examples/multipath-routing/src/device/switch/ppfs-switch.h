@@ -10,7 +10,8 @@
 class PpfsSwitch : public SwitchBase
 {
 public:
-  PpfsSwitch (id_t id, uint64_t switchBufferSize, ResultsContainer &resContainer);
+  PpfsSwitch (id_t id, uint64_t switchBufferSize, const std::string& txBufferRetrievalMethod,
+              ResultsContainer &resContainer);
   void AddEntryToRoutingTable (uint32_t srcIp, uint32_t dstIp, portNum_t srcPort, portNum_t dstPort,
                                FlowProtocol protocol, ns3::Ptr<ns3::NetDevice> forwardingPort,
                                splitRatio_t splitRatio) override;

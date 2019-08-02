@@ -67,15 +67,35 @@ operator<< (std::ostream &os, const RtFlow &flow)
 /* SwitchBase                               */
 /********************************************/
 
-SwitchBase::SwitchBase (id_t id, uint64_t switchBufferSize, ResultsContainer &resContainer)
+SwitchBase::SwitchBase (id_t id, uint64_t switchBufferSize, const std::string& txBufferRetrievalMethod,
+                        ResultsContainer &resContainer)
     : CustomDevice (id),
-      m_resContainer (resContainer),
-      m_receiveBuffer (id, switchBufferSize)
+      m_receiveBuffer (id, switchBufferSize),
+      m_txBufferRetrievalMethod(txBufferRetrievalMethod),
+      m_resContainer (resContainer)
 {
 }
 
 SwitchBase::~SwitchBase ()
 {
+  for (auto& netDevTxBufferPair : m_netDevToTxBuffer)
+  {
+    delete netDevTxBufferPair.second;
+    netDevTxBufferPair.second = nullptr;
+  }
+}
+
+void
+SwitchBase::InstallTransmitBuffers()
+{
+  uint32_t numOfDevices = m_node->GetNDevices ();
+  NS_ASSERT (numOfDevices > 0);
+
+  for (uint32_t currentDevice = 0; currentDevice < numOfDevices; ++currentDevice)
+  {
+    auto netDevice = m_node->GetDevice (currentDevice);
+    m_netDevToTxBuffer.emplace(netDevice, new TransmitBuffer(m_txBufferRetrievalMethod, m_id));
+  }
 }
 
 void

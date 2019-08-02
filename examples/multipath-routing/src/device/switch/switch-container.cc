@@ -9,7 +9,9 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("SwitchContainer");
 
-SwitchContainer::SwitchContainer (uint64_t switchBufferSize) : m_switchBufferSize (switchBufferSize)
+SwitchContainer::SwitchContainer (uint64_t switchBufferSize,
+                                  const std::string& txBufferRetrievalMethod) :
+  m_switchBufferSize (switchBufferSize), m_txBufferRetrievalMethod(txBufferRetrievalMethod)
 {
 }
 
@@ -35,13 +37,19 @@ SwitchContainer::AddSwitch (id_t switchId, SwitchType switchType, ResultsContain
   std::pair<switchContainer_t::iterator, bool> ret;
   if (switchType == SwitchType::SdnSwitch)
     {
-      ret = m_switchContainer.emplace (switchId, std::make_unique<SdnSwitch> (SdnSwitch (
-                                                     switchId, m_switchBufferSize, resContainer)));
+      ret = m_switchContainer.emplace (switchId,
+                                       std::make_unique<SdnSwitch> (SdnSwitch (switchId,
+                                                                               m_switchBufferSize,
+                                                                               m_txBufferRetrievalMethod,
+                                                                               resContainer)));
     }
   else if (switchType == SwitchType::PpfsSwitch)
     {
-      ret = m_switchContainer.emplace (switchId, std::make_unique<PpfsSwitch> (PpfsSwitch (
-                                                     switchId, m_switchBufferSize, resContainer)));
+      ret = m_switchContainer.emplace (switchId,
+                                       std::make_unique<PpfsSwitch> (PpfsSwitch (switchId,
+                                                                                 m_switchBufferSize,
+                                                                                 m_txBufferRetrievalMethod,
+                                                                                 resContainer)));
     }
   else
     {
