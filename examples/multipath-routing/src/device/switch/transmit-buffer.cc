@@ -39,17 +39,18 @@ TransmitBuffer::TransmitBuffer(const std::string& retrievalMethod, id_t switchId
 }
 
 void
-TransmitBuffer::AddPacket (Ptr<Packet> packet, PacketType type)
+TransmitBuffer::AddPacket(TransmitBuffer::QueueEntry queueEntry)
 {
-  if ((m_retrievalMethod == RetrievalMethod::InOrder) || (type == PacketType::Data))
+  if ((m_retrievalMethod == RetrievalMethod::InOrder) ||
+      (queueEntry.packetType == PacketType::Data))
   {
-    m_dataQueue.emplace(packet->Copy());
+    m_dataQueue.emplace(queueEntry);
     NS_LOG_INFO(Simulator::Now ().GetSeconds () << "s: Add DATA packet to Switch " << m_switchId <<
                 " transmit buffer");
   }
-  else if (type == PacketType::Ack)
+  else if (queueEntry.packetType == PacketType::Ack)
   {
-    m_ackQueue.emplace(packet->Copy());
+    m_ackQueue.emplace(queueEntry);
     NS_LOG_INFO(Simulator::Now ().GetSeconds () << "s: Add ACK packet to Switch " << m_switchId <<
                 " transmit buffer");
   }
@@ -59,23 +60,23 @@ TransmitBuffer::AddPacket (Ptr<Packet> packet, PacketType type)
   }
 }
 
-std::pair<bool, Ptr<Packet>>
+std::pair<bool, TransmitBuffer::QueueEntry>
 TransmitBuffer::RetrievePacket ()
 {
   return m_retrievalFunction();
 }
 
-std::pair<bool, Ptr<Packet>>
+std::pair<bool, TransmitBuffer::QueueEntry>
 TransmitBuffer::InOrderRetrieval()
 {
   if (m_dataQueue.size() == 0)
-    return std::make_pair(false, nullptr);
+    return std::make_pair(false, QueueEntry());
 
-  auto retrievedPacket = m_dataQueue.front ();
+  auto retrievedQueueEntry = m_dataQueue.front ();
   m_dataQueue.pop ();
 
   NS_LOG_INFO(Simulator::Now ().GetSeconds () << "s: InOrderRetrieval - Packet retrieved from "
               "Switch " << m_switchId << " data buffer");
 
-  return std::make_pair(true, retrievedPacket);
+  return std::make_pair(true, retrievedQueueEntry);
 }
