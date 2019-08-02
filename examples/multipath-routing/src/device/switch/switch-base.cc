@@ -130,7 +130,7 @@ SwitchBase::PacketTransmitted (std::string deviceIndex, ns3::Ptr<const ns3::Pack
                << "s: Switch " << m_id << " finished transmission of a packet of size "
                << packet->GetSize () << "bytes");
 
-  // TODO: Update the receiver buffer size here
+  m_receiveBuffer.RemovePacket(packet);
   // TODO: Check the transmit buffer for any packets if there are, transmit.
 }
 
