@@ -126,11 +126,12 @@ SwitchBase::PacketFinishedTransmissionOnPort (ns3::Ptr<const ns3::Packet> packet
   // FIXME: Update the buffer size here
 }
 
-RtFlow
+std::pair<PacketType, RtFlow>
 SwitchBase::ExtractFlowFromPacket (Ptr<const Packet> packet, uint16_t protocol)
 {
   Ptr<Packet> receivedPacket = packet->Copy (); // Copy the packet for parsing purposes
   RtFlow flow;
+  PacketType packetType {PacketType::Data};
 
   if (protocol == Ipv4L3Protocol::PROT_NUMBER)
     {
@@ -163,6 +164,9 @@ SwitchBase::ExtractFlowFromPacket (Ptr<const Packet> packet, uint16_t protocol)
               flow.srcPort = tcpHeader.GetSourcePort ();
               flow.dstPort = tcpHeader.GetDestinationPort ();
               flow.protocol = FlowProtocol::Tcp;
+
+              if (tcpHeader.GetFlags () & (1 << 5))
+                packetType = PacketType::Ack;
             }
         }
       else if (ipProtocol == Icmpv4L4Protocol::PROT_NUMBER)
@@ -202,5 +206,5 @@ SwitchBase::ExtractFlowFromPacket (Ptr<const Packet> packet, uint16_t protocol)
       NS_ABORT_MSG ("Non-IP Packet received. Protocol value " << protocol);
     }
 
-  return flow;
+  return std::make_pair(packetType, flow);
 }

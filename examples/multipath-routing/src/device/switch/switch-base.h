@@ -52,12 +52,13 @@ public:
 
 protected:
   void PacketFinishedTransmissionOnPort (ns3::Ptr<const ns3::Packet> packet);
-  RtFlow ExtractFlowFromPacket (ns3::Ptr<const ns3::Packet> packet, uint16_t protocol);
+  std::pair<PacketType, RtFlow> ExtractFlowFromPacket (ns3::Ptr<const ns3::Packet> packet,
+                                                       uint16_t protocol);
 
   virtual void PacketReceived (ns3::Ptr<ns3::NetDevice> incomingPort,
                                ns3::Ptr<const ns3::Packet> packet, uint16_t protocol,
                                const ns3::Address &src, const ns3::Address &dst,
-                               ns3::NetDevice::PacketType packetType) = 0;
+                               ns3::NetDevice::PacketType ndPacketType) = 0;
 
   ReceiveBuffer m_receiveBuffer;
   const std::string m_txBufferRetrievalMethod;

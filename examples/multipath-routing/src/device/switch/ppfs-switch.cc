@@ -80,14 +80,17 @@ PpfsSwitch::SetPacketReception ()
 void
 PpfsSwitch::PacketReceived (Ptr<NetDevice> incomingPort, Ptr<const Packet> packet,
                             uint16_t protocol, const Address &src, const Address &dst,
-                            NetDevice::PacketType packetType)
+                            NetDevice::PacketType ndPacketType)
 {
   NS_LOG_INFO (Simulator::Now ().GetSeconds () << "s: Switch " << m_id << " received a packet");
 
   if (m_receiveBuffer.AddPacket(packet) == false)
     return;
 
-  auto parsedFlow = ExtractFlowFromPacket (packet, protocol);
+  PacketType packetType;
+  RtFlow parsedFlow;
+
+  std::tie(packetType, parsedFlow) = ExtractFlowFromPacket(packet, protocol);
   NS_LOG_INFO ("  " << parsedFlow);
 
   try
