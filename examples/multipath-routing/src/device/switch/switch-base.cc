@@ -124,6 +124,53 @@ SwitchBase::EnablePacketTransmissionCompletionTrace ()
 }
 
 void
+SwitchBase::AddPacketToTransmitBuffer (Ptr<NetDevice> netDevice,
+                                       TransmitBuffer::QueueEntry queueEntry)
+{
+  try
+  {
+    TransmitBuffer* transmitBuffer = m_netDevToTxBuffer.at(netDevice);
+    transmitBuffer->AddPacket(queueEntry);
+  }
+  catch (const std::out_of_range &oor)
+  {
+    NS_ABORT_MSG ("Transmit Buffer not found on Switch " << m_id);
+  }
+}
+
+void
+SwitchBase::TransmitPacket(Ptr<NetDevice> netDevice)
+{
+  try
+  {
+    TransmitBuffer* transmitBuffer = m_netDevToTxBuffer.at(netDevice);
+
+    std::pair<bool, TransmitBuffer::QueueEntry> txBufferEntry = transmitBuffer->RetrievePacket();
+
+    if (txBufferEntry.first == true)
+    {
+      auto queueEntry = &txBufferEntry.second;
+
+      auto sendSuccess = netDevice->Send (queueEntry->packet->Copy(), queueEntry->dst,
+                                          queueEntry->protocol);
+
+      NS_ABORT_MSG_IF (!sendSuccess, "Switch " << m_id << " failed to forward packet");
+      NS_LOG_INFO (Simulator::Now ().GetSeconds () << "s: Switch " << m_id <<
+                   " forwarded a packet");
+    }
+    else
+    {
+      NS_LOG_INFO (Simulator::Now ().GetSeconds () << "s: Switch " << m_id <<
+                   " transmit buffer empty");
+    }
+  }
+  catch (const std::out_of_range &oor)
+  {
+    NS_ABORT_MSG ("Transmit Buffer not found on Switch " << m_id);
+  }
+}
+
+void
 SwitchBase::PacketTransmitted (std::string deviceIndex, ns3::Ptr<const ns3::Packet> packet)
 {
   NS_LOG_INFO (Simulator::Now ().GetSeconds ()
@@ -131,7 +178,15 @@ SwitchBase::PacketTransmitted (std::string deviceIndex, ns3::Ptr<const ns3::Pack
                << packet->GetSize () << "bytes");
 
   m_receiveBuffer.RemovePacket(packet);
-  // TODO: Check the transmit buffer for any packets if there are, transmit.
+
+  try
+  {
+    TransmitPacket(m_indexToNetDev.at(deviceIndex));
+  }
+  catch (const std::out_of_range &oor)
+  {
+    NS_ABORT_MSG ("Net device with index " << deviceIndex << " not found on Switch " << m_id);
+  }
 }
 
 std::pair<PacketType, RtFlow>

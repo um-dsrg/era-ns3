@@ -52,6 +52,10 @@ public:
                                        splitRatio_t splitRatio) = 0;
 
 protected:
+  void AddPacketToTransmitBuffer (ns3::Ptr<ns3::NetDevice> netDevice,
+                                  TransmitBuffer::QueueEntry queueEntry);
+  void TransmitPacket (ns3::Ptr<ns3::NetDevice> netDevice);
+
   void PacketTransmitted (std::string deviceIndex, ns3::Ptr<const ns3::Packet> packet);
   std::pair<PacketType, RtFlow> ExtractFlowFromPacket (ns3::Ptr<const ns3::Packet> packet,
                                                        uint16_t protocol);
