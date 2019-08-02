@@ -11,7 +11,7 @@ public:
   ReceiveBuffer(id_t switchId, uint64_t bufferSize);
 
   bool AddPacket(ns3::Ptr<const ns3::Packet> packet);
-  void RemovePacket(ns3::Ptr<const ns3::Packet> packet);
+  void RemovePacket(uint32_t packetSize);
 
 private:
   const id_t m_switchId;

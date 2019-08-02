@@ -3,6 +3,7 @@
 #include "ns3/simulator.h"
 #include "ns3/udp-header.h"
 #include "ns3/tcp-header.h"
+#include "ns3/ppp-header.h"
 #include "ns3/ipv4-header.h"
 #include "ns3/tcp-l4-protocol.h"
 #include "ns3/udp-l4-protocol.h"
@@ -173,11 +174,19 @@ SwitchBase::TransmitPacket(Ptr<NetDevice> netDevice)
 void
 SwitchBase::PacketTransmitted (std::string deviceIndex, ns3::Ptr<const ns3::Packet> packet)
 {
+  /*
+    NOTE
+    ----
+    The packet in this function includes the Point to Point header size, whereas the function that
+    is used by the switches does not include the header. Therefore, the packet size here is
+    subtracted by the PPP header size to cater for this difference.
+  */
+  auto packetSize = packet->GetSize() - PppHeader().GetSerializedSize();
   NS_LOG_INFO (Simulator::Now ().GetSeconds ()
                << "s: Switch " << m_id << " finished transmission of a packet of size "
-               << packet->GetSize () << "bytes");
+               << packetSize << " bytes");
 
-  m_receiveBuffer.RemovePacket(packet);
+  m_receiveBuffer.RemovePacket(packetSize);
 
   try
   {

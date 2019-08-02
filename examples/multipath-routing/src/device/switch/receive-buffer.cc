@@ -40,13 +40,12 @@ ReceiveBuffer::AddPacket(Ptr<const Packet> packet)
 }
 
 void
-ReceiveBuffer::RemovePacket(Ptr<const Packet> packet)
+ReceiveBuffer::RemovePacket(uint32_t packetSize)
 {
-  auto packetSize {packet->GetSize()};
-  m_usedCapacity -= packetSize;
+  NS_ABORT_MSG_IF(packetSize > m_usedCapacity, "Switch " << m_switchId << " negative used capacity. " <<
+                  "Packet Size: " << packetSize << " Used Capacity: " << m_usedCapacity);
 
-  NS_ABORT_MSG_IF(m_usedCapacity < 0, "Switch " << m_switchId << " negative used capacity. " <<
-                  "Value: " << m_usedCapacity);
+  m_usedCapacity -= packetSize;
 
   NS_LOG_INFO(Simulator::Now().GetSeconds() << "s: Switch: " << m_switchId << " packet REMOVED " <<
               "from receive buffer. Packet size: " << packetSize << " Used capacity: " <<
