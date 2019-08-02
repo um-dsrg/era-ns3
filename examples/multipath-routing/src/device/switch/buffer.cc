@@ -17,7 +17,7 @@ using ns3::Simulator;
 using ns3::TcpHeader;
 using ns3::TcpL4Protocol;
 
-NS_LOG_COMPONENT_DEFINE ("Buffer");
+NS_LOG_COMPONENT_DEFINE ("CUSTOM_Buffer");
 
 Buffer::Buffer (const id_t switchId, uint64_t bufferSize, ResultsContainer &resContainer)
     : m_switchId (switchId),
