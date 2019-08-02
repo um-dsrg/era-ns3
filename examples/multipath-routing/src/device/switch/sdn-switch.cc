@@ -72,13 +72,26 @@ SdnSwitch::PacketReceived (Ptr<NetDevice> incomingPort, Ptr<const Packet> packet
   try
   {
     auto forwardingNetDevice = m_routingTable.at (parsedFlow);
-    auto sendSuccess = forwardingNetDevice->Send (packet->Copy (), dst, protocol);
+
+    // Add Packet to port's transmit buffer
+    auto transmitBuffer = m_netDevToTxBuffer.at(forwardingNetDevice);
+    transmitBuffer->AddPacket(packet->Copy(), packetType);
+
+    // Retrieve a packet from the transmit buffer
+    auto hasPacket {false};
+    Ptr<Packet> packetToSend;
+    std::tie(hasPacket, packetToSend) = transmitBuffer->RetrievePacket();
+    NS_ABORT_MSG_IF(hasPacket == false, "Transmit buffer cannot be empty when inserting packet");
+
+    auto sendSuccess = forwardingNetDevice->Send (packetToSend->Copy (), dst, protocol);
     NS_ABORT_MSG_IF (!sendSuccess, "Switch " << m_id << " failed to forward packet");
+
     NS_LOG_INFO (Simulator::Now ().GetSeconds () << "s: Switch " << m_id <<
                  " forwarded a packet at " << Simulator::Now ());
   }
   catch (const std::out_of_range &oor)
   {
-    NS_ABORT_MSG ("Routing table Miss on Switch " << m_id << ". Flow: \n" << parsedFlow);
+    NS_ABORT_MSG ("Routing table Miss OR Transmit Buffer not found on Switch " << m_id <<
+                  ". Flow: \n" << parsedFlow);
   }
 }
