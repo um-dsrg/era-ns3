@@ -111,10 +111,9 @@ PpfsSwitch::PacketReceived (Ptr<NetDevice> incomingPort, Ptr<const Packet> packe
     NS_ABORT_MSG_IF (forwardingNetDevice == nullptr,
                      "Switch " << m_id << " failed to find the forwarding port");
 
-    auto sendSuccess = forwardingNetDevice->Send (packet->Copy (), dst, protocol);
-    NS_ABORT_MSG_IF (!sendSuccess, "Switch " << m_id << " failed to forward packet");
-    NS_LOG_INFO (Simulator::Now ().GetSeconds () << "s: Switch " << m_id <<
-                 " forwarded a packet at " << Simulator::Now ());
+    TransmitBuffer::QueueEntry queueEntry (protocol, packetType, dst, packet);
+    AddPacketToTransmitBuffer(forwardingNetDevice, queueEntry);
+    TransmitPacket(forwardingNetDevice);
   }
   catch (const std::out_of_range &oor)
   {
