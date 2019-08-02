@@ -60,6 +60,17 @@ SwitchContainer::AddSwitch (id_t switchId, SwitchType switchType, ResultsContain
 }
 
 void
+SwitchContainer::SetupSwitches()
+{
+  EnablePacketTransmissionTrace();
+  EnablePacketReceptionOnSwitches();
+  InstallTransmitBuffers();
+
+  // Reconcile the routing tables
+  ReconcileRoutingTables();
+}
+
+void
 SwitchContainer::ReconcileRoutingTables ()
 {
   NS_LOG_INFO ("Reconciling the routing tables.\n"
@@ -92,5 +103,17 @@ SwitchContainer::EnablePacketTransmissionTrace ()
     {
       auto &switchInstance = switchPair.second;
       switchInstance->EnablePacketTransmissionCompletionTrace ();
+    }
+}
+
+void
+SwitchContainer::InstallTransmitBuffers()
+{
+  NS_LOG_INFO ("Installing transmit buffers on all switches");
+
+  for (auto &switchPair : m_switchContainer)
+    {
+      auto &switchInstance = switchPair.second;
+      switchInstance->InstallTransmitBuffers();
     }
 }

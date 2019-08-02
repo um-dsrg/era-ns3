@@ -21,9 +21,7 @@ public:
   bool SwitchExists (id_t switchId);
   void AddSwitch (id_t switchId, SwitchType switchType, ResultsContainer &resContainer);
 
-  void ReconcileRoutingTables ();
-  void EnablePacketReceptionOnSwitches ();
-  void EnablePacketTransmissionTrace ();
+  void SetupSwitches ();
 
   inline switchContainer_t::iterator begin ();
   inline switchContainer_t::iterator end ();
@@ -32,6 +30,11 @@ public:
   inline switchContainer_t::const_iterator end () const;
 
 private:
+  void ReconcileRoutingTables ();
+  void EnablePacketReceptionOnSwitches ();
+  void EnablePacketTransmissionTrace ();
+  void InstallTransmitBuffers();
+
   switchContainer_t m_switchContainer;
   const uint64_t m_switchBufferSize;
   const std::string m_txBufferRetrievalMethod;

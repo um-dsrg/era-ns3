@@ -164,11 +164,8 @@ main (int argc, char *argv[])
   // Build the switch routing table
   BuildRoutingTable (flows, transmitOnLink);
 
-  // Enable packet reception and transmission trace
-  switchContainer.EnablePacketTransmissionTrace ();
-  switchContainer.EnablePacketReceptionOnSwitches ();
-  // Reconcile the routing tables
-  switchContainer.ReconcileRoutingTables ();
+  // Setup the switches for packet handling
+  switchContainer.SetupSwitches();
 
   // Setup the results container
   resContainer.SetupFlowResults (flows);
