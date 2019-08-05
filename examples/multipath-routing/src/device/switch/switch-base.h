@@ -11,9 +11,6 @@
 #include "../custom-device.h"
 #include "../../definitions.h"
 
-// Forward declaration of the ResultsContainer class to avoid cyclic references
-class ResultsContainer;
-
 /**
  * @brief Represents the Flow entry in the Routing Table
  */
@@ -36,8 +33,7 @@ struct RtFlow
 class SwitchBase : public CustomDevice
 {
 public:
-  SwitchBase (id_t id, uint64_t switchBufferSize, const std::string& txBufferRetrievalMethod,
-              ResultsContainer &resContainer);
+  SwitchBase (id_t id, uint64_t switchBufferSize, const std::string& txBufferRetrievalMethod);
   virtual ~SwitchBase ();
 
   uint64_t GetNumDroppedPackets () const;
@@ -72,10 +68,6 @@ protected:
 
   /**< Key: NetDevice Index | Val: NetDevice */
   std::unordered_map<std::string, ns3::Ptr<ns3::NetDevice>> m_indexToNetDev;
-
-  // Results Container
-  // FIXME: Remove the below line of code
-  ResultsContainer &m_resContainer;
 };
 
 #endif /* switch_base_h */

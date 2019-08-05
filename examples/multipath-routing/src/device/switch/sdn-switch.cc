@@ -22,8 +22,8 @@ using namespace ns3;
 NS_LOG_COMPONENT_DEFINE ("SdnSwitch");
 
 SdnSwitch::SdnSwitch (id_t id, uint64_t switchBufferSize,
-                      const std::string& txBufferRetrievalMethod, ResultsContainer &resContainer)
-    : SwitchBase (id, switchBufferSize, txBufferRetrievalMethod, resContainer)
+                      const std::string& txBufferRetrievalMethod)
+    : SwitchBase (id, switchBufferSize, txBufferRetrievalMethod)
 {
 }
 

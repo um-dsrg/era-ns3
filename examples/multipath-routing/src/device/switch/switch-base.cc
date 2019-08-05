@@ -68,12 +68,11 @@ operator<< (std::ostream &os, const RtFlow &flow)
 /* SwitchBase                               */
 /********************************************/
 
-SwitchBase::SwitchBase (id_t id, uint64_t switchBufferSize, const std::string& txBufferRetrievalMethod,
-                        ResultsContainer &resContainer)
+SwitchBase::SwitchBase (id_t id, uint64_t switchBufferSize,
+                        const std::string& txBufferRetrievalMethod)
     : CustomDevice (id),
       m_receiveBuffer (id, switchBufferSize),
-      m_txBufferRetrievalMethod(txBufferRetrievalMethod),
-      m_resContainer (resContainer)
+      m_txBufferRetrievalMethod(txBufferRetrievalMethod)
 {
 }
 

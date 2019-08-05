@@ -40,16 +40,14 @@ SwitchContainer::AddSwitch (id_t switchId, SwitchType switchType, ResultsContain
       ret = m_switchContainer.emplace (switchId,
                                        std::make_unique<SdnSwitch> (SdnSwitch (switchId,
                                                                                m_switchBufferSize,
-                                                                               m_txBufferRetrievalMethod,
-                                                                               resContainer)));
+                                                                               m_txBufferRetrievalMethod)));
     }
   else if (switchType == SwitchType::PpfsSwitch)
     {
       ret = m_switchContainer.emplace (switchId,
                                        std::make_unique<PpfsSwitch> (PpfsSwitch (switchId,
                                                                                  m_switchBufferSize,
-                                                                                 m_txBufferRetrievalMethod,
-                                                                                 resContainer)));
+                                                                                 m_txBufferRetrievalMethod)));
     }
   else
     {
