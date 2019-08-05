@@ -53,7 +53,8 @@ UnipathTransmitter::StartApplication ()
       return;
     }
 
-  NS_LOG_INFO ("Flow " << m_id << " started transmission on a single path");
+  NS_LOG_INFO (Simulator::Now().GetSeconds() << "s - UnipathTransmitter: Flow " << m_id <<
+               " started transmission");
 
   InetSocketAddress srcAddr = InetSocketAddress (Ipv4Address::GetAny (), srcPort);
   if (txSocket->Bind (srcAddr) == -1)
@@ -72,7 +73,8 @@ UnipathTransmitter::StartApplication ()
 void
 UnipathTransmitter::StopApplication ()
 {
-  NS_LOG_INFO ("Flow " << m_id << " stopped transmitting.");
+  NS_LOG_INFO (Simulator::Now().GetSeconds() << "s - UnipathTransmitter: Flow " << m_id <<
+               " stopped transmission");
   Simulator::Cancel (m_sendEvent);
 }
 
@@ -96,7 +98,6 @@ UnipathTransmitter::TransmitPacket ()
 void
 UnipathTransmitter::RtoChanged (ns3::Time oldVal, ns3::Time newVal)
 {
-  NS_LOG_INFO (Simulator::Now ().GetSeconds () << "s: RTO value changed for flow " << m_id << ".\n"
-                                               << "  Old Value " << oldVal.GetSeconds () << "\n"
-                                               << "  New Value: " << newVal.GetSeconds ());
+  NS_LOG_INFO (Simulator::Now ().GetSeconds () << "s - Flow " << m_id << "RTO value change: " <<
+               "Old Value " << oldVal.GetSeconds () << " New Value: " << newVal.GetSeconds ());
 }

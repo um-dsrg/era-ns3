@@ -119,7 +119,7 @@ ResultsContainer::LogPacketTransmission (id_t flowId, const Time &time, packetNu
   auto &pathCounter = flowResult.pathPacketCounter.at (pathId);
   pathCounter++;
 
-  NS_LOG_INFO (time.GetSeconds () << "s: Flow " << flowId << " transmitted packet " << pktNumber
+  NS_LOG_INFO (time.GetSeconds () << "s - Flow " << flowId << " transmitted packet " << pktNumber
                                   << " (" << dataSize << " data bytes) on path " << pathId << ". "
                                   << GetSocketDetails (socket));
 }
@@ -161,7 +161,7 @@ ResultsContainer::LogPacketReception (id_t flowId, const Time &time, packetNumbe
               << pktNumber << ". Transmitted size: " << packetDetail.transmittedDataSize
               << " Received Size: " << packetDetail.receivedDataSize);
 
-  NS_LOG_INFO (time.GetSeconds () << "s: Flow " << flowId << " Packet " << pktNumber
+  NS_LOG_INFO (time.GetSeconds () << "s - Flow " << flowId << " Packet " << pktNumber
                                   << " received. Data packet size " << dataSize
                                   << "bytes | Expected packet number: " << expectedPktNumber);
 

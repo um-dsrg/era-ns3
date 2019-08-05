@@ -34,7 +34,8 @@ UnipathReceiver::~UnipathReceiver ()
 void
 UnipathReceiver::StartApplication ()
 {
-  NS_LOG_INFO ("Flow " << m_id << " started reception.");
+  NS_LOG_INFO (Simulator::Now().GetSeconds() << "s - UnipathReceiver: Flow " << m_id <<
+               " started reception");
 
   // Initialise socket connections
   if (rxListenSocket->Bind (dstAddress) == -1)
@@ -56,7 +57,8 @@ UnipathReceiver::StartApplication ()
 void
 UnipathReceiver::StopApplication ()
 {
-  NS_LOG_INFO ("Flow " << m_id << " stopped reception.");
+  NS_LOG_INFO (Simulator::Now().GetSeconds() << "s - UnipathReceiver: Flow " << m_id <<
+               " stopped reception");
 }
 
 void
@@ -80,15 +82,15 @@ UnipathReceiver::HandleRead (Ptr<Socket> socket)
         }
 
       auto recvBytes = packet->GetSize ();
-      NS_LOG_INFO ("Flow " << m_id << " received " << recvBytes << "bytes of data at "
-                           << Simulator::Now ().GetSeconds ());
+      NS_LOG_INFO (Simulator::Now ().GetSeconds () << "s - Flow " << m_id << " received " <<
+                   recvBytes << "bytes of data");
 
       pendingBytes += recvBytes;
 
       // The floor and division should be here
       auto packetsReceived = floor (pendingBytes / static_cast<double> (m_dataPacketSize));
-      NS_LOG_INFO ("Flow " << m_id << " extracted " << packetsReceived << " packet(s) at "
-                           << Simulator::Now ().GetSeconds ());
+      NS_LOG_INFO (Simulator::Now ().GetSeconds () << "s - Flow " << m_id << " extracted " <<
+                   packetsReceived << " packet(s)");
 
       // Log for every data packet size, packet received
       for (auto i = 0; i < packetsReceived; ++i)
@@ -100,6 +102,7 @@ UnipathReceiver::HandleRead (Ptr<Socket> socket)
 
       // Subtract the number of bytes that have been logged already
       pendingBytes -= packetsReceived * m_dataPacketSize;
-      NS_LOG_INFO ("Number of pending bytes remaining: " << pendingBytes);
+      NS_LOG_INFO (Simulator::Now().GetSeconds() << "s - Flow " << m_id << " Number of pending bytes remaining: " <<
+                   pendingBytes);
     }
 }

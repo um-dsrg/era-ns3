@@ -25,17 +25,20 @@ AppContainer::InstallApplicationsOnTerminals (const Flow::flowContainer_t &flows
 {
   for (const auto &flowPair : flows)
     {
-      NS_LOG_INFO ("Installing flow " << flowPair.first);
       const auto &flow{flowPair.second};
 
       if (flow.dataRate.GetBitRate() > 0)
         {
           if (flow.GetDataPaths ().size () == 1 || usePpfsSwitches)
             {
+              NS_LOG_INFO ("Installing flow " << flowPair.first << " using the unipath "
+                           "transmission/reception application");
               InstallApplicationOnTerminal<UnipathTransmitter, UnipathReceiver> (flow, resContainer);
             }
           else
             {
+              NS_LOG_INFO ("Installing flow " << flowPair.first << " using the multipath "
+                           "transmission/reception application");
               InstallApplicationOnTerminal<MultipathTransmitter, MultipathReceiver> (flow,
                                                                                      resContainer);
             }
