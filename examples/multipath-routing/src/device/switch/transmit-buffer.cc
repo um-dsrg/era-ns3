@@ -22,16 +22,15 @@ TransmitBuffer::TransmitBuffer(const std::string& retrievalMethod, id_t switchId
     switch(m_retrievalMethod)
     {
       case RetrievalMethod::RoundRobin:
-        std::cout << "Hello" << std::endl;
+        m_retrievalFunction = std::bind(&TransmitBuffer::RoundRobinRetrieval, this);
         break;
       case RetrievalMethod::AckPriority:
-        std::cout << "Hello" << std::endl;
+        m_retrievalFunction = std::bind(&TransmitBuffer::AckPriorityRetrieval, this);
         break;
       case RetrievalMethod::InOrder:
         m_retrievalFunction = std::bind(&TransmitBuffer::InOrderRetrieval, this);
         break;
     }
-
   } catch (const std::out_of_range& e)
   {
     NS_ABORT_MSG("Retrieval method does not exist. Method: " << retrievalMethod);
