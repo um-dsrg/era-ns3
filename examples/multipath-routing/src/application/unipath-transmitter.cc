@@ -98,6 +98,6 @@ UnipathTransmitter::TransmitPacket ()
 void
 UnipathTransmitter::RtoChanged (ns3::Time oldVal, ns3::Time newVal)
 {
-  NS_LOG_INFO (Simulator::Now ().GetSeconds () << "s - Flow " << m_id << "RTO value change: " <<
+  NS_LOG_INFO (Simulator::Now ().GetSeconds () << "s - Flow " << m_id << " RTO value change: " <<
                "Old Value " << oldVal.GetSeconds () << " New Value: " << newVal.GetSeconds ());
 }
