@@ -37,6 +37,8 @@ public:
 private:
   /* Queue Retrieval Methods */
   std::pair<bool, QueueEntry> InOrderRetrieval();
+  std::pair<bool, QueueEntry> RoundRobinRetrieval();
+  std::pair<bool, QueueEntry> AckPriorityRetrieval();
 
   std::queue<QueueEntry> m_ackQueue; /**< Queue storing ACK packets */
   std::queue<QueueEntry> m_dataQueue; /**< Queue storing Data packets */

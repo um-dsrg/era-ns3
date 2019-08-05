@@ -80,3 +80,36 @@ TransmitBuffer::InOrderRetrieval()
 
   return std::make_pair(true, retrievedQueueEntry);
 }
+
+std::pair<bool, TransmitBuffer::QueueEntry>
+TransmitBuffer::RoundRobinRetrieval()
+{
+  return std::make_pair(false, TransmitBuffer::QueueEntry());
+}
+
+std::pair<bool, TransmitBuffer::QueueEntry>
+TransmitBuffer::AckPriorityRetrieval()
+{
+  if (m_ackQueue.size() > 0)
+  {
+    auto retrievedQueueEntry = m_ackQueue.front ();
+    m_ackQueue.pop ();
+
+    NS_LOG_INFO(Simulator::Now ().GetSeconds () << "s: AckPriorityRetrieval - Packet retrieved from "
+                "Switch " << m_switchId << " ACK buffer");
+
+    return std::make_pair(true, retrievedQueueEntry);
+  }
+  else if (m_dataQueue.size() > 0)
+  {
+    auto retrievedQueueEntry = m_dataQueue.front ();
+    m_dataQueue.pop ();
+
+    NS_LOG_INFO(Simulator::Now ().GetSeconds () << "s: AckPriorityRetrieval - Packet retrieved from "
+                "Switch " << m_switchId << " data buffer");
+
+    return std::make_pair(true, retrievedQueueEntry);
+  }
+
+  return std::make_pair(false, TransmitBuffer::QueueEntry());
+}
