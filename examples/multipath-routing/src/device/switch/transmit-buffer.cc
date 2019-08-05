@@ -84,6 +84,52 @@ TransmitBuffer::InOrderRetrieval()
 std::pair<bool, TransmitBuffer::QueueEntry>
 TransmitBuffer::RoundRobinRetrieval()
 {
+  if (m_ackQueue.size() > 0 && m_dataQueue.size() > 0) // Both queues have data to transmit
+  {
+    if (m_rrTransmitAckPacket)
+    {
+      auto retrievedQueueEntry = m_ackQueue.front ();
+      m_ackQueue.pop ();
+
+      NS_LOG_INFO(Simulator::Now ().GetSeconds () << "s: RoundRobinRetrieval - "
+                  "Packet retrieved from Switch " << m_switchId << " ACK buffer");
+
+      return std::make_pair(true, retrievedQueueEntry);
+    }
+    else
+    {
+      auto retrievedQueueEntry = m_dataQueue.front ();
+      m_dataQueue.pop ();
+
+      NS_LOG_INFO(Simulator::Now ().GetSeconds () << "s: RoundRobinRetrieval - "
+                  "Packet retrieved from Switch " << m_switchId << " data buffer");
+
+      return std::make_pair(true, retrievedQueueEntry);
+    }
+
+    m_rrTransmitAckPacket = !m_rrTransmitAckPacket;
+  }
+  else if (m_ackQueue.size() > 0 && m_dataQueue.size() == 0)
+  {
+    auto retrievedQueueEntry = m_ackQueue.front ();
+    m_ackQueue.pop ();
+
+    NS_LOG_INFO(Simulator::Now ().GetSeconds () << "s: RoundRobinRetrieval - "
+                "Packet retrieved from Switch " << m_switchId << " ACK buffer");
+
+    return std::make_pair(true, retrievedQueueEntry);
+  }
+  else if (m_ackQueue.size() == 0 && m_dataQueue.size() > 0)
+  {
+    auto retrievedQueueEntry = m_dataQueue.front ();
+    m_dataQueue.pop ();
+
+    NS_LOG_INFO(Simulator::Now ().GetSeconds () << "s: RoundRobinRetrieval - "
+                "Packet retrieved from Switch " << m_switchId << " data buffer");
+
+    return std::make_pair(true, retrievedQueueEntry);
+  }
+
   return std::make_pair(false, TransmitBuffer::QueueEntry());
 }
 

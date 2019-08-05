@@ -43,6 +43,12 @@ private:
   std::queue<QueueEntry> m_ackQueue; /**< Queue storing ACK packets */
   std::queue<QueueEntry> m_dataQueue; /**< Queue storing Data packets */
 
+  /**
+   * When True, transmit a packet from the ACK queue. This is used by the Round robin retrieval
+   * method to track the last queue used.
+   */
+  bool m_rrTransmitAckPacket = false;
+
   const id_t m_switchId;
   RetrievalMethod m_retrievalMethod;
   std::function<std::pair<bool, QueueEntry>(void)> m_retrievalFunction;
