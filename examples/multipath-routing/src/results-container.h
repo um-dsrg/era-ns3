@@ -87,7 +87,7 @@ public:
 
   // Save results to XML file
   void AddFlowResults ();
-  void AddSwitchResults ();
+  void AddSwitchResults (const SwitchContainer &switchContainer);
   void AddSimulationParameters (const std::string &inputFile, const std::string &outputFile,
                                 const std::string &flowMonitorOutput, const std::string &stopTime,
                                 bool enablePcap, bool useSack, bool usePpfsSwitches,

@@ -11,6 +11,12 @@ ReceiveBuffer::ReceiveBuffer(id_t switchId, uint64_t bufferSize) :
   m_switchId(switchId), m_bufferSize(bufferSize)
 {}
 
+uint64_t
+ReceiveBuffer::GetNumDroppedPackets() const
+{
+  return m_numDroppedPackets;
+}
+
 bool
 ReceiveBuffer::AddPacket(Ptr<const Packet> packet)
 {
@@ -26,7 +32,7 @@ ReceiveBuffer::AddPacket(Ptr<const Packet> packet)
 
     NS_LOG_INFO(Simulator::Now().GetSeconds() << "s: Switch: " << m_switchId << " packet ADDED to "
                 "receive buffer. Packet size: " << packetSize << " Used capacity: " <<
-                m_usedCapacity);
+                m_usedCapacity << " Buffer capacity: " << m_bufferSize);
     return true;
   }
   else
@@ -43,11 +49,12 @@ void
 ReceiveBuffer::RemovePacket(uint32_t packetSize)
 {
   NS_ABORT_MSG_IF(packetSize > m_usedCapacity, "Switch " << m_switchId << " negative used capacity. " <<
-                  "Packet Size: " << packetSize << " Used Capacity: " << m_usedCapacity);
+                  "Packet Size: " << packetSize << " Used Capacity: " << m_usedCapacity <<
+                  " Buffer capacity: " << m_bufferSize);
 
   m_usedCapacity -= packetSize;
 
   NS_LOG_INFO(Simulator::Now().GetSeconds() << "s: Switch: " << m_switchId << " packet REMOVED " <<
               "from receive buffer. Packet size: " << packetSize << " Used capacity: " <<
-              m_usedCapacity);
+              m_usedCapacity << " Buffer capacity: " << m_bufferSize);
 }

@@ -329,7 +329,7 @@ ResultsContainer::AddFlowResults ()
 }
 
 void
-ResultsContainer::AddSwitchResults ()
+ResultsContainer::AddSwitchResults (const SwitchContainer &switchContainer)
 {
   NS_LOG_INFO ("Saving the switch results");
 
@@ -345,22 +345,19 @@ ResultsContainer::AddSwitchResults ()
     {
       XMLElement *switchResultsElement = m_xmlDoc.NewElement ("SwitchResults");
 
-      for (const auto &switchResultsPair : m_switchResults)
-        {
-          switchId = switchResultsPair.first;
-          auto &numDroppedPackets = switchResultsPair.second.numDroppedPackets;
-          auto &maxBufferUsage = switchResultsPair.second.maxBufferUsage;
+      for (const auto& switchPair : switchContainer)
+      {
+        switchId = switchPair.first;
+        const auto& switchObject = switchPair.second;
 
-          NS_LOG_INFO ("Saving the results of switch " << switchId);
+        NS_LOG_INFO ("Saving the results of switch " << switchId);
 
-          XMLElement *switchElement{m_xmlDoc.NewElement ("Switch")};
-          switchElement->SetAttribute ("Id", switchId);
-          switchElement->SetAttribute ("NumDroppedPackets",
-                                       numeric_cast<double> (numDroppedPackets));
-          switchElement->SetAttribute ("MaxBufferUsage", numeric_cast<double> (maxBufferUsage));
-
-          switchResultsElement->InsertEndChild (switchElement);
-        }
+        XMLElement *switchElement {m_xmlDoc.NewElement ("Switch")};
+        switchElement->SetAttribute ("Id", switchId);
+        switchElement->SetAttribute ("NumDroppedPackets",
+                                     numeric_cast<double> (switchObject->GetNumDroppedPackets()));
+        switchResultsElement->InsertEndChild (switchElement);
+      }
 
       XMLComment *comment = m_xmlDoc.NewComment ("Buffer sizes are in bytes");
       switchResultsElement->InsertFirstChild (comment);

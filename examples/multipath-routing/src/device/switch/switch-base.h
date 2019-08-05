@@ -40,6 +40,7 @@ public:
               ResultsContainer &resContainer);
   virtual ~SwitchBase ();
 
+  uint64_t GetNumDroppedPackets () const;
 
   void InstallTransmitBuffers ();
   virtual void ReconcileSplitRatios ();

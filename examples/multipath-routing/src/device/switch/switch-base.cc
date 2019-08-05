@@ -86,6 +86,12 @@ SwitchBase::~SwitchBase ()
   }
 }
 
+uint64_t
+SwitchBase::GetNumDroppedPackets() const
+{
+  return m_receiveBuffer.GetNumDroppedPackets();
+}
+
 void
 SwitchBase::InstallTransmitBuffers()
 {

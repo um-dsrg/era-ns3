@@ -10,6 +10,8 @@ class ReceiveBuffer
 public:
   ReceiveBuffer(id_t switchId, uint64_t bufferSize);
 
+  uint64_t GetNumDroppedPackets() const;
+
   bool AddPacket(ns3::Ptr<const ns3::Packet> packet);
   void RemovePacket(uint32_t packetSize);
 
