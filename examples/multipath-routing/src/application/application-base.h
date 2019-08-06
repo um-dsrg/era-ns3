@@ -22,6 +22,7 @@ protected:
 
   ns3::Ptr<ns3::Socket> CreateSocket (ns3::Ptr<ns3::Node> srcNode, FlowProtocol protocol);
   virtual packetSize_t CalculateHeaderSize (FlowProtocol protocol);
+  uint32_t CalculateTcpBufferSize (const Flow& flow);
 
   id_t m_id{0}; /**< The id of the flow that this application represents. */
 };
