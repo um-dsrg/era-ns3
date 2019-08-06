@@ -54,7 +54,15 @@ AppContainer::InstallApplicationOnTerminal (const Flow &flow, ResultsContainer &
   auto transmitterApp = std::make_unique<TransmitterApp> (flow, resContainer);
   Ptr<Application> nsTransmitterApp = transmitterApp.get ();
   flow.srcNode->GetNode ()->AddApplication (nsTransmitterApp);
-  transmitterApp->SetStartTime (Seconds (0.0));
+
+  if (flow.startTime > 0)
+    transmitterApp->SetStartTime (Seconds (flow.startTime));
+  else
+    transmitterApp->SetStartTime (Seconds (0.0));
+
+  if (flow.stopTime > 0)
+    transmitterApp->SetStopTime (Seconds (flow.stopTime));
+
   m_transmitterApplications.emplace (flow.id, std::move (transmitterApp));
 
   // Installing the receiver

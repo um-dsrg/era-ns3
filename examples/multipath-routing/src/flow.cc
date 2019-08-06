@@ -103,6 +103,8 @@ operator<< (std::ostream &output, const Flow &flow)
   ns3::Ipv4Address address;
   output << "Flow ID: " << flow.id << "\n";
   output << "Data Rate: " << flow.dataRate << "\n";
+  output << "Start Time: " << flow.startTime << "s\n";
+  output << "Stop Time: " << flow.stopTime << "s\n";
   output << "Packet Size: " << flow.packetSize << "bytes\n";
   output << "Source IP Addr: " << flow.srcNode->GetIpAddress ().Get () << "\n";
   output << "Destination IP Addr: " << flow.dstNode->GetIpAddress ().Get () << "\n";
@@ -174,6 +176,9 @@ ParseFlows (tinyxml2::XMLNode *rootNode, const Terminal::terminalContainer_t &te
       double dataRate;
       flowElement->QueryAttribute ("AllocatedDataRate", &dataRate);
       flow.dataRate = ns3::DataRate (std::string{std::to_string (dataRate) + "Mbps"});
+
+      flowElement->QueryAttribute("StartTime", &flow.startTime);
+      flowElement->QueryAttribute("EndTime", &flow.stopTime);
 
       auto pathPortMap{AddDataPaths (flow, flowElement, linkContainer, switchType)};
 

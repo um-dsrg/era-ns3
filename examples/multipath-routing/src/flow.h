@@ -66,6 +66,8 @@ struct Flow
   const Terminal *srcNode{0};
   const Terminal *dstNode{0};
   ns3::DataRate dataRate;
+  double startTime {0.0};
+  double stopTime {0.0};
   packetSize_t packetSize;
   FlowProtocol protocol{FlowProtocol::Undefined};
 
