@@ -15,7 +15,6 @@
 
 struct Link
 {
-  /* using linkContainer_t = std::map<id_t, Link>; */
   using linkContainer_t = std::map<id_t, std::unique_ptr<Link>>;
 
   id_t id;
