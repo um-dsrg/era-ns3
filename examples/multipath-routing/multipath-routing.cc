@@ -37,7 +37,6 @@ main (int argc, char *argv[])
 
   uint32_t initRun{1};
   uint32_t seedValue{1};
-  uint32_t tcpBufferSize{131'072};
 
   uint64_t switchBufferSize{100'000};
 
@@ -86,10 +85,6 @@ main (int argc, char *argv[])
   cmdLine.AddValue ("logBufferSizeWithTime",
                     "When set, log the time the MSTCP receiver buffer size changes.",
                     logBufferSizeWithTime);
-  cmdLine.AddValue ("tcpBufferSize",
-                    "Set the TCP Sender/Receiver buffer size (in bytes). The default value is "
-                    "equal to 131,072bytes ",
-                    tcpBufferSize);
   cmdLine.AddValue("txBufferRetrieval",
                    "The method to use for the Transmit Buffer retrieval. Available options are:"
                    "RoundRobin | AckPriority | InOrder", transmitBufferRetrievalMethod);
@@ -130,10 +125,6 @@ main (int argc, char *argv[])
 
   // Configure Selective Acknowledgements
   Config::SetDefault ("ns3::TcpSocketBase::Sack", BooleanValue (useSack));
-
-  // Configure the default TCP Sender/Receiver buffer size
-  Config::SetDefault ("ns3::TcpSocket::RcvBufSize", UintegerValue (tcpBufferSize));
-  Config::SetDefault ("ns3::TcpSocket::SndBufSize", UintegerValue (tcpBufferSize));
 
   // Set the switch type
   SwitchType switchType;
