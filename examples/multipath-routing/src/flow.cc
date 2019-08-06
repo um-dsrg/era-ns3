@@ -193,18 +193,6 @@ ParseFlows (tinyxml2::XMLNode *rootNode, const Terminal::terminalContainer_t &te
 
       NS_LOG_INFO ("Flow Details:\n" << flow);
       flowElement = flowElement->NextSiblingElement ("Flow");
-
-      /**
-       * Check that the flow's allocated data rate is not larger than 40Mbps.
-       * This check is required to make sure that the TCP CWND size will be
-       * appropriate because the calculation used for estimating the CWND size
-       * assumes that the path will have at most a cost of 200ms.
-       */
-      NS_ABORT_MSG_IF (flow.dataRate > ns3::DataRate ("40Mbps"),
-                       "Flow: " + std::to_string (flow.id) +
-                           " has a data rate that exceeds 40Mbps."
-                           " Flow Data Rate: " +
-                           std::to_string (dataRate) + "Mbps");
     }
 
   NS_LOG_INFO ("Parsing flows complete.");
@@ -256,19 +244,6 @@ AddDataPaths (Flow &flow, tinyxml2::XMLElement *flowElement,
 
           auto ret = pathPortMap.emplace (path.id, std::make_pair (path.srcPort, path.dstPort));
           NS_ABORT_MSG_IF (ret.second == false, "Trying to insert a duplicate path " << path.id);
-
-          /**
-           * Check that the path does not have a cost > 200ms. This check is
-           * required to make sure that the TCP CWND size will be appropriate
-           * because the calculation used for estimating the CWND size assumes
-           * that the path will have at most a cost of 200ms.
-           */
-          double pathCost;
-          pathElement->QueryAttribute ("Cost", &pathCost);
-          NS_ABORT_MSG_IF (
-              pathCost > 200.0,
-              "Flow: " + std::to_string (flow.id) + " Path: " + std::to_string (path.id) +
-                  " has a cost greater than 200. Path Cost: " + std::to_string (pathCost));
 
           flow.AddDataPath (path);
         }
