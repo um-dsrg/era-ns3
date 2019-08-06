@@ -21,7 +21,7 @@ UnipathReceiver::UnipathReceiver (const Flow &flow, ResultsContainer &resContain
   if (flow.protocol == FlowProtocol::Tcp)
   {
     auto tcpBufferSize = CalculateTcpBufferSize(flow);
-    NS_LOG_INFO("UnipathTransmitter - Flow: " << flow.id << " calculated TCP buffer size: " <<
+    NS_LOG_INFO("UnipathReceiver - Flow: " << flow.id << " calculated TCP buffer size: " <<
                 tcpBufferSize << "bytes");
 
     auto tcpSocket = ns3::DynamicCast<ns3::TcpSocket> (rxListenSocket);
