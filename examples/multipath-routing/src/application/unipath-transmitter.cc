@@ -1,6 +1,8 @@
 #include "ns3/log.h"
 #include "ns3/address.h"
+#include "ns3/uinteger.h"
 #include "ns3/simulator.h"
+#include "ns3/tcp-socket.h"
 #include "ns3/inet-socket-address.h"
 
 #include "unipath-transmitter.h"
@@ -18,6 +20,17 @@ UnipathTransmitter::UnipathTransmitter (const Flow &flow, ResultsContainer &resC
   txSocket->TraceConnectWithoutContext ("RTO",
                                         MakeCallback (&UnipathTransmitter::RtoChanged, this));
   dstAddress = Address (InetSocketAddress (flow.dstNode->GetIpAddress (), path.dstPort));
+
+  if (flow.protocol == FlowProtocol::Tcp)
+  {
+    auto tcpBufferSize = CalculateTcpBufferSize(flow);
+    NS_LOG_INFO("UnipathTransmitter - Flow: " << flow.id << " calculated TCP buffer size: " <<
+                tcpBufferSize << "bytes");
+
+    auto tcpSocket = ns3::DynamicCast<ns3::TcpSocket> (txSocket);
+    tcpSocket->SetAttribute("SndBufSize", ns3::UintegerValue(tcpBufferSize));
+    tcpSocket->SetAttribute("RcvBufSize", ns3::UintegerValue(tcpBufferSize));
+  }
 
   // Set the data packet size
   SetDataPacketSize (flow);

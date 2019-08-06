@@ -1,5 +1,7 @@
 #include "ns3/log.h"
+#include "ns3/uinteger.h"
 #include "ns3/simulator.h"
+#include "ns3/tcp-socket.h"
 
 #include "unipath-receiver.h"
 
@@ -15,6 +17,17 @@ UnipathReceiver::UnipathReceiver (const Flow &flow, ResultsContainer &resContain
   dstPort = path.dstPort;
   rxListenSocket = CreateSocket (flow.dstNode->GetNode (), flow.protocol);
   dstAddress = Address (InetSocketAddress (flow.dstNode->GetIpAddress (), path.dstPort));
+
+  if (flow.protocol == FlowProtocol::Tcp)
+  {
+    auto tcpBufferSize = CalculateTcpBufferSize(flow);
+    NS_LOG_INFO("UnipathTransmitter - Flow: " << flow.id << " calculated TCP buffer size: " <<
+                tcpBufferSize << "bytes");
+
+    auto tcpSocket = ns3::DynamicCast<ns3::TcpSocket> (rxListenSocket);
+    tcpSocket->SetAttribute("SndBufSize", ns3::UintegerValue(tcpBufferSize));
+    tcpSocket->SetAttribute("RcvBufSize", ns3::UintegerValue(tcpBufferSize));
+  }
 
   m_dataPacketSize = flow.packetSize - CalculateHeaderSize (flow.protocol);
   NS_LOG_INFO ("Flow " << flow.id << "\nPacket size including headers: " << flow.packetSize

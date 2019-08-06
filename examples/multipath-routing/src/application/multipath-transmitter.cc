@@ -34,6 +34,10 @@ MultipathTransmitter::MultipathTransmitter (const Flow &flow, ResultsContainer &
       return;
     }
 
+  auto tcpBufferSize = CalculateTcpBufferSize(flow);
+  NS_LOG_INFO("MultipathTransmitter - Flow: " << flow.id << " calculated TCP buffer size: " <<
+              tcpBufferSize << "bytes");
+
   for (const auto &path : flow.GetDataPaths ())
     {
       if (path.dataRate == DataRate (0))
@@ -66,6 +70,10 @@ MultipathTransmitter::MultipathTransmitter (const Flow &flow, ResultsContainer &
       if (flow.protocol == FlowProtocol::Tcp)
         {
           auto tcpSocket = ns3::DynamicCast<ns3::TcpSocket> (pathInfo.txSocket);
+
+          tcpSocket->SetAttribute("SndBufSize", ns3::UintegerValue(tcpBufferSize));
+          tcpSocket->SetAttribute("RcvBufSize", ns3::UintegerValue(tcpBufferSize));
+
           ns3::UintegerValue segmentSize;
           tcpSocket->GetAttribute ("SegmentSize", segmentSize);
           auto pktSizeInclMptcpHdr{m_dataPacketSize + MptcpHeader ().GetSerializedSize ()};

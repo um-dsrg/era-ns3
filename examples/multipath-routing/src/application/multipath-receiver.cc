@@ -1,5 +1,7 @@
 #include "ns3/log.h"
+#include "ns3/uinteger.h"
 #include "ns3/simulator.h"
+#include "ns3/tcp-socket.h"
 #include "ns3/inet-socket-address.h"
 
 #include "../mptcp-header.h"
@@ -123,6 +125,10 @@ MultipathReceiver::MultipathReceiver (const Flow &flow, ResultsContainer &resCon
   SetDataPacketSize (flow);
   m_aggregateBuffer.SetPacketSize (m_dataPacketSize + MptcpHeader ().GetSerializedSize ());
 
+  auto tcpBufferSize = CalculateTcpBufferSize(flow);
+  NS_LOG_INFO("MultipathReciever - Flow: " << flow.id << " calculated TCP buffer size: " <<
+              tcpBufferSize << "bytes");
+
   for (const auto &path : flow.GetDataPaths ())
     {
       PathInformation pathInfo;
@@ -130,6 +136,13 @@ MultipathReceiver::MultipathReceiver (const Flow &flow, ResultsContainer &resCon
       pathInfo.rxListenSocket = CreateSocket (flow.dstNode->GetNode (), flow.protocol);
       pathInfo.dstAddress =
           Address (InetSocketAddress (flow.dstNode->GetIpAddress (), path.dstPort));
+
+      if (flow.protocol == FlowProtocol::Tcp)
+      {
+        auto tcpSocket = ns3::DynamicCast<ns3::TcpSocket> (pathInfo.rxListenSocket);
+        tcpSocket->SetAttribute("SndBufSize", ns3::UintegerValue(tcpBufferSize));
+        tcpSocket->SetAttribute("RcvBufSize", ns3::UintegerValue(tcpBufferSize));
+      }
 
       m_pathInfoContainer.push_back (pathInfo);
     }
