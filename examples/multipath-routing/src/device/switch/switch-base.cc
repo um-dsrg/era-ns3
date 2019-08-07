@@ -241,10 +241,11 @@ SwitchBase::ExtractFlowFromPacket (Ptr<const Packet> packet, uint16_t protocol)
               flow.srcPort = tcpHeader.GetSourcePort ();
               flow.dstPort = tcpHeader.GetDestinationPort ();
               flow.protocol = FlowProtocol::Tcp;
-
-              if (tcpHeader.GetFlags () & (1 << 5))
-                packetType = PacketType::Ack;
+              receivedPacket->RemoveHeader(tcpHeader);
             }
+
+            if (receivedPacket->GetSize() == 0)
+              packetType = PacketType::Ack;
         }
       else if (ipProtocol == Icmpv4L4Protocol::PROT_NUMBER)
         { // ICMP Packet
