@@ -100,6 +100,7 @@ SwitchBase::InstallTransmitBuffers()
   for (uint32_t deviceIndex = 0; deviceIndex < numOfDevices; ++deviceIndex)
   {
     auto netDevice = m_node->GetDevice (deviceIndex);
+    m_netDevBusy.emplace(netDevice, false); // Initially, all switch net devices are idle
     m_netDevToTxBuffer.emplace(netDevice, new TransmitBuffer(m_txBufferRetrievalMethod, m_id));
 
     // Store the relationship between the device index and the device
@@ -149,6 +150,9 @@ SwitchBase::TransmitPacket(Ptr<NetDevice> netDevice)
 {
   try
   {
+    if (m_netDevBusy.at(netDevice) == true)
+      return;
+
     TransmitBuffer* transmitBuffer = m_netDevToTxBuffer.at(netDevice);
 
     std::pair<bool, TransmitBuffer::QueueEntry> txBufferEntry = transmitBuffer->RetrievePacket();
@@ -159,6 +163,8 @@ SwitchBase::TransmitPacket(Ptr<NetDevice> netDevice)
 
       auto sendSuccess = netDevice->Send (queueEntry->packet->Copy(), queueEntry->dst,
                                           queueEntry->protocol);
+
+      m_netDevBusy.at(netDevice) = true;
 
       NS_ABORT_MSG_IF (!sendSuccess, "Switch " << m_id << " failed to forward packet");
       NS_LOG_INFO (Simulator::Now ().GetSeconds () << "s: Switch " << m_id <<
@@ -195,7 +201,11 @@ SwitchBase::PacketTransmitted (std::string deviceIndex, ns3::Ptr<const ns3::Pack
 
   try
   {
-    TransmitPacket(m_indexToNetDev.at(deviceIndex));
+    auto netDevice = m_indexToNetDev.at(deviceIndex);
+    m_netDevBusy.at(netDevice) = false;
+
+    Simulator::Schedule (Simulator::Now(), &SwitchBase::TransmitPacket, this,
+                         netDevice);
   }
   catch (const std::out_of_range &oor)
   {

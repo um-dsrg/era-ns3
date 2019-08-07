@@ -64,6 +64,7 @@ protected:
 
   ReceiveBuffer m_receiveBuffer;
   const std::string m_txBufferRetrievalMethod;
+  std::map<ns3::Ptr<ns3::NetDevice>, bool> m_netDevBusy;
   std::map<ns3::Ptr<ns3::NetDevice>, TransmitBuffer*> m_netDevToTxBuffer;
 
   /**< Key: NetDevice Index | Val: NetDevice */
