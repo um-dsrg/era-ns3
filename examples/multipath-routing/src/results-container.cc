@@ -382,7 +382,7 @@ void
 ResultsContainer::AddSimulationParameters (
     const std::string &inputFile, const std::string &outputFile,
     const std::string &flowMonitorOutput, const std::string &stopTime, bool enablePcap,
-    bool useSack, bool usePpfsSwitches, bool useSdnSwitches, bool perPacketDelayLog,
+    bool usePpfsSwitches, bool useSdnSwitches, bool perPacketDelayLog,
     uint64_t switchBufferSize, bool logPacketResults)
 {
   NS_LOG_INFO ("Adding simulation parameters to the result file");
@@ -416,14 +416,6 @@ ResultsContainer::AddSimulationParameters (
   else
     pcapElement->SetAttribute ("Enabled", "False");
   parametersElement->InsertEndChild (pcapElement);
-
-  // Sack status
-  XMLElement *sackElement{m_xmlDoc.NewElement ("Sack")};
-  if (useSack)
-    sackElement->SetAttribute ("Enabled", "True");
-  else
-    sackElement->SetAttribute ("Enabled", "False");
-  parametersElement->InsertEndChild (sackElement);
 
   // Switches used
   XMLElement *switchDetailsElement{m_xmlDoc.NewElement ("SwitchDetails")};

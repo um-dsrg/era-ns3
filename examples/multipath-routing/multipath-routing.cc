@@ -25,8 +25,6 @@ using namespace tinyxml2;
 int
 main (int argc, char *argv[])
 {
-
-  bool useSack{false};
   bool verbose{false};
   bool enablePcap{false};
   bool useSdnSwitches{false};
@@ -62,7 +60,6 @@ main (int argc, char *argv[])
   cmdLine.AddValue ("seed", "The seed used by the random number generator. Default of 1.",
                     seedValue);
   cmdLine.AddValue ("enablePcap", "Enable PCAP tracing on all devices", enablePcap);
-  cmdLine.AddValue ("useSack", "Enable TCP Sack on all sockets", useSack);
   cmdLine.AddValue ("usePpfsSwitches", "Enable the use of PPFS switches", usePpfsSwitches);
   cmdLine.AddValue ("useSdnSwitches", "Enable the use of SDN switches", useSdnSwitches);
   cmdLine.AddValue ("perPacketDelayLog",
@@ -117,9 +114,6 @@ main (int argc, char *argv[])
   NS_ABORT_MSG_IF (error != XML_SUCCESS, "Could not load input file. File path: " << inputFile);
   XMLNode *rootNode = xmlInputFile.LastChild ();
   NS_ABORT_MSG_IF (rootNode == nullptr, "No root node node found");
-
-  // Configure Selective Acknowledgements
-  Config::SetDefault ("ns3::TcpSocketBase::Sack", BooleanValue (useSack));
 
   // Set the switch type
   SwitchType switchType;
@@ -185,7 +179,7 @@ main (int argc, char *argv[])
   resContainer.AddSwitchResults (switchContainer);
 
   resContainer.AddSimulationParameters (inputFile, outputFile, flowMonitorOutputFile, stopTime,
-                                        enablePcap, useSack, usePpfsSwitches, useSdnSwitches,
+                                        enablePcap, usePpfsSwitches, useSdnSwitches,
                                         perPacketDelayLog, switchBufferSize, logPacketResults);
   resContainer.SaveFile (outputFile);
 

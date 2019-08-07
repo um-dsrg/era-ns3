@@ -90,9 +90,9 @@ public:
   void AddSwitchResults (const SwitchContainer &switchContainer);
   void AddSimulationParameters (const std::string &inputFile, const std::string &outputFile,
                                 const std::string &flowMonitorOutput, const std::string &stopTime,
-                                bool enablePcap, bool useSack, bool usePpfsSwitches,
-                                bool useSdnSwitches, bool perPacketDelayLog,
-                                uint64_t switchBufferSize, bool logPacketResults);
+                                bool enablePcap, bool usePpfsSwitches, bool useSdnSwitches,
+                                bool perPacketDelayLog, uint64_t switchBufferSize,
+                                bool logPacketResults);
   void SaveFile (const std::string &path);
 
 private:
