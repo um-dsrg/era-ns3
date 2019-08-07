@@ -92,8 +92,7 @@ public:
                                 const std::string &flowMonitorOutput, const std::string &stopTime,
                                 bool enablePcap, bool useSack, bool usePpfsSwitches,
                                 bool useSdnSwitches, bool perPacketDelayLog,
-                                const std::string &switchPortBufferSize, uint64_t switchBufferSize,
-                                bool logPacketResults);
+                                uint64_t switchBufferSize, bool logPacketResults);
   void SaveFile (const std::string &path);
 
 private:

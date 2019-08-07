@@ -44,7 +44,6 @@ main (int argc, char *argv[])
   std::string inputFile{""};
   std::string outputFile{""};
   std::string flowMonitorOutputFile{""};
-  std::string switchPortBufferSize{"100p"};
   std::string transmitBufferRetrievalMethod {"InOrder"};
 
   // Set the command line parameters
@@ -70,10 +69,6 @@ main (int argc, char *argv[])
                     "Enable delay logging on a per-packet level. By default this feature is "
                     "disabled due to the high memory requirements.",
                     perPacketDelayLog);
-  cmdLine.AddValue ("switchPortBufferSize",
-                    "The Net Device/Per Port buffer size each switch will be setup with. The "
-                    "default size is equal to 100 packets.",
-                    switchPortBufferSize);
   cmdLine.AddValue ("switchBufferSize",
                     "The buffer size in bytes each switch is equipped with. The default switch "
                     "buffer size is equal to 100,000bytes",
@@ -178,11 +173,6 @@ main (int argc, char *argv[])
   // Set the simulation stop time
   Simulator::Stop (Time (stopTime));
 
-  // Set the NetDevice buffer size
-  Config::Set ("/NodeList/*/DeviceList/*/$ns3::PointToPointNetDevice/TxQueue/"
-               "$ns3::DropTailQueue<Packet>/MaxSize",
-               QueueSizeValue (QueueSize (switchPortBufferSize)));
-
   std::cout << "Network Simulation in progress..." << std::endl;
 
   Simulator::Run ();
@@ -196,8 +186,7 @@ main (int argc, char *argv[])
 
   resContainer.AddSimulationParameters (inputFile, outputFile, flowMonitorOutputFile, stopTime,
                                         enablePcap, useSack, usePpfsSwitches, useSdnSwitches,
-                                        perPacketDelayLog, switchPortBufferSize, switchBufferSize,
-                                        logPacketResults);
+                                        perPacketDelayLog, switchBufferSize, logPacketResults);
   resContainer.SaveFile (outputFile);
 
   // Save the flow monitor result file and try to update the flow ids to match ours

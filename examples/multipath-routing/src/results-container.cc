@@ -383,7 +383,7 @@ ResultsContainer::AddSimulationParameters (
     const std::string &inputFile, const std::string &outputFile,
     const std::string &flowMonitorOutput, const std::string &stopTime, bool enablePcap,
     bool useSack, bool usePpfsSwitches, bool useSdnSwitches, bool perPacketDelayLog,
-    const std::string &switchPortBufferSize, uint64_t switchBufferSize, bool logPacketResults)
+    uint64_t switchBufferSize, bool logPacketResults)
 {
   NS_LOG_INFO ("Adding simulation parameters to the result file");
 
@@ -437,11 +437,10 @@ ResultsContainer::AddSimulationParameters (
     }
   else
     {
-      NS_ABORT_MSG ("Unkown switches used");
+      NS_ABORT_MSG ("Unknown switches used");
     }
   switchDetailsElement->SetAttribute ("BufferSizeInBytes",
                                       boost::numeric_cast<double> (switchBufferSize));
-  switchDetailsElement->SetAttribute ("PortBufferSize", switchPortBufferSize.c_str ());
   parametersElement->InsertEndChild (switchDetailsElement);
 
   // Per Packet delay log status
