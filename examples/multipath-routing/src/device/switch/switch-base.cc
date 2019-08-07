@@ -168,7 +168,7 @@ SwitchBase::TransmitPacket(Ptr<NetDevice> netDevice)
 
       NS_ABORT_MSG_IF (!sendSuccess, "Switch " << m_id << " failed to forward packet");
       NS_LOG_INFO (Simulator::Now ().GetSeconds () << "s: Switch " << m_id <<
-                   " forwarded a packet");
+                   " started transmitting a packet");
     }
     else
     {
