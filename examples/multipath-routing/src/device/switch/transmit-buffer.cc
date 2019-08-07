@@ -33,7 +33,7 @@ TransmitBuffer::TransmitBuffer(const std::string& retrievalMethod, id_t switchId
     }
   } catch (const std::out_of_range& e)
   {
-    NS_ABORT_MSG("Retrieval method does not exist. Method: " << retrievalMethod);
+    NS_ABORT_MSG("Retrieval method " << retrievalMethod << " does not exist");
   }
 }
 
@@ -44,18 +44,20 @@ TransmitBuffer::AddPacket(TransmitBuffer::QueueEntry queueEntry)
       (queueEntry.packetType == PacketType::Data))
   {
     m_dataQueue.emplace(queueEntry);
-    NS_LOG_INFO(Simulator::Now ().GetSeconds () << "s: Add DATA packet to Switch " << m_switchId <<
-                " transmit buffer");
+    NS_LOG_INFO(Simulator::Now ().GetSeconds () << "s - Switch: " << m_switchId <<
+                "Add packet to DATA transmit buffer. Packets in DATA buffer: " <<
+                m_dataQueue.size() << " Packets in ACK buffer: " << m_ackQueue.size());
   }
   else if (queueEntry.packetType == PacketType::Ack)
   {
     m_ackQueue.emplace(queueEntry);
-    NS_LOG_INFO(Simulator::Now ().GetSeconds () << "s: Add ACK packet to Switch " << m_switchId <<
-                " transmit buffer");
+    NS_LOG_INFO(Simulator::Now ().GetSeconds () << "s - Switch: " << m_switchId <<
+                "Add packet to ACK transmit buffer. Packets in DATA buffer: " <<
+                m_dataQueue.size() << " Packets in ACK buffer: " << m_ackQueue.size());
   }
   else
   {
-    NS_ABORT_MSG("Adding packet to transmit buffer failed.");
+    NS_ABORT_MSG("Switch " << m_switchId << "Adding packet to transmit buffer failed.");
   }
 }
 
