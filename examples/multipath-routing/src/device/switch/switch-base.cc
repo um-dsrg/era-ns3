@@ -203,9 +203,7 @@ SwitchBase::PacketTransmitted (std::string deviceIndex, ns3::Ptr<const ns3::Pack
   {
     auto netDevice = m_indexToNetDev.at(deviceIndex);
     m_netDevBusy.at(netDevice) = false;
-
-    Simulator::Schedule (Simulator::Now(), &SwitchBase::TransmitPacket, this,
-                         netDevice);
+    Simulator::Schedule (Time("0"), &SwitchBase::TransmitPacket, this, netDevice);
   }
   catch (const std::out_of_range &oor)
   {
