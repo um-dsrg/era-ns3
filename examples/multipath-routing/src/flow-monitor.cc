@@ -12,9 +12,10 @@ struct FlowDetails
 {
   id_t flowId{0};
   id_t pathId{0};
+  std::string flowType{""};
 };
 
-std::pair<FlowDetails, bool>
+std::pair<bool, FlowDetails>
 GetMatchingFlowDetails (const Ipv4Address &srcAddress, const Ipv4Address &dstAddress,
                         portNum_t srcPort, portNum_t dstPort, const Flow::flowContainer_t &flows)
 {
@@ -37,6 +38,7 @@ GetMatchingFlowDetails (const Ipv4Address &srcAddress, const Ipv4Address &dstAdd
                 {
                   flowDetails.flowId = flowPair.first;
                   flowDetails.pathId = dataPath.id;
+                  flowDetails.flowType = "data";
                   flowFound = true;
                   break;
                 }
@@ -52,6 +54,7 @@ GetMatchingFlowDetails (const Ipv4Address &srcAddress, const Ipv4Address &dstAdd
                 {
                   flowDetails.flowId = flowPair.first;
                   flowDetails.pathId = ackPath.id;
+                  flowDetails.flowType = "ack";
                   flowFound = true;
                   break;
                 }
@@ -59,7 +62,7 @@ GetMatchingFlowDetails (const Ipv4Address &srcAddress, const Ipv4Address &dstAdd
         }
     }
 
-  return std::make_pair (flowDetails, flowFound);
+  return std::make_pair (flowFound, flowDetails);
 }
 
 void
@@ -112,10 +115,10 @@ SaveFlowMonitorResultFile (ns3::FlowMonitorHelper &flowMonHelper,
           flowElement->QueryAttribute ("destinationPort", &tmpPort);
           auto dstPort = portNum_t{numeric_cast<portNum_t> (tmpPort)};
 
-          FlowDetails matchingFlowDetails;
           auto flowMatchFound = bool{false};
+          FlowDetails matchingFlowDetails;
 
-          std::tie (matchingFlowDetails, flowMatchFound) =
+          std::tie (flowMatchFound, matchingFlowDetails) =
               GetMatchingFlowDetails (srcIpAddr, dstIpAddr, srcPort, dstPort, flows);
 
           if (!flowMatchFound)
@@ -126,6 +129,7 @@ SaveFlowMonitorResultFile (ns3::FlowMonitorHelper &flowMonHelper,
           // Update the flow element values
           flowElement->SetAttribute ("flowId", matchingFlowDetails.flowId);
           flowElement->SetAttribute ("pathId", matchingFlowDetails.pathId);
+          flowElement->SetAttribute ("flowType", matchingFlowDetails.flowType.c_str ());
 
           // Save the mapping to update the FlowStats element
           flowMonMap.emplace (flowId, matchingFlowDetails);
@@ -146,6 +150,7 @@ SaveFlowMonitorResultFile (ns3::FlowMonitorHelper &flowMonHelper,
           const auto &flowDetails = flowMonMap.at (fmFlowId);
           flowElement->SetAttribute ("flowId", flowDetails.flowId);
           flowElement->SetAttribute ("pathId", flowDetails.pathId);
+          flowElement->SetAttribute ("flowType", flowDetails.flowType.c_str ());
 
           flowElement = flowElement->NextSiblingElement ("Flow");
         }
