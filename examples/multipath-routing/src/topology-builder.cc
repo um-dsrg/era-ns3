@@ -4,6 +4,7 @@
 #include "topology-builder.h"
 #include "device/switch/sdn-switch.h"
 #include "device/switch/ppfs-switch.h"
+#include "device/switch/transmit-queue.h"
 
 NS_LOG_COMPONENT_DEFINE ("TopologyBuilder");
 
@@ -226,10 +227,18 @@ TopologyBuilder::InstallP2pLinks (const std::vector<const Link *> &links,
   dstNd->SetAddress (Mac48Address::Allocate ());
   commonLink->dstNode->GetNode ()->AddDevice (dstNd);
 
+  // NOTE - Code mod - BEGIN
+  // ObjectFactory test ("ns3::TransmitQueue");
+  // Ptr<TransmitQueue> testQueue = test.Create<TransmitQueue> ();
+  // Ptr<WifiNetDevice> device = CreateObject<WifiNetDevice> ();
+  Ptr<TransmitQueue> testQueue = CreateObject<TransmitQueue> ();
+  srcNd->SetQueue (testQueue);
+  // NOTE - Code mod - END
+
   // Create Queue on source NetDevice
   ObjectFactory queueFactory ("ns3::DropTailQueue<Packet>");
-  Ptr<Queue<Packet>> srcQueue = queueFactory.Create<Queue<Packet>> ();
-  srcNd->SetQueue (srcQueue);
+  // Ptr<Queue<Packet>> srcQueue = queueFactory.Create<Queue<Packet>> ();
+  // srcNd->SetQueue (srcQueue);
 
   // Create Queue on destination NetDevice
   Ptr<Queue<Packet>> dstQueue = queueFactory.Create<Queue<Packet>> ();
