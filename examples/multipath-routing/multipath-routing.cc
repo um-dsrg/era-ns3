@@ -42,7 +42,7 @@ main (int argc, char *argv[])
   std::string inputFile{""};
   std::string outputFile{""};
   std::string flowMonitorOutputFile{""};
-  std::string transmitBufferRetrievalMethod {"InOrder"};
+  std::string transmitBufferRetrievalMethod{"InOrder"};
 
   // Set the command line parameters
   CommandLine cmdLine;
@@ -77,9 +77,10 @@ main (int argc, char *argv[])
   cmdLine.AddValue ("logBufferSizeWithTime",
                     "When set, log the time the MSTCP receiver buffer size changes.",
                     logBufferSizeWithTime);
-  cmdLine.AddValue("txBufferRetrieval",
-                   "The method to use for the Transmit Buffer retrieval. Available options are:"
-                   "RoundRobin | AckPriority | InOrder", transmitBufferRetrievalMethod);
+  cmdLine.AddValue ("txBufferRetrieval",
+                    "The method to use for the Transmit Buffer retrieval. Available options are:"
+                    "RoundRobin | AckPriority | InOrder",
+                    transmitBufferRetrievalMethod);
   cmdLine.Parse (argc, argv);
 
   if (verbose)
@@ -145,7 +146,7 @@ main (int argc, char *argv[])
   BuildRoutingTable (flows, transmitOnLink);
 
   // Setup the switches for packet handling
-  switchContainer.SetupSwitches();
+  switchContainer.SetupSwitches ();
 
   // Setup the results container
   resContainer.SetupFlowResults (flows);
