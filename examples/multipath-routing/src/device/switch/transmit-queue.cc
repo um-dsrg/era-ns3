@@ -11,11 +11,11 @@ TransmitQueue::Enqueue (ns3::Ptr<ns3::Packet> packet)
 ns3::Ptr<ns3::Packet>
 TransmitQueue::Dequeue ()
 {
-  std::cout << "Removing a packet" << std::endl;
-  ns3::Ptr<ns3::Packet> packet = m_dataQueue.front ();
-  m_dataQueue.pop (); // NOTE: This pop is causing a crash because it returns a reference to the
-  //object. Ns3 uses a list underneath, might consider doing that to see if the problem persists.
+  if (m_dataQueue.empty ())
+    return 0;
 
+  ns3::Ptr<ns3::Packet> packet = m_dataQueue.front ();
+  m_dataQueue.pop ();
   return packet;
 }
 
