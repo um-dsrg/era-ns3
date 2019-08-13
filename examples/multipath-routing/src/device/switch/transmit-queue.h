@@ -24,6 +24,8 @@ private:
 
   PacketType GetPacketType (ns3::Ptr<const ns3::Packet> packet) const;
 
+  /* Queue Retrieval Methods */
+  ns3::Ptr<ns3::Packet> InOrderRetrieval ();
   id_t m_switchId;
   RetrievalMethod m_retrievalMethod;
   std::queue<ns3::Ptr<ns3::Packet>> m_ackQueue;

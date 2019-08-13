@@ -132,3 +132,19 @@ TransmitQueue::GetPacketType (ns3::Ptr<const ns3::Packet> packet) const
 
   return packetType;
 }
+
+ns3::Ptr<ns3::Packet>
+TransmitQueue::InOrderRetrieval ()
+{
+  if (m_dataQueue.empty ())
+    return 0;
+
+  auto retrievedPacket = m_dataQueue.front ();
+  m_dataQueue.pop ();
+
+  NS_LOG_INFO (Simulator::Now ().GetSeconds () << "s: InOrderRetrieval - Packet retrieved from "
+                                                  "Switch "
+                                               << m_switchId << " DATA buffer");
+
+  return retrievedPacket;
+}
