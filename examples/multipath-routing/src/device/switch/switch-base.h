@@ -47,7 +47,9 @@ public:
                                        splitRatio_t splitRatio) = 0;
 
 protected:
-  void TransmitPacket (ns3::Ptr<ns3::NetDevice> forwardingNetDevice);
+  void TransmitPacket (ns3::Ptr<ns3::NetDevice> forwardingNetDevice,
+                       ns3::Ptr<const ns3::Packet> packet, const ns3::Address &dst,
+                       uint16_t protocol);
 
   void PacketTransmitted (std::string deviceIndex, ns3::Ptr<const ns3::Packet> packet);
   RtFlow ExtractFlowFromPacket (ns3::Ptr<const ns3::Packet> packet, uint16_t protocol);
@@ -55,7 +57,7 @@ protected:
   virtual void PacketReceived (ns3::Ptr<ns3::NetDevice> incomingPort,
                                ns3::Ptr<const ns3::Packet> packet, uint16_t protocol,
                                const ns3::Address &src, const ns3::Address &dst,
-                               ns3::NetDevice::PacketType ndPacketType) = 0;
+                               ns3::NetDevice::PacketType packetType) = 0;
 
   ReceiveBuffer m_receiveBuffer;
 };

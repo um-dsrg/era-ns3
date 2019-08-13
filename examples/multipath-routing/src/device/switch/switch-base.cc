@@ -104,10 +104,10 @@ SwitchBase::EnablePacketTransmissionCompletionTrace ()
 }
 
 void
-SwitchBase::TransmitPacket (Ptr<NetDevice> forwardingNetDevice)
+SwitchBase::TransmitPacket (Ptr<NetDevice> forwardingNetDevice, ns3::Ptr<const ns3::Packet> packet,
+                            const ns3::Address &dst, uint16_t protocol)
 {
-  // auto sendSuccess = forwardingNetDevice->Send (packet->Copy (), dst, protocol);
-  auto sendSuccess = false;
+  auto sendSuccess = forwardingNetDevice->Send (packet->Copy (), dst, protocol);
   NS_ABORT_MSG_IF (!sendSuccess, "Switch " << m_id << " failed to forward packet");
   NS_LOG_INFO (Simulator::Now ().GetSeconds ()
                << "s - Switch " << m_id << ": added a packet to its transmit queue");

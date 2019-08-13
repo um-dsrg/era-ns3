@@ -53,8 +53,7 @@ SdnSwitch::SetPacketReception ()
 
 void
 SdnSwitch::PacketReceived (Ptr<NetDevice> incomingPort, Ptr<const Packet> packet, uint16_t protocol,
-                           const Address &src, const Address &dst,
-                           NetDevice::PacketType ndPacketType)
+                           const Address &src, const Address &dst, NetDevice::PacketType packetType)
 {
   NS_LOG_INFO (Simulator::Now ().GetSeconds () << "s: Switch " << m_id << " received a packet");
 
@@ -66,15 +65,13 @@ SdnSwitch::PacketReceived (Ptr<NetDevice> incomingPort, Ptr<const Packet> packet
   parsedFlow = ExtractFlowFromPacket (packet, protocol);
   NS_LOG_INFO ("  " << parsedFlow);
 
-  Ptr<NetDevice> forwardingNetDevice;
-
   try
     {
+      Ptr<NetDevice> forwardingNetDevice;
       forwardingNetDevice = m_routingTable.at (parsedFlow);
+      TransmitPacket (forwardingNetDevice, packet, dst, protocol);
   } catch (const std::out_of_range &oor)
     {
       NS_ABORT_MSG ("Routing table Miss on Switch " << m_id << ". Flow: \n" << parsedFlow);
   }
-
-  TransmitPacket (forwardingNetDevice);
 }

@@ -69,7 +69,7 @@ TransmitQueue::Enqueue (ns3::Ptr<ns3::Packet> packet)
         }
       else
         {
-          NS_ABORT_MSG ("Switch " << m_switchId << "Adding packet to transmit buffer failed.");
+          NS_ABORT_MSG ("Switch " << m_switchId << ": Adding packet to transmit buffer failed.");
           return false;
         }
     }
@@ -156,7 +156,7 @@ TransmitQueue::GetAckPacket ()
   m_ackQueue.pop ();
 
   NS_LOG_INFO (Simulator::Now ().GetSeconds ()
-               << "s: Packet retrieved from Switch " << m_switchId << " ACK buffer");
+               << "s - Switch " << m_switchId << ": Packet retrieved from ACK buffer");
 
   return retrievedPacket;
 }
@@ -171,7 +171,7 @@ TransmitQueue::GetDataPacket ()
   m_dataQueue.pop ();
 
   NS_LOG_INFO (Simulator::Now ().GetSeconds ()
-               << "s: Packet retrieved from Switch " << m_switchId << " DATA buffer");
+               << "s - Switch " << m_switchId << ": Packet retrieved from DATA buffer");
 
   return retrievedPacket;
 }

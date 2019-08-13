@@ -78,7 +78,7 @@ PpfsSwitch::SetPacketReception ()
 void
 PpfsSwitch::PacketReceived (Ptr<NetDevice> incomingPort, Ptr<const Packet> packet,
                             uint16_t protocol, const Address &src, const Address &dst,
-                            NetDevice::PacketType ndPacketType)
+                            NetDevice::PacketType packetType)
 {
   NS_LOG_INFO (Simulator::Now ().GetSeconds () << "s: Switch " << m_id << " received a packet");
 
@@ -107,8 +107,7 @@ PpfsSwitch::PacketReceived (Ptr<NetDevice> incomingPort, Ptr<const Packet> packe
 
       NS_ABORT_MSG_IF (forwardingNetDevice == nullptr,
                        "Switch " << m_id << " failed to find the forwarding port");
-
-      TransmitPacket (forwardingNetDevice);
+      TransmitPacket (forwardingNetDevice, packet, dst, protocol);
   } catch (const std::out_of_range &oor)
     {
       NS_ABORT_MSG ("Routing table Miss on Switch " << m_id << ".Flow: " << parsedFlow);
