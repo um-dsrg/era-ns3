@@ -172,7 +172,24 @@ TransmitQueue::InOrderRetrieval ()
 ns3::Ptr<ns3::Packet>
 TransmitQueue::RoundRobinRetrieval ()
 {
-  return 0;
+  ns3::Ptr<ns3::Packet> retrievedPacket{0};
+
+  if (m_rrTransmitAckPacket)
+    {
+      retrievedPacket = GetAckPacket ();
+      if (retrievedPacket == 0) // ACK queue empty, get from DATA queue
+        retrievedPacket = GetDataPacket ();
+    }
+  else
+    {
+      retrievedPacket = GetDataPacket ();
+      if (retrievedPacket == 0) // DATA queue empty, get from ACK queue
+        retrievedPacket = GetAckPacket ();
+    }
+
+  m_rrTransmitAckPacket = !m_rrTransmitAckPacket;
+
+  return retrievedPacket;
 }
 
 ns3::Ptr<ns3::Packet>
