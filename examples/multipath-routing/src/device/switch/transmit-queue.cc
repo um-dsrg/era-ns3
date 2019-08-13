@@ -129,8 +129,11 @@ TransmitQueue::GetPacketType (ns3::Ptr<const ns3::Packet> packet) const
                 }
 
               // If ACK flag is set AND no data carried by packet, this is an ACK packet
-              if ((tcpFlags & (1 << 5)) && (receivedPacket->GetSize () == 0))
-                packetType = PacketType::Ack;
+              if (((tcpFlags & TcpHeader::ACK) == TcpHeader::ACK) &&
+                  (receivedPacket->GetSize () == 0))
+                {
+                  packetType = PacketType::Ack;
+                }
             }
         }
       else
