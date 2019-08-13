@@ -14,8 +14,26 @@ NS_LOG_COMPONENT_DEFINE ("TransmitQueue");
 
 using namespace ns3;
 
-TransmitQueue::TransmitQueue () : NS_LOG_TEMPLATE_DEFINE ("TransmitQueue")
+TransmitQueue::TransmitQueue (const std::string &retrievalMethod, id_t switchId)
+    : m_switchId (switchId), NS_LOG_TEMPLATE_DEFINE ("TransmitQueue")
 {
+  if (retrievalMethod.compare ("AckPriority") == 0)
+    {
+      m_retrievalMethod = RetrievalMethod::AckPriority;
+      m_retrievalFunction = std::bind (&TransmitQueue::AckPriorityRetrieval, this);
+    }
+  else if (retrievalMethod.compare ("InOrder") == 0)
+    {
+      m_retrievalMethod = RetrievalMethod::InOrder;
+      m_retrievalFunction = std::bind (&TransmitQueue::InOrderRetrieval, this);
+    }
+  else if (retrievalMethod.compare ("RoundRobin") == 0)
+    {
+      m_retrievalMethod = RetrievalMethod::RoundRobin;
+      m_retrievalFunction = std::bind (&TransmitQueue::RoundRobinRetrieval, this);
+    }
+  else
+    NS_ABORT_MSG ("Retrieval method " << retrievalMethod << " does not exist");
 }
 
 bool
@@ -62,12 +80,7 @@ TransmitQueue::Enqueue (ns3::Ptr<ns3::Packet> packet)
 ns3::Ptr<ns3::Packet>
 TransmitQueue::Dequeue ()
 {
-  if (m_dataQueue.empty ())
-    return 0;
-
-  ns3::Ptr<ns3::Packet> packet = m_dataQueue.front ();
-  m_dataQueue.pop ();
-  return packet;
+  return m_retrievalFunction ();
 }
 
 ns3::Ptr<ns3::Packet>

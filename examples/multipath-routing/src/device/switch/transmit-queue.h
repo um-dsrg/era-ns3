@@ -13,7 +13,7 @@
 class TransmitQueue : public ns3::Queue<ns3::Packet>
 {
 public:
-  TransmitQueue ();
+  TransmitQueue (const std::string &retrievalMethod, id_t switchId);
 
   bool Enqueue (ns3::Ptr<ns3::Packet> packet) override;
   ns3::Ptr<ns3::Packet> Dequeue () override;
@@ -21,8 +21,6 @@ public:
   ns3::Ptr<const ns3::Packet> Peek () const override;
 
 private:
-  enum class RetrievalMethod { RoundRobin, AckPriority, InOrder };
-
   PacketType GetPacketType (ns3::Ptr<const ns3::Packet> packet) const;
 
   ns3::Ptr<ns3::Packet> GetAckPacket ();
@@ -40,11 +38,14 @@ private:
   bool m_rrTransmitAckPacket = false;
 
   id_t m_switchId;
-  RetrievalMethod m_retrievalMethod;
   std::queue<ns3::Ptr<ns3::Packet>> m_ackQueue;
   std::queue<ns3::Ptr<ns3::Packet>> m_dataQueue;
 
+  /* Retrieval functionality */
   std::function<ns3::Ptr<ns3::Packet> (void)> m_retrievalFunction;
+
+  enum class RetrievalMethod { RoundRobin, AckPriority, InOrder };
+  RetrievalMethod m_retrievalMethod;
 
   ns3::NS_LOG_TEMPLATE_DECLARE;
 };
