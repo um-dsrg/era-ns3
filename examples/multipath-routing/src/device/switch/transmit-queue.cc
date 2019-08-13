@@ -134,7 +134,22 @@ TransmitQueue::GetPacketType (ns3::Ptr<const ns3::Packet> packet) const
 }
 
 ns3::Ptr<ns3::Packet>
-TransmitQueue::InOrderRetrieval ()
+TransmitQueue::GetAckPacket ()
+{
+  if (m_ackQueue.empty ())
+    return 0;
+
+  auto retrievedPacket = m_ackQueue.front ();
+  m_ackQueue.pop ();
+
+  NS_LOG_INFO (Simulator::Now ().GetSeconds ()
+               << "s: Packet retrieved from Switch " << m_switchId << " ACK buffer");
+
+  return retrievedPacket;
+}
+
+ns3::Ptr<ns3::Packet>
+TransmitQueue::GetDataPacket ()
 {
   if (m_dataQueue.empty ())
     return 0;
@@ -142,38 +157,31 @@ TransmitQueue::InOrderRetrieval ()
   auto retrievedPacket = m_dataQueue.front ();
   m_dataQueue.pop ();
 
-  NS_LOG_INFO (Simulator::Now ().GetSeconds () << "s: InOrderRetrieval - Packet retrieved from "
-                                                  "Switch "
-                                               << m_switchId << " DATA buffer");
+  NS_LOG_INFO (Simulator::Now ().GetSeconds ()
+               << "s: Packet retrieved from Switch " << m_switchId << " DATA buffer");
 
   return retrievedPacket;
 }
 
 ns3::Ptr<ns3::Packet>
+TransmitQueue::InOrderRetrieval ()
+{
+  return GetDataPacket ();
+}
+
+ns3::Ptr<ns3::Packet>
+TransmitQueue::RoundRobinRetrieval ()
+{
+  return 0;
+}
+
+ns3::Ptr<ns3::Packet>
 TransmitQueue::AckPriorityRetrieval ()
 {
-  Ptr<Packet> retrievedPacket{0};
+  auto retrievedPacket = GetAckPacket ();
 
-  if (m_ackQueue.empty () == false)
-    {
-      retrievedPacket = m_ackQueue.front ();
-      m_ackQueue.pop ();
-
-      NS_LOG_INFO (Simulator::Now ().GetSeconds ()
-                   << "s: AckPriorityRetrieval - Packet retrieved from "
-                      "Switch "
-                   << m_switchId << " ACK buffer");
-    }
-  else if (m_dataQueue.empty () == false)
-    {
-      retrievedPacket = m_dataQueue.front ();
-      m_dataQueue.pop ();
-
-      NS_LOG_INFO (Simulator::Now ().GetSeconds ()
-                   << "s: AckPriorityRetrieval - Packet retrieved from "
-                      "Switch "
-                   << m_switchId << " DATA buffer");
-    }
+  if (retrievedPacket == 0) // Ack Queue is empty, try to transmit data queue
+    retrievedPacket = GetDataPacket ();
 
   return retrievedPacket;
 }
