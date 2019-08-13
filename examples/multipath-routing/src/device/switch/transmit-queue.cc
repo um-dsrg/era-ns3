@@ -148,3 +148,32 @@ TransmitQueue::InOrderRetrieval ()
 
   return retrievedPacket;
 }
+
+ns3::Ptr<ns3::Packet>
+TransmitQueue::AckPriorityRetrieval ()
+{
+  Ptr<Packet> retrievedPacket{0};
+
+  if (m_ackQueue.empty () == false)
+    {
+      retrievedPacket = m_ackQueue.front ();
+      m_ackQueue.pop ();
+
+      NS_LOG_INFO (Simulator::Now ().GetSeconds ()
+                   << "s: AckPriorityRetrieval - Packet retrieved from "
+                      "Switch "
+                   << m_switchId << " ACK buffer");
+    }
+  else if (m_dataQueue.empty () == false)
+    {
+      retrievedPacket = m_dataQueue.front ();
+      m_dataQueue.pop ();
+
+      NS_LOG_INFO (Simulator::Now ().GetSeconds ()
+                   << "s: AckPriorityRetrieval - Packet retrieved from "
+                      "Switch "
+                   << m_switchId << " DATA buffer");
+    }
+
+  return retrievedPacket;
+}
