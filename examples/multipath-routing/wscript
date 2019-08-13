@@ -20,8 +20,7 @@ def build(bld):
     obj.source.extend(['src/device/terminal/terminal.cc'])
 
     # Switch
-    obj.source.extend(['src/device/switch/buffer.cc',
-                       'src/device/switch/sdn-switch.cc',
+    obj.source.extend(['src/device/switch/sdn-switch.cc',
                        'src/device/switch/switch-base.cc',
                        'src/device/switch/ppfs-switch.cc',
                        'src/device/switch/transmit-queue.cc',
