@@ -7,7 +7,6 @@
 #include "ns3/packet.h"
 
 #include "receive-buffer.h"
-#include "transmit-buffer.h"
 #include "../custom-device.h"
 #include "../../definitions.h"
 
@@ -33,12 +32,11 @@ struct RtFlow
 class SwitchBase : public CustomDevice
 {
 public:
-  SwitchBase (id_t id, uint64_t switchBufferSize, const std::string& txBufferRetrievalMethod);
+  SwitchBase (id_t id, uint64_t switchBufferSize);
   virtual ~SwitchBase ();
 
   uint64_t GetNumDroppedPackets () const;
 
-  void InstallTransmitBuffers ();
   virtual void ReconcileSplitRatios ();
   void EnablePacketTransmissionCompletionTrace ();
 
@@ -49,13 +47,10 @@ public:
                                        splitRatio_t splitRatio) = 0;
 
 protected:
-  void AddPacketToTransmitBuffer (ns3::Ptr<ns3::NetDevice> netDevice,
-                                  TransmitBuffer::QueueEntry queueEntry);
-  void TransmitPacket (ns3::Ptr<ns3::NetDevice> netDevice);
+  void TransmitPacket (ns3::Ptr<ns3::NetDevice> forwardingNetDevice);
 
   void PacketTransmitted (std::string deviceIndex, ns3::Ptr<const ns3::Packet> packet);
-  std::pair<PacketType, RtFlow> ExtractFlowFromPacket (ns3::Ptr<const ns3::Packet> packet,
-                                                       uint16_t protocol);
+  RtFlow ExtractFlowFromPacket (ns3::Ptr<const ns3::Packet> packet, uint16_t protocol);
 
   virtual void PacketReceived (ns3::Ptr<ns3::NetDevice> incomingPort,
                                ns3::Ptr<const ns3::Packet> packet, uint16_t protocol,
@@ -63,12 +58,6 @@ protected:
                                ns3::NetDevice::PacketType ndPacketType) = 0;
 
   ReceiveBuffer m_receiveBuffer;
-  const std::string m_txBufferRetrievalMethod;
-  std::map<ns3::Ptr<ns3::NetDevice>, bool> m_netDevBusy;
-  std::map<ns3::Ptr<ns3::NetDevice>, TransmitBuffer*> m_netDevToTxBuffer;
-
-  /**< Key: NetDevice Index | Val: NetDevice */
-  std::unordered_map<std::string, ns3::Ptr<ns3::NetDevice>> m_indexToNetDev;
 };
 
 #endif /* switch_base_h */

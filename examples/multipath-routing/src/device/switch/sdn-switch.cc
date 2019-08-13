@@ -21,9 +21,7 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("SdnSwitch");
 
-SdnSwitch::SdnSwitch (id_t id, uint64_t switchBufferSize,
-                      const std::string& txBufferRetrievalMethod)
-    : SwitchBase (id, switchBufferSize, txBufferRetrievalMethod)
+SdnSwitch::SdnSwitch (id_t id, uint64_t switchBufferSize) : SwitchBase (id, switchBufferSize)
 {
 }
 
@@ -60,27 +58,23 @@ SdnSwitch::PacketReceived (Ptr<NetDevice> incomingPort, Ptr<const Packet> packet
 {
   NS_LOG_INFO (Simulator::Now ().GetSeconds () << "s: Switch " << m_id << " received a packet");
 
-  if (m_receiveBuffer.AddPacket(packet) == false)
+  if (m_receiveBuffer.AddPacket (packet) == false)
     return;
 
-  PacketType packetType;
   RtFlow parsedFlow;
 
-  std::tie(packetType, parsedFlow) = ExtractFlowFromPacket(packet, protocol);
+  parsedFlow = ExtractFlowFromPacket (packet, protocol);
   NS_LOG_INFO ("  " << parsedFlow);
 
   Ptr<NetDevice> forwardingNetDevice;
 
   try
-  {
-    forwardingNetDevice = m_routingTable.at (parsedFlow);
-  }
-  catch (const std::out_of_range &oor)
-  {
-    NS_ABORT_MSG ("Routing table Miss on Switch " << m_id << ". Flow: \n" << parsedFlow);
+    {
+      forwardingNetDevice = m_routingTable.at (parsedFlow);
+  } catch (const std::out_of_range &oor)
+    {
+      NS_ABORT_MSG ("Routing table Miss on Switch " << m_id << ". Flow: \n" << parsedFlow);
   }
 
-  TransmitBuffer::QueueEntry queueEntry (protocol, packetType, dst, packet);
-  AddPacketToTransmitBuffer(forwardingNetDevice, queueEntry);
-  TransmitPacket(forwardingNetDevice);
+  TransmitPacket (forwardingNetDevice);
 }

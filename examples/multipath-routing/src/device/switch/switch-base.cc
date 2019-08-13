@@ -68,46 +68,19 @@ operator<< (std::ostream &os, const RtFlow &flow)
 /* SwitchBase                               */
 /********************************************/
 
-SwitchBase::SwitchBase (id_t id, uint64_t switchBufferSize,
-                        const std::string& txBufferRetrievalMethod)
-    : CustomDevice (id),
-      m_receiveBuffer (id, switchBufferSize),
-      m_txBufferRetrievalMethod(txBufferRetrievalMethod)
+SwitchBase::SwitchBase (id_t id, uint64_t switchBufferSize)
+    : CustomDevice (id), m_receiveBuffer (id, switchBufferSize)
 {
 }
 
 SwitchBase::~SwitchBase ()
 {
-  for (auto& netDevTxBufferPair : m_netDevToTxBuffer)
-  {
-    delete netDevTxBufferPair.second;
-    netDevTxBufferPair.second = nullptr;
-  }
 }
 
 uint64_t
-SwitchBase::GetNumDroppedPackets() const
+SwitchBase::GetNumDroppedPackets () const
 {
-  return m_receiveBuffer.GetNumDroppedPackets();
-}
-
-void
-SwitchBase::InstallTransmitBuffers()
-{
-  uint32_t numOfDevices = m_node->GetNDevices ();
-  NS_ASSERT (numOfDevices > 0);
-
-  for (uint32_t deviceIndex = 0; deviceIndex < numOfDevices; ++deviceIndex)
-  {
-    auto netDevice = m_node->GetDevice (deviceIndex);
-    m_netDevBusy.emplace(netDevice, false); // Initially, all switch net devices are idle
-    m_netDevToTxBuffer.emplace(netDevice, new TransmitBuffer(m_txBufferRetrievalMethod, m_id));
-
-    // Store the relationship between the device index and the device
-    NS_ABORT_MSG_IF(deviceIndex != netDevice->GetIfIndex(),
-                    "The Device index and IfIndex do not match");
-    m_indexToNetDev.emplace(std::to_string(deviceIndex), netDevice);
-  }
+  return m_receiveBuffer.GetNumDroppedPackets ();
 }
 
 void
@@ -125,61 +98,19 @@ SwitchBase::EnablePacketTransmissionCompletionTrace ()
   for (uint32_t deviceIndex = 0; deviceIndex < numOfDevices; ++deviceIndex)
     {
       auto netDevice = m_node->GetDevice (deviceIndex);
-      netDevice->TraceConnect("PhyTxEnd", std::to_string(netDevice->GetIfIndex()),
-                              MakeCallback(&SwitchBase::PacketTransmitted, this));
+      netDevice->TraceConnect ("PhyTxEnd", std::to_string (netDevice->GetIfIndex ()),
+                               MakeCallback (&SwitchBase::PacketTransmitted, this));
     }
 }
 
 void
-SwitchBase::AddPacketToTransmitBuffer (Ptr<NetDevice> netDevice,
-                                       TransmitBuffer::QueueEntry queueEntry)
+SwitchBase::TransmitPacket (Ptr<NetDevice> forwardingNetDevice)
 {
-  try
-  {
-    TransmitBuffer* transmitBuffer = m_netDevToTxBuffer.at(netDevice);
-    transmitBuffer->AddPacket(queueEntry);
-  }
-  catch (const std::out_of_range &oor)
-  {
-    NS_ABORT_MSG ("Transmit Buffer not found on Switch " << m_id);
-  }
-}
-
-void
-SwitchBase::TransmitPacket(Ptr<NetDevice> netDevice)
-{
-  try
-  {
-    if (m_netDevBusy.at(netDevice) == true)
-      return;
-
-    TransmitBuffer* transmitBuffer = m_netDevToTxBuffer.at(netDevice);
-
-    std::pair<bool, TransmitBuffer::QueueEntry> txBufferEntry = transmitBuffer->RetrievePacket();
-
-    if (txBufferEntry.first == true)
-    {
-      auto queueEntry = &txBufferEntry.second;
-
-      auto sendSuccess = netDevice->Send (queueEntry->packet->Copy(), queueEntry->dst,
-                                          queueEntry->protocol);
-
-      m_netDevBusy.at(netDevice) = true;
-
-      NS_ABORT_MSG_IF (!sendSuccess, "Switch " << m_id << " failed to forward packet");
-      NS_LOG_INFO (Simulator::Now ().GetSeconds () << "s: Switch " << m_id <<
-                   " started transmitting a packet");
-    }
-    else
-    {
-      NS_LOG_INFO (Simulator::Now ().GetSeconds () << "s: Switch " << m_id <<
-                   " transmit buffer empty");
-    }
-  }
-  catch (const std::out_of_range &oor)
-  {
-    NS_ABORT_MSG ("Transmit Buffer not found on Switch " << m_id);
-  }
+  // auto sendSuccess = forwardingNetDevice->Send (packet->Copy (), dst, protocol);
+  auto sendSuccess = false;
+  NS_ABORT_MSG_IF (!sendSuccess, "Switch " << m_id << " failed to forward packet");
+  NS_LOG_INFO (Simulator::Now ().GetSeconds ()
+               << "s - Switch " << m_id << ": added a packet to its transmit queue");
 }
 
 void
@@ -192,31 +123,19 @@ SwitchBase::PacketTransmitted (std::string deviceIndex, ns3::Ptr<const ns3::Pack
     is used by the switches does not include the header. Therefore, the packet size here is
     subtracted by the PPP header size to cater for this difference.
   */
-  auto packetSize = packet->GetSize() - PppHeader().GetSerializedSize();
+  auto packetSize = packet->GetSize () - PppHeader ().GetSerializedSize ();
   NS_LOG_INFO (Simulator::Now ().GetSeconds ()
                << "s: Switch " << m_id << " finished transmission of a packet of size "
                << packetSize << " bytes");
 
-  m_receiveBuffer.RemovePacket(packetSize);
-
-  try
-  {
-    auto netDevice = m_indexToNetDev.at(deviceIndex);
-    m_netDevBusy.at(netDevice) = false;
-    Simulator::Schedule (Time("0"), &SwitchBase::TransmitPacket, this, netDevice);
-  }
-  catch (const std::out_of_range &oor)
-  {
-    NS_ABORT_MSG ("Net device with index " << deviceIndex << " not found on Switch " << m_id);
-  }
+  m_receiveBuffer.RemovePacket (packetSize);
 }
 
-std::pair<PacketType, RtFlow>
+RtFlow
 SwitchBase::ExtractFlowFromPacket (Ptr<const Packet> packet, uint16_t protocol)
 {
   Ptr<Packet> receivedPacket = packet->Copy (); // Copy the packet for parsing purposes
   RtFlow flow;
-  PacketType packetType {PacketType::Data};
 
   if (protocol == Ipv4L3Protocol::PROT_NUMBER)
     {
@@ -249,11 +168,8 @@ SwitchBase::ExtractFlowFromPacket (Ptr<const Packet> packet, uint16_t protocol)
               flow.srcPort = tcpHeader.GetSourcePort ();
               flow.dstPort = tcpHeader.GetDestinationPort ();
               flow.protocol = FlowProtocol::Tcp;
-              receivedPacket->RemoveHeader(tcpHeader);
+              receivedPacket->RemoveHeader (tcpHeader);
             }
-
-            if (receivedPacket->GetSize() == 0)
-              packetType = PacketType::Ack;
         }
       else if (ipProtocol == Icmpv4L4Protocol::PROT_NUMBER)
         { // ICMP Packet
@@ -292,5 +208,5 @@ SwitchBase::ExtractFlowFromPacket (Ptr<const Packet> packet, uint16_t protocol)
       NS_ABORT_MSG ("Non-IP Packet received. Protocol value " << protocol);
     }
 
-  return std::make_pair(packetType, flow);
+  return flow;
 }

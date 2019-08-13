@@ -15,7 +15,7 @@ class SwitchContainer
 public:
   using switchContainer_t = std::map<id_t, std::unique_ptr<SwitchBase>>;
 
-  explicit SwitchContainer (uint64_t switchBufferSize, const std::string& txBufferRetrievalMethod);
+  explicit SwitchContainer (uint64_t switchBufferSize);
 
   SwitchBase *GetSwitch (id_t switchId);
   bool SwitchExists (id_t switchId);
@@ -33,7 +33,6 @@ private:
   void ReconcileRoutingTables ();
   void EnablePacketReceptionOnSwitches ();
   void EnablePacketTransmissionTrace ();
-  void InstallTransmitBuffers();
 
   switchContainer_t m_switchContainer;
   const uint64_t m_switchBufferSize;

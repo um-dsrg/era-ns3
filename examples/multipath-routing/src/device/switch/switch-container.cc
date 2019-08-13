@@ -9,9 +9,7 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("SwitchContainer");
 
-SwitchContainer::SwitchContainer (uint64_t switchBufferSize,
-                                  const std::string& txBufferRetrievalMethod) :
-  m_switchBufferSize (switchBufferSize), m_txBufferRetrievalMethod(txBufferRetrievalMethod)
+SwitchContainer::SwitchContainer (uint64_t switchBufferSize) : m_switchBufferSize (switchBufferSize)
 {
 }
 
@@ -37,17 +35,13 @@ SwitchContainer::AddSwitch (id_t switchId, SwitchType switchType, ResultsContain
   std::pair<switchContainer_t::iterator, bool> ret;
   if (switchType == SwitchType::SdnSwitch)
     {
-      ret = m_switchContainer.emplace (switchId,
-                                       std::make_unique<SdnSwitch> (SdnSwitch (switchId,
-                                                                               m_switchBufferSize,
-                                                                               m_txBufferRetrievalMethod)));
+      ret = m_switchContainer.emplace (
+          switchId, std::make_unique<SdnSwitch> (SdnSwitch (switchId, m_switchBufferSize)));
     }
   else if (switchType == SwitchType::PpfsSwitch)
     {
-      ret = m_switchContainer.emplace (switchId,
-                                       std::make_unique<PpfsSwitch> (PpfsSwitch (switchId,
-                                                                                 m_switchBufferSize,
-                                                                                 m_txBufferRetrievalMethod)));
+      ret = m_switchContainer.emplace (
+          switchId, std::make_unique<PpfsSwitch> (PpfsSwitch (switchId, m_switchBufferSize)));
     }
   else
     {
@@ -58,14 +52,13 @@ SwitchContainer::AddSwitch (id_t switchId, SwitchType switchType, ResultsContain
 }
 
 void
-SwitchContainer::SetupSwitches()
+SwitchContainer::SetupSwitches ()
 {
-  EnablePacketTransmissionTrace();
-  EnablePacketReceptionOnSwitches();
-  InstallTransmitBuffers();
+  EnablePacketTransmissionTrace ();
+  EnablePacketReceptionOnSwitches ();
 
   // Reconcile the routing tables
-  ReconcileRoutingTables();
+  ReconcileRoutingTables ();
 }
 
 void
@@ -101,17 +94,5 @@ SwitchContainer::EnablePacketTransmissionTrace ()
     {
       auto &switchInstance = switchPair.second;
       switchInstance->EnablePacketTransmissionCompletionTrace ();
-    }
-}
-
-void
-SwitchContainer::InstallTransmitBuffers()
-{
-  NS_LOG_INFO ("Installing transmit buffers on all switches");
-
-  for (auto &switchPair : m_switchContainer)
-    {
-      auto &switchInstance = switchPair.second;
-      switchInstance->InstallTransmitBuffers();
     }
 }

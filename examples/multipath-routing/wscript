@@ -26,7 +26,6 @@ def build(bld):
                        'src/device/switch/ppfs-switch.cc',
                        'src/device/switch/transmit-queue.cc',
                        'src/device/switch/receive-buffer.cc',
-                       'src/device/switch/transmit-buffer.cc',
                        'src/device/switch/switch-container.cc'])
     # Application
     obj.source.extend(['src/application/app-container.cc',

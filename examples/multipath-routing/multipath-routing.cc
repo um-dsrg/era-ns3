@@ -94,7 +94,6 @@ main (int argc, char *argv[])
       LogComponentEnable ("PpfsSwitch", LOG_LEVEL_ALL);
       LogComponentEnable ("SwitchBase", LOG_LEVEL_ALL);
       LogComponentEnable ("ReceiveBuffer", LOG_LEVEL_ALL);
-      LogComponentEnable ("TransmitBuffer", LOG_LEVEL_ALL);
       LogComponentEnable ("TransmitQueue", LOG_LEVEL_ALL);
       LogComponentEnable ("SwitchContainer", LOG_LEVEL_ALL);
       /* Applications */
@@ -126,7 +125,7 @@ main (int argc, char *argv[])
   else
     NS_ABORT_MSG ("No switch type is defined");
 
-  SwitchContainer switchContainer (switchBufferSize, transmitBufferRetrievalMethod);
+  SwitchContainer switchContainer (switchBufferSize);
   Terminal::terminalContainer_t terminalContainer;
   Link::linkContainer_t linkContainer;
 
