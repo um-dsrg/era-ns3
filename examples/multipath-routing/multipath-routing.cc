@@ -79,7 +79,7 @@ main (int argc, char *argv[])
                     logBufferSizeWithTime);
   cmdLine.AddValue ("txBufferRetrieval",
                     "The method to use for the Transmit Buffer retrieval. Available options are:"
-                    "RoundRobin | AckPriority | InOrder",
+                    "AckPriority | InOrder | RoundRobin",
                     transmitBufferRetrievalMethod);
   cmdLine.Parse (argc, argv);
 
@@ -95,6 +95,7 @@ main (int argc, char *argv[])
       LogComponentEnable ("SwitchBase", LOG_LEVEL_ALL);
       LogComponentEnable ("ReceiveBuffer", LOG_LEVEL_ALL);
       LogComponentEnable ("TransmitBuffer", LOG_LEVEL_ALL);
+      LogComponentEnable ("TransmitQueue", LOG_LEVEL_ALL);
       LogComponentEnable ("SwitchContainer", LOG_LEVEL_ALL);
       /* Applications */
       LogComponentEnable ("AppContainer", LOG_LEVEL_ALL);
