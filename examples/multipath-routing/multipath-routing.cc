@@ -134,7 +134,8 @@ main (int argc, char *argv[])
   ResultsContainer resContainer (logPacketResults, logBufferSizeWithTime);
 
   // Create the nodes and build the topology
-  TopologyBuilder topologyBuilder (switchType, switchContainer, terminalContainer, resContainer);
+  TopologyBuilder topologyBuilder (switchType, switchContainer, terminalContainer, resContainer,
+                                   transmitBufferRetrievalMethod);
 
   topologyBuilder.CreateNodes (rootNode);
   auto transmitOnLink = topologyBuilder.BuildNetworkTopology (rootNode, linkContainer);

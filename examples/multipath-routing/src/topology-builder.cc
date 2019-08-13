@@ -10,11 +10,13 @@ NS_LOG_COMPONENT_DEFINE ("TopologyBuilder");
 
 TopologyBuilder::TopologyBuilder (SwitchType switchType, SwitchContainer &switchContainer,
                                   Terminal::terminalContainer_t &terminalContainer,
-                                  ResultsContainer &resContainer)
+                                  ResultsContainer &resContainer,
+                                  const std::string &txQueueRetrievalMethod)
     : m_switchType (switchType),
       m_switchContainer (switchContainer),
       m_terminalContainer (terminalContainer),
-      m_resContainer (resContainer)
+      m_resContainer (resContainer),
+      m_txQueueRetrievalMethod (txQueueRetrievalMethod)
 {
 }
 
@@ -216,6 +218,8 @@ TopologyBuilder::InstallP2pLinks (const std::vector<const Link *> &links,
   deviceFactory.Set ("DataRate", DataRateValue (DataRate (commonLink->capacity * 1'000'000)));
   Ptr<PointToPointNetDevice> srcNd = deviceFactory.Create<PointToPointNetDevice> ();
   srcNd->SetAddress (Mac48Address::Allocate ());
+  srcNd->SetQueue (
+      CreateObject<TransmitQueue> (m_txQueueRetrievalMethod, commonLink->srcNode->GetId ()));
   commonLink->srcNode->GetNode ()->AddDevice (srcNd);
 
   // Create NetDevice on destination node
@@ -223,26 +227,12 @@ TopologyBuilder::InstallP2pLinks (const std::vector<const Link *> &links,
     {
       deviceFactory.Set ("DataRate", DataRateValue (DataRate (links[1]->capacity * 1'000'000)));
     }
+
   Ptr<PointToPointNetDevice> dstNd = deviceFactory.Create<PointToPointNetDevice> ();
   dstNd->SetAddress (Mac48Address::Allocate ());
+  dstNd->SetQueue (
+      CreateObject<TransmitQueue> (m_txQueueRetrievalMethod, commonLink->dstNode->GetId ()));
   commonLink->dstNode->GetNode ()->AddDevice (dstNd);
-
-  // NOTE - Code mod - BEGIN
-  // ObjectFactory test ("ns3::TransmitQueue");
-  // Ptr<TransmitQueue> testQueue = test.Create<TransmitQueue> ();
-  // Ptr<WifiNetDevice> device = CreateObject<WifiNetDevice> ();
-  Ptr<TransmitQueue> testQueue = CreateObject<TransmitQueue> ();
-  srcNd->SetQueue (testQueue);
-  // NOTE - Code mod - END
-
-  // Create Queue on source NetDevice
-  ObjectFactory queueFactory ("ns3::DropTailQueue<Packet>");
-  // Ptr<Queue<Packet>> srcQueue = queueFactory.Create<Queue<Packet>> ();
-  // srcNd->SetQueue (srcQueue);
-
-  // Create Queue on destination NetDevice
-  Ptr<Queue<Packet>> dstQueue = queueFactory.Create<Queue<Packet>> ();
-  dstNd->SetQueue (dstQueue);
 
   // Connect Net Devices together via the Point To Point channel
   ObjectFactory channelFactory ("ns3::PointToPointChannel");

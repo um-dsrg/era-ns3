@@ -31,8 +31,8 @@ class TopologyBuilder
 {
 public:
   TopologyBuilder (SwitchType switchType, SwitchContainer &switchContainer,
-                   Terminal::terminalContainer_t &terminalContainer,
-                   ResultsContainer &resContainer);
+                   Terminal::terminalContainer_t &terminalContainer, ResultsContainer &resContainer,
+                   const std::string &txQueueRetrievalMethod);
 
   void AssignIpToTerminals ();
   void CreateNodes (XMLNode *rootNode);
@@ -51,6 +51,7 @@ private:
   SwitchContainer &m_switchContainer;
   Terminal::terminalContainer_t &m_terminalContainer;
   ResultsContainer &m_resContainer;
+  const std::string m_txQueueRetrievalMethod;
 };
 
 void ShuffleLinkElements (std::vector<XMLElement *> &linkElements);
