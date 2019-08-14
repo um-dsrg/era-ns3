@@ -7,6 +7,7 @@ def build(bld):
     obj = bld.create_ns3_program('multipath_routing', all_modules)
     obj.source = ['multipath-routing.cc',
                   'src/flow.cc',
+                  'src/timing.cc',
                   'src/mptcp-header.cc',
                   'src/flow-monitor.cc',
                   'src/routing-helper.cc',

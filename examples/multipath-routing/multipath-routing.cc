@@ -10,6 +10,7 @@
 #include "ns3/point-to-point-helper.h"
 
 #include "src/flow.h"
+#include "src/timing.h"
 #include "src/definitions.h"
 #include "src/flow-monitor.h"
 #include "src/routing-helper.h"
@@ -168,6 +169,9 @@ main (int argc, char *argv[])
 
   // Set the simulation stop time
   Simulator::Stop (Time (stopTime));
+
+  // On creation, it will automatically schedule the required events to log the time
+  Timing timing (Time (stopTime).GetSeconds ());
 
   std::cout << "Network Simulation in progress..." << std::endl;
 
