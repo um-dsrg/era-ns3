@@ -4,6 +4,8 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 DEBUG_CONFIG_COMMAND="./waf configure --enable-examples --build-profile=debug --out=${SCRIPT_DIR}/build/debug"
 OPT_CONFIG_COMMAND="./waf configure --enable-examples --build-profile=optimized --out=${SCRIPT_DIR}/build/optimized"
+PROF_CONFIG_COMMAND="./waf configure --enable-examples --enable-gprof --build-profile=optimized --out=${SCRIPT_DIR}/build/profile"
+
 NUM_CORES=$(nproc --all)
 
 if [ "$(uname)" == "Darwin" ]; then
@@ -21,12 +23,20 @@ function buildOptimized {
     cd ${SCRIPT_DIR} && ./waf build -j"${NUM_CORES}"
 }
 
+function buildProfile {
+    cd ${SCRIPT_DIR} && ${PROF_CONFIG_COMMAND}
+    cd ${SCRIPT_DIR} && ./waf build -j"${NUM_CORES}"
+}
+
 if [ "$1" == "debug" ]
 then
     buildDebug
 elif [ "$1" == "optimized" ]
 then
     buildOptimized
+elif [ "$1" == "profile" ]
+then
+    buildProfile
 else
     buildDebug
     buildOptimized
