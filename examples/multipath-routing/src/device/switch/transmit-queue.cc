@@ -103,30 +103,20 @@ TransmitQueue::GetPacketType (ns3::Ptr<const ns3::Packet> packet) const
   PacketType packetType{PacketType::Data};
   Ptr<Packet> receivedPacket = packet->Copy (); // Copy the packet for parsing purposes
 
-  // Remove the PPP header
   PppHeader pppHeader;
-  if (receivedPacket->PeekHeader (pppHeader))
+  if (receivedPacket->RemoveHeader (pppHeader))
     {
-      receivedPacket->RemoveHeader (pppHeader);
-
       Ipv4Header ipHeader;
-      uint8_t ipProtocol{0};
 
-      if (receivedPacket->PeekHeader (ipHeader))
+      if (receivedPacket->RemoveHeader (ipHeader))
         { // Extract the transport layer protocol (UDP/TCP)
-          ipProtocol = ipHeader.GetProtocol ();
-          receivedPacket->RemoveHeader (ipHeader);
+          uint8_t ipProtocol{ipHeader.GetProtocol ()};
 
           if (ipProtocol == TcpL4Protocol::PROT_NUMBER) // TCP Packet
             {
               TcpHeader tcpHeader;
-              uint8_t tcpFlags{0};
-
-              if (receivedPacket->PeekHeader (tcpHeader))
-                {
-                  tcpFlags = tcpHeader.GetFlags ();
-                  receivedPacket->RemoveHeader (tcpHeader);
-                }
+              receivedPacket->PeekHeader (tcpHeader);
+              uint8_t tcpFlags{tcpHeader.GetFlags ()};
 
               // If ACK flag is set AND no data carried by packet, this is an ACK packet
               if (((tcpFlags & TcpHeader::ACK) == TcpHeader::ACK) &&
