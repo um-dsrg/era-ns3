@@ -140,15 +140,11 @@ SwitchBase::ExtractFlowFromPacket (Ptr<const Packet> packet, uint16_t protocol)
   if (protocol == Ipv4L3Protocol::PROT_NUMBER)
     {
       Ipv4Header ipHeader;
-      uint8_t ipProtocol (0);
+      receivedPacket->RemoveHeader (ipHeader);
 
-      if (receivedPacket->PeekHeader (ipHeader))
-        { // Extract source and destination IP
-          ipProtocol = ipHeader.GetProtocol ();
-          flow.srcIp = ipHeader.GetSource ().Get ();
-          flow.dstIp = ipHeader.GetDestination ().Get ();
-          receivedPacket->RemoveHeader (ipHeader); // Removing the IP header
-        }
+      uint8_t ipProtocol{ipHeader.GetProtocol ()};
+      flow.srcIp = ipHeader.GetSource ().Get ();
+      flow.dstIp = ipHeader.GetDestination ().Get ();
 
       if (ipProtocol == UdpL4Protocol::PROT_NUMBER)
         { // UDP Packet
@@ -168,7 +164,6 @@ SwitchBase::ExtractFlowFromPacket (Ptr<const Packet> packet, uint16_t protocol)
               flow.srcPort = tcpHeader.GetSourcePort ();
               flow.dstPort = tcpHeader.GetDestinationPort ();
               flow.protocol = FlowProtocol::Tcp;
-              receivedPacket->RemoveHeader (tcpHeader);
             }
         }
       else if (ipProtocol == Icmpv4L4Protocol::PROT_NUMBER)
@@ -199,8 +194,7 @@ SwitchBase::ExtractFlowFromPacket (Ptr<const Packet> packet, uint16_t protocol)
         }
       else
         {
-          NS_ABORT_MSG ("Unknown packet type received. Packet Type "
-                        << std::to_string (ipProtocol));
+          NS_ABORT_MSG ("Unknown packet type received. Packet Type " << ipProtocol);
         }
     }
   else
