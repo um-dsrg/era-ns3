@@ -117,6 +117,9 @@ main (int argc, char *argv[])
   XMLNode *rootNode = xmlInputFile.LastChild ();
   NS_ABORT_MSG_IF (rootNode == nullptr, "No root node node found");
 
+  // Disable TCP Selective Acknowledgments
+  Config::SetDefault ("ns3::TcpSocketBase::Sack", BooleanValue (false));
+
   // Set the switch type
   SwitchType switchType;
   if (usePpfsSwitches)
