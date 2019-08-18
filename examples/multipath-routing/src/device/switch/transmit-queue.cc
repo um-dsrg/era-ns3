@@ -14,8 +14,11 @@ NS_LOG_COMPONENT_DEFINE ("TransmitQueue");
 
 using namespace ns3;
 
-TransmitQueue::TransmitQueue (const std::string &retrievalMethod, id_t switchId)
-    : m_switchId (switchId), NS_LOG_TEMPLATE_DEFINE ("TransmitQueue")
+TransmitQueue::TransmitQueue (const std::string &retrievalMethod, id_t switchId,
+                              uint32_t interfaceIndex)
+    : m_switchId (switchId),
+      m_interfaceIndex (interfaceIndex),
+      NS_LOG_TEMPLATE_DEFINE ("TransmitQueue")
 {
   if (retrievalMethod.compare ("AckPriority") == 0)
     {
@@ -43,8 +46,8 @@ TransmitQueue::Enqueue (ns3::Ptr<ns3::Packet> packet)
     {
       m_dataQueue.push (packet);
       NS_LOG_INFO (Simulator::Now ().GetSeconds ()
-                   << "s - Switch " << m_switchId
-                   << ": Add packet to DATA transmit buffer. Packets in DATA buffer: "
+                   << "s - Switch " << m_switchId << " (Interface: " << m_interfaceIndex
+                   << "): Add packet to DATA transmit buffer. Packets in DATA buffer: "
                    << m_dataQueue.size () << " Packets in ACK buffer: " << m_ackQueue.size ());
     }
   else
@@ -55,21 +58,22 @@ TransmitQueue::Enqueue (ns3::Ptr<ns3::Packet> packet)
         {
           m_dataQueue.push (packet);
           NS_LOG_INFO (Simulator::Now ().GetSeconds ()
-                       << "s - Switch " << m_switchId
-                       << ": Add packet to DATA transmit buffer. Packets in DATA buffer: "
+                       << "s - Switch " << m_switchId << " (Interface: " << m_interfaceIndex
+                       << "): Add packet to DATA transmit buffer. Packets in DATA buffer: "
                        << m_dataQueue.size () << " Packets in ACK buffer: " << m_ackQueue.size ());
         }
       else if (packetType == PacketType::Ack)
         {
           m_ackQueue.push (packet);
           NS_LOG_INFO (Simulator::Now ().GetSeconds ()
-                       << "s - Switch " << m_switchId
-                       << ": Add packet to ACK transmit buffer. Packets in DATA buffer: "
+                       << "s - Switch " << m_switchId << " (Interface: " << m_interfaceIndex
+                       << "): Add packet to ACK transmit buffer. Packets in DATA buffer: "
                        << m_dataQueue.size () << " Packets in ACK buffer: " << m_ackQueue.size ());
         }
       else
         {
-          NS_ABORT_MSG ("Switch " << m_switchId << ": Adding packet to transmit buffer failed.");
+          NS_ABORT_MSG ("Switch " << m_switchId << " (Interface: " << m_interfaceIndex
+                                  << "): Adding packet to transmit buffer failed.");
           return false;
         }
     }
@@ -149,7 +153,8 @@ TransmitQueue::GetAckPacket ()
   m_ackQueue.pop ();
 
   NS_LOG_INFO (Simulator::Now ().GetSeconds ()
-               << "s - Switch " << m_switchId << ": Packet retrieved from ACK buffer");
+               << "s - Switch " << m_switchId << " (Interface: " << m_interfaceIndex
+               << "): Packet retrieved from ACK buffer");
 
   return retrievedPacket;
 }
@@ -164,7 +169,8 @@ TransmitQueue::GetDataPacket ()
   m_dataQueue.pop ();
 
   NS_LOG_INFO (Simulator::Now ().GetSeconds ()
-               << "s - Switch " << m_switchId << ": Packet retrieved from DATA buffer");
+               << "s - Switch " << m_switchId << " (Interface: " << m_interfaceIndex
+               << "): Packet retrieved from DATA buffer");
 
   return retrievedPacket;
 }

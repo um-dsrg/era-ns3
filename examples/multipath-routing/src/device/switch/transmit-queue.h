@@ -13,7 +13,7 @@
 class TransmitQueue : public ns3::Queue<ns3::Packet>
 {
 public:
-  TransmitQueue (const std::string &retrievalMethod, id_t switchId);
+  TransmitQueue (const std::string &retrievalMethod, id_t switchId, uint32_t interfaceIndex);
 
   bool Enqueue (ns3::Ptr<ns3::Packet> packet) override;
   ns3::Ptr<ns3::Packet> Dequeue () override;
@@ -38,6 +38,7 @@ private:
   bool m_rrTransmitAckPacket = false;
 
   id_t m_switchId;
+  uint32_t m_interfaceIndex;
   std::queue<ns3::Ptr<ns3::Packet>> m_ackQueue;
   std::queue<ns3::Ptr<ns3::Packet>> m_dataQueue;
 
