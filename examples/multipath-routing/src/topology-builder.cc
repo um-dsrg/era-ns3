@@ -213,14 +213,26 @@ TopologyBuilder::InstallP2pLinks (const std::vector<const Link *> &links,
 
   // Device Configuration
   ObjectFactory deviceFactory ("ns3::PointToPointNetDevice");
+  ObjectFactory queueFactory ("ns3::DropTailQueue<Packet>");
 
   // Create NetDevice on source node
   deviceFactory.Set ("DataRate", DataRateValue (DataRate (commonLink->capacity * 1'000'000)));
   Ptr<PointToPointNetDevice> srcNd = deviceFactory.Create<PointToPointNetDevice> ();
   srcNd->SetAddress (Mac48Address::Allocate ());
-  srcNd->SetQueue (
-      CreateObject<TransmitQueue> (m_txQueueRetrievalMethod, commonLink->srcNode->GetId ()));
   commonLink->srcNode->GetNode ()->AddDevice (srcNd);
+
+  // Setting up the NetDevice queue
+  Ptr<Queue<Packet>> srcNdQueue{0};
+  if (commonLink->srcNodeType == NodeType::Switch)
+    {
+      srcNdQueue = CreateObject<TransmitQueue> (
+          m_txQueueRetrievalMethod, commonLink->srcNode->GetId (), srcNd->GetIfIndex ());
+    }
+  else
+    {
+      srcNdQueue = queueFactory.Create<Queue<Packet>> ();
+    }
+  srcNd->SetQueue (srcNdQueue);
 
   // Create NetDevice on destination node
   if (links.size () == 2)
@@ -230,9 +242,20 @@ TopologyBuilder::InstallP2pLinks (const std::vector<const Link *> &links,
 
   Ptr<PointToPointNetDevice> dstNd = deviceFactory.Create<PointToPointNetDevice> ();
   dstNd->SetAddress (Mac48Address::Allocate ());
-  dstNd->SetQueue (
-      CreateObject<TransmitQueue> (m_txQueueRetrievalMethod, commonLink->dstNode->GetId ()));
   commonLink->dstNode->GetNode ()->AddDevice (dstNd);
+
+  // Setting up the NetDevice queue
+  Ptr<Queue<Packet>> dstNdQueue{0};
+  if (commonLink->dstNodeType == NodeType::Switch)
+    {
+      dstNdQueue = CreateObject<TransmitQueue> (
+          m_txQueueRetrievalMethod, commonLink->dstNode->GetId (), dstNd->GetIfIndex ());
+    }
+  else
+    {
+      dstNdQueue = queueFactory.Create<Queue<Packet>> ();
+    }
+  dstNd->SetQueue (dstNdQueue);
 
   // Connect Net Devices together via the Point To Point channel
   ObjectFactory channelFactory ("ns3::PointToPointChannel");
