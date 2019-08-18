@@ -34,6 +34,17 @@ Timing::StartTiming ()
 }
 
 void
+Timing::OutputTotalDuration ()
+{
+  auto currentTime{std::chrono::high_resolution_clock::now ()};
+  const auto &start{m_timings.front ()};
+
+  std::chrono::duration<double> totalDuration = currentTime - start;
+  std::cout << "Total Simulation Duration: " << SecondsToString (totalDuration.count ())
+            << std::endl;
+}
+
+void
 Timing::LogTime ()
 {
   auto currentTime{std::chrono::high_resolution_clock::now ()};

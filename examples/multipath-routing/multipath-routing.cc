@@ -182,6 +182,7 @@ main (int argc, char *argv[])
   Simulator::Stop ();
 
   std::cout << "Network Simulation Complete." << std::endl;
+  timing.OutputTotalDuration ();
 
   // Add the flow and switch results to the XML file and save it
   resContainer.AddFlowResults ();

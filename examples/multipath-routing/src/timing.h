@@ -9,6 +9,7 @@ class Timing
 public:
   explicit Timing (double simulationStopTime);
   void StartTiming ();
+  void OutputTotalDuration ();
 
 private:
   void LogTime ();
