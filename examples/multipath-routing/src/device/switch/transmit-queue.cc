@@ -115,7 +115,7 @@ TransmitQueue::GetPacketType (ns3::Ptr<const ns3::Packet> packet) const
           if (ipProtocol == TcpL4Protocol::PROT_NUMBER) // TCP Packet
             {
               TcpHeader tcpHeader;
-              receivedPacket->PeekHeader (tcpHeader);
+              receivedPacket->RemoveHeader (tcpHeader);
               uint8_t tcpFlags{tcpHeader.GetFlags ()};
 
               // If ACK flag is set AND no data carried by packet, this is an ACK packet
