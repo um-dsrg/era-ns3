@@ -1,32 +1,66 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
-    "version": "0.2.0",
-    "configurations": [
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "(gdb) Multipath Routing",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/debug/examples/multipath-routing/ns3-dev-multipath_routing-debug",
+      "args": [
+        "--input=/home/noel/Documents/Results/Ns3/TimingComparison/LineTopology/NewSystem/ns3Input.xml",
+        "--output=/home/noel/Documents/Results/Ns3/TimingComparison/LineTopology/NewSystem/ns3Result.xml",
+        "--flowMonitorOutput=/home/noel/Documents/Results/Ns3/TimingComparison/LineTopology/NewSystem/ns3ResultFlowMonitor.xml",
+        "--stopTime=120s",
+        "--run=1",
+        "--seed=1",
+        "--useSdnSwitches",
+        "--switchBufferSize=590000000",
+        "--txBufferRetrieval=InOrder",
+      ],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [
         {
-            "name": "(gdb) Launch from scratch",
-            "type": "cppdbg",
-            "request": "launch",
-            "program": "${workspaceFolder}/build/scratch/${fileBasenameNoExtension}",
-            "args": [],
-            "stopAtEntry": false,
-            "cwd": "${workspaceFolder}",
-            "environment": [
-                {
-                    "name": "LD_LIBRARY_PATH",
-                    "value": "./build/lib/"
-                }
-            ],
-            "externalConsole": true,
-            "MIMode": "gdb",
-            "setupCommands": [
-                {
-                    "description": "Enable pretty-printing for gdb",
-                    "text": "-enable-pretty-printing",
-                    "ignoreFailures": true
-                }
-            ]
-         }
-    ]
+          "name": "LD_LIBRARY_PATH",
+          "value": "./build/debug/lib/"
+        }
+      ],
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ]
+    },
+    {
+      "name": "(gdb) Launch from scratch",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/scratch/${fileBasenameNoExtension}",
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [
+        {
+          "name": "LD_LIBRARY_PATH",
+          "value": "./build/lib/"
+        }
+      ],
+      "externalConsole": true,
+      "MIMode": "gdb",
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ]
+    }
+  ]
 }
