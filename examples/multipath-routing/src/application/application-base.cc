@@ -74,26 +74,28 @@ ApplicationBase::CalculateHeaderSize (FlowProtocol protocol)
  * @param flow The flow
  */
 uint32_t
-ApplicationBase::CalculateTcpBufferSize(const Flow& flow)
+ApplicationBase::CalculateTcpBufferSize (const Flow &flow)
 {
-  uint64_t flowDr {flow.dataRate.GetBitRate() / 8}; // Bytes per second
+  uint64_t flowDr{flow.dataRate.GetBitRate ()};
 
-  delay_t maxPathDelay {0.0};
+  delay_t maxPathDelay{0.0};
 
-  for (const auto& path : flow.GetDataPaths())
-  {
-    auto pathDelay {0.0};
-
-    for (const auto& link : path.GetLinks())
+  for (const auto &path : flow.GetDataPaths ())
     {
-      pathDelay += link->delay;
+      auto pathDelay{0.0};
+
+      for (const auto &link : path.GetLinks ())
+        {
+          pathDelay += link->delay;
+        }
+      maxPathDelay = std::max (maxPathDelay, pathDelay);
     }
-    maxPathDelay = std::max(maxPathDelay, pathDelay);
-  }
 
-  maxPathDelay /= 1000; // Convert from ms to seconds
+  maxPathDelay /= 1000; // Convert from ms to Seconds
+  auto rtt{maxPathDelay * 2}; // Round Trip Time in Seconds
+  auto bdp{ceil ((flowDr * (rtt)) / 8)}; // The Bandwidth Delay Product value in bytes
 
-  return ceil(flowDr / (maxPathDelay * 2));
+  return bdp;
 }
 
 /*******************************************/
