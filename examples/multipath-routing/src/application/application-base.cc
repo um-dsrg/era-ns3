@@ -93,9 +93,12 @@ ApplicationBase::CalculateTcpBufferSize (const Flow &flow)
 
   maxPathDelay /= 1000; // Convert from ms to Seconds
   auto rtt{maxPathDelay * 2}; // Round Trip Time in Seconds
-  auto bdp{ceil ((flowDr * (rtt)) / 8)}; // The Bandwidth Delay Product value in bytes
+  auto bdp{ceil ((flowDr * (rtt)) / 8)}; // The Bandwidth Delay Product (BDP) value in bytes
 
-  return bdp;
+  // If the calculated bdp is smaller than the packet size then set the buffer
+  // size equal to the packet size otherwise the flow will not be able to
+  // transmit anything.
+  return flow.packetSize > bdp ? flow.packetSize : bdp;
 }
 
 /*******************************************/

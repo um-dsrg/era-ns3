@@ -22,22 +22,22 @@ UnipathTransmitter::UnipathTransmitter (const Flow &flow, ResultsContainer &resC
   dstAddress = Address (InetSocketAddress (flow.dstNode->GetIpAddress (), path.dstPort));
 
   if (flow.protocol == FlowProtocol::Tcp)
-  {
-    auto tcpBufferSize = CalculateTcpBufferSize(flow);
-    NS_LOG_INFO("UnipathTransmitter - Flow: " << flow.id << " calculated TCP buffer size: " <<
-                tcpBufferSize << "bytes");
+    {
+      auto tcpBufferSize = CalculateTcpBufferSize (flow);
+      NS_LOG_INFO ("UnipathTransmitter - Flow: " << flow.id << " calculated TCP buffer size: "
+                                                 << tcpBufferSize << "bytes");
 
-    auto tcpSocket = ns3::DynamicCast<ns3::TcpSocket> (txSocket);
-    tcpSocket->SetAttribute("SndBufSize", ns3::UintegerValue(tcpBufferSize));
-    tcpSocket->SetAttribute("RcvBufSize", ns3::UintegerValue(tcpBufferSize));
-  }
+      auto tcpSocket = ns3::DynamicCast<ns3::TcpSocket> (txSocket);
+      tcpSocket->SetAttribute ("SndBufSize", ns3::UintegerValue (tcpBufferSize));
+      tcpSocket->SetAttribute ("RcvBufSize", ns3::UintegerValue (tcpBufferSize));
+    }
 
   // Set the data packet size
   SetDataPacketSize (flow);
 
   // Set the transmit path id to the first path
-  const auto& dataPaths = flow.GetDataPaths();
-  m_transmitPathId = dataPaths.front().id;
+  const auto &dataPaths = flow.GetDataPaths ();
+  m_transmitPathId = dataPaths.front ().id;
 
   // Set the application's good put rate in bps
   SetApplicationGoodputRate (flow, resContainer);
@@ -66,8 +66,8 @@ UnipathTransmitter::StartApplication ()
       return;
     }
 
-  NS_LOG_INFO (Simulator::Now().GetSeconds() << "s - UnipathTransmitter: Flow " << m_id <<
-               " started transmission");
+  NS_LOG_INFO (Simulator::Now ().GetSeconds ()
+               << "s - UnipathTransmitter: Flow " << m_id << " started transmission");
 
   InetSocketAddress srcAddr = InetSocketAddress (Ipv4Address::GetAny (), srcPort);
   if (txSocket->Bind (srcAddr) == -1)
@@ -86,8 +86,8 @@ UnipathTransmitter::StartApplication ()
 void
 UnipathTransmitter::StopApplication ()
 {
-  NS_LOG_INFO (Simulator::Now().GetSeconds() << "s - UnipathTransmitter: Flow " << m_id <<
-               " stopped transmission");
+  NS_LOG_INFO (Simulator::Now ().GetSeconds ()
+               << "s - UnipathTransmitter: Flow " << m_id << " stopped transmission");
   Simulator::Cancel (m_sendEvent);
 }
 
@@ -111,6 +111,7 @@ UnipathTransmitter::TransmitPacket ()
 void
 UnipathTransmitter::RtoChanged (ns3::Time oldVal, ns3::Time newVal)
 {
-  NS_LOG_INFO (Simulator::Now ().GetSeconds () << "s - Flow " << m_id << " RTO value change: " <<
-               "Old Value " << oldVal.GetSeconds () << " New Value: " << newVal.GetSeconds ());
+  NS_LOG_INFO (Simulator::Now ().GetSeconds ()
+               << "s - Flow " << m_id << " RTO value change: "
+               << "Old Value " << oldVal.GetSeconds () << " New Value: " << newVal.GetSeconds ());
 }
