@@ -22,7 +22,8 @@ protected:
 
   ns3::Ptr<ns3::Socket> CreateSocket (ns3::Ptr<ns3::Node> srcNode, FlowProtocol protocol);
   virtual packetSize_t CalculateHeaderSize (FlowProtocol protocol);
-  uint32_t CalculateTcpBufferSize (const Flow& flow);
+  uint32_t CalculateTcpBufferSize (const Flow &flow);
+  uint32_t CalculateTcpBufferSize (const Path &path, packetSize_t packetSize);
 
   id_t m_id{0}; /**< The id of the flow that this application represents. */
 };
@@ -47,7 +48,7 @@ protected:
   virtual void TransmitPacket () = 0;
 
   void SetDataPacketSize (const Flow &flow);
-  void SetApplicationGoodputRate (const Flow &flow, ResultsContainer& resContainer);
+  void SetApplicationGoodputRate (const Flow &flow, ResultsContainer &resContainer);
   void SendPacket (ns3::Ptr<ns3::Socket> txSocket, ns3::Ptr<ns3::Packet> packet,
                    packetNumber_t pktNumber);
 

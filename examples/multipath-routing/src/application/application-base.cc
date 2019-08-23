@@ -69,7 +69,9 @@ ApplicationBase::CalculateHeaderSize (FlowProtocol protocol)
 }
 
 /**
- * @brief Calculates the required TCP buffer size
+ * @brief Calculates the required TCP buffer size for a given flow
+ *
+ * The path with the highest delay value is taken as the delay value.
  *
  * @param flow The flow
  */
@@ -99,6 +101,35 @@ ApplicationBase::CalculateTcpBufferSize (const Flow &flow)
   // size equal to the packet size otherwise the flow will not be able to
   // transmit anything.
   return flow.packetSize > bdp ? flow.packetSize : bdp;
+}
+
+/**
+ * @brief Calculates the required TCP buffer for a given path
+ *
+ * @param path The path
+ * @param packetSize The packet size
+ * @return The Tcp buffer size in bytes
+ */
+uint32_t
+ApplicationBase::CalculateTcpBufferSize (const Path &path, packetSize_t packetSize)
+{
+  auto pathDr = uint64_t{path.dataRate.GetBitRate ()};
+
+  auto pathDelay{0.0};
+
+  for (const auto &link : path.GetLinks ())
+    {
+      pathDelay += link->delay;
+    }
+
+  pathDelay /= 1000; // Convert from ms to Seconds
+  auto rtt{pathDelay * 2}; // Round Trip Time in Seconds
+  auto bdp{ceil ((pathDr * (rtt)) / 8)}; // The Bandwidth Delay Product (BDP) value in bytes
+
+  // If the calculated bdp is smaller than the packet size then set the buffer
+  // size equal to the packet size otherwise the flow will not be able to
+  // transmit anything.
+  return packetSize > bdp ? packetSize : bdp;
 }
 
 /*******************************************/
