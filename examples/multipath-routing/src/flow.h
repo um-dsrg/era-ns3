@@ -40,8 +40,6 @@ struct Path
   portNum_t dstPort{0};
   ns3::DataRate dataRate;
 
-  std::vector<int> m_testing;
-
 private:
   static portNum_t portNumCounter; //!< Global port number counter.
   std::vector<Link const *> m_links; //!< The link ids this path goes through.
@@ -66,8 +64,8 @@ struct Flow
   const Terminal *srcNode{0};
   const Terminal *dstNode{0};
   ns3::DataRate dataRate;
-  double startTime {0.0};
-  double stopTime {0.0};
+  double startTime{0.0};
+  double stopTime{0.0};
   packetSize_t packetSize;
   FlowProtocol protocol{FlowProtocol::Undefined};
 

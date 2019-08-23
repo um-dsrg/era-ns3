@@ -177,8 +177,8 @@ ParseFlows (tinyxml2::XMLNode *rootNode, const Terminal::terminalContainer_t &te
       flowElement->QueryAttribute ("AllocatedDataRate", &dataRate);
       flow.dataRate = ns3::DataRate (std::string{std::to_string (dataRate) + "Mbps"});
 
-      flowElement->QueryAttribute("StartTime", &flow.startTime);
-      flowElement->QueryAttribute("EndTime", &flow.stopTime);
+      flowElement->QueryAttribute ("StartTime", &flow.startTime);
+      flowElement->QueryAttribute ("EndTime", &flow.stopTime);
 
       auto pathPortMap{AddDataPaths (flow, flowElement, linkContainer, switchType)};
 
@@ -305,7 +305,6 @@ AddAckPaths (Flow &flow, tinyxml2::XMLElement *flowElement, const pathPortMap_t 
                   id_t linkId;
                   linkElement->QueryAttribute ("Id", &linkId);
                   path.AddLink (linkContainer.at (linkId).get ());
-                  path.m_testing.push_back (linkId);
                   linkElement = linkElement->NextSiblingElement ("Link");
                 }
 
