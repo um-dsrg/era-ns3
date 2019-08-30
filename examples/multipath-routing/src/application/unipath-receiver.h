@@ -29,7 +29,6 @@ private:
   uint64_t pendingBytes = 0;
 
   ResultsContainer &m_resContainer;
-  packetSize_t m_dataPacketSize = 0;
   packetNumber_t m_packetNumber{0};
 
   FlowProtocol protocol{FlowProtocol::Undefined};

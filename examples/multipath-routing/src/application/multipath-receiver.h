@@ -73,7 +73,6 @@ private:
   ReceiverBuffer m_receiverBuffer;
   AggregateBuffer m_aggregateBuffer;
   ResultsContainer &m_resContainer;
-  packetSize_t m_dataPacketSize{0}; /**< The data packet size in bytes. */
   packetNumber_t m_expectedPacketNum{0}; /**< The id of the expected packet */
   FlowProtocol m_protocol{FlowProtocol::Undefined}; /**< The flow's protocol */
 
