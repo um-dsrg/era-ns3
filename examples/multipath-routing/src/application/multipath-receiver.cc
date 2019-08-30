@@ -211,9 +211,9 @@ MultipathReceiver::SetDataPacketSize (const Flow &flow)
 {
   m_dataPacketSize = flow.packetSize - CalculateHeaderSize (flow.protocol);
 
-  NS_LOG_INFO ("Packet size including headers is: " << flow.packetSize << "bytes\n"
-                                                    << "Packet size excluding headers is: "
-                                                    << m_dataPacketSize << "bytes");
+  NS_LOG_INFO ("MultipathReceiver - Packet size including headers is: "
+               << flow.packetSize << "bytes\n"
+               << "Packet size excluding headers is: " << m_dataPacketSize << "bytes");
 }
 
 void

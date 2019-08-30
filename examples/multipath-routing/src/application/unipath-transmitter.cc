@@ -21,6 +21,9 @@ UnipathTransmitter::UnipathTransmitter (const Flow &flow, ResultsContainer &resC
                                         MakeCallback (&UnipathTransmitter::RtoChanged, this));
   dstAddress = Address (InetSocketAddress (flow.dstNode->GetIpAddress (), path.dstPort));
 
+  // Set the data packet size
+  SetDataPacketSize (flow);
+
   if (flow.protocol == FlowProtocol::Tcp)
     {
       auto tcpBufferSize = CalculateTcpBufferSize (flow);
@@ -31,9 +34,6 @@ UnipathTransmitter::UnipathTransmitter (const Flow &flow, ResultsContainer &resC
       tcpSocket->SetAttribute ("SndBufSize", ns3::UintegerValue (tcpBufferSize));
       tcpSocket->SetAttribute ("RcvBufSize", ns3::UintegerValue (tcpBufferSize));
     }
-
-  // Set the data packet size
-  SetDataPacketSize (flow);
 
   // Set the transmit path id to the first path
   const auto &dataPaths = flow.GetDataPaths ();

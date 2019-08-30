@@ -62,8 +62,8 @@ private:
   void StartApplication ();
   void StopApplication ();
 
-  packetSize_t CalculateHeaderSize (FlowProtocol protocol);
-  void SetDataPacketSize (const Flow &flow);
+  packetSize_t CalculateHeaderSize (FlowProtocol protocol) override;
+  void SetDataPacketSize (const Flow &flow) override;
 
   void HandleAccept (ns3::Ptr<ns3::Socket> socket, const ns3::Address &from);
   void HandleRead (ns3::Ptr<ns3::Socket> socket);

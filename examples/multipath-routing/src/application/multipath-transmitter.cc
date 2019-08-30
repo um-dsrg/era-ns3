@@ -247,6 +247,16 @@ MultipathTransmitter::CalculateHeaderSize (FlowProtocol protocol)
   return headerSize;
 }
 
+void
+MultipathTransmitter::SetDataPacketSize (const Flow &flow)
+{
+  m_dataPacketSize = flow.packetSize - CalculateHeaderSize (flow.protocol);
+
+  NS_LOG_INFO ("MultipathTransmitter - Packet size including headers is: "
+               << flow.packetSize << "bytes\n"
+               << "Packet size excluding headers is: " << m_dataPacketSize << "bytes");
+}
+
 inline double
 MultipathTransmitter::GetRandomNumber ()
 {

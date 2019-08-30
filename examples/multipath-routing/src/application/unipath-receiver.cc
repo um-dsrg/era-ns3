@@ -18,6 +18,9 @@ UnipathReceiver::UnipathReceiver (const Flow &flow, ResultsContainer &resContain
   rxListenSocket = CreateSocket (flow.dstNode->GetNode (), flow.protocol);
   dstAddress = Address (InetSocketAddress (flow.dstNode->GetIpAddress (), path.dstPort));
 
+  // Set the data packet size
+  SetDataPacketSize (flow);
+
   if (flow.protocol == FlowProtocol::Tcp)
     {
       auto tcpBufferSize = CalculateTcpBufferSize (flow);
@@ -28,11 +31,6 @@ UnipathReceiver::UnipathReceiver (const Flow &flow, ResultsContainer &resContain
       tcpSocket->SetAttribute ("SndBufSize", ns3::UintegerValue (tcpBufferSize));
       tcpSocket->SetAttribute ("RcvBufSize", ns3::UintegerValue (tcpBufferSize));
     }
-
-  m_dataPacketSize = flow.packetSize - CalculateHeaderSize (flow.protocol);
-  NS_LOG_INFO ("Flow " << flow.id << "\nPacket size including headers: " << flow.packetSize
-                       << "bytes\nPacket size excluding headers is: " << m_dataPacketSize
-                       << "bytes");
 }
 
 UnipathReceiver::~UnipathReceiver ()

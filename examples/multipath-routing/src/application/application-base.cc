@@ -23,6 +23,16 @@ ApplicationBase::~ApplicationBase ()
 {
 }
 
+void
+ApplicationBase::SetDataPacketSize (const Flow &flow)
+{
+  m_dataPacketSize = flow.packetSize - CalculateHeaderSize (flow.protocol);
+
+  NS_LOG_INFO ("ApplicationBase - Packet size including headers is: "
+               << flow.packetSize << "bytes\n"
+               << "Packet size excluding headers is: " << m_dataPacketSize << "bytes");
+}
+
 Ptr<Socket>
 ApplicationBase::CreateSocket (Ptr<Node> srcNode, FlowProtocol protocol)
 {
@@ -220,12 +230,6 @@ TransmitterBase::SendPacket (ns3::Ptr<ns3::Socket> txSocket, ns3::Ptr<ns3::Packe
 
       NS_ABORT_MSG (ss.str ());
     }
-}
-
-void
-TransmitterBase::SetDataPacketSize (const Flow &flow)
-{
-  m_dataPacketSize = flow.packetSize - CalculateHeaderSize (flow.protocol);
 }
 
 void

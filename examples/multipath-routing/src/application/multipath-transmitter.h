@@ -32,6 +32,8 @@ private:
   void RtoChanged (std::string context, ns3::Time oldVal, ns3::Time newVal);
 
   packetSize_t CalculateHeaderSize (FlowProtocol protocol) override;
+  void SetDataPacketSize (const Flow &flow) override;
+
   inline double GetRandomNumber ();
 
   struct PathInformation
