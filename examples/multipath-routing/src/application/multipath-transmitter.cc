@@ -34,6 +34,9 @@ MultipathTransmitter::MultipathTransmitter (const Flow &flow, ResultsContainer &
       return;
     }
 
+  // Set the data packet size
+  SetDataPacketSize (flow);
+
   for (const auto &path : flow.GetDataPaths ())
     {
       if (path.dataRate == DataRate (0))
@@ -65,9 +68,9 @@ MultipathTransmitter::MultipathTransmitter (const Flow &flow, ResultsContainer &
 
       if (flow.protocol == FlowProtocol::Tcp)
         {
-          auto tcpBufferSize = CalculateTcpBufferSize (path, flow.packetSize);
+          auto tcpBufferSize = CalculateTcpBufferSize (path, /* mstcpFlow */ true);
           NS_LOG_INFO ("MultipathTransmitter - Flow: " << flow.id << " Path: " << path.id
-                                                       << "calculated TCP buffer size: "
+                                                       << " calculated TCP buffer size: "
                                                        << tcpBufferSize << "bytes");
 
           auto tcpSocket = ns3::DynamicCast<ns3::TcpSocket> (pathInfo.txSocket);
@@ -116,9 +119,6 @@ MultipathTransmitter::MultipathTransmitter (const Flow &flow, ResultsContainer &
                    "Flow " << m_id << " | "
                            << "The final split ratio is not equal to 1. Split Ratio: "
                            << m_pathSplitRatio.back ().first);
-
-  // Set the data packet size
-  SetDataPacketSize (flow);
 
   // Set the application's good put rate in bps
   SetApplicationGoodputRate (flow, resContainer);
@@ -252,9 +252,8 @@ MultipathTransmitter::SetDataPacketSize (const Flow &flow)
 {
   m_dataPacketSize = flow.packetSize - CalculateHeaderSize (flow.protocol);
 
-  NS_LOG_INFO ("MultipathTransmitter - Packet size including headers is: "
-               << flow.packetSize << "bytes\n"
-               << "Packet size excluding headers is: " << m_dataPacketSize << "bytes");
+  NS_LOG_INFO ("MultipathTransmitter - Packet size incl. headers: "
+               << flow.packetSize << " excl. headers: " << m_dataPacketSize << "bytes");
 }
 
 inline double

@@ -135,9 +135,9 @@ MultipathReceiver::MultipathReceiver (const Flow &flow, ResultsContainer &resCon
 
       if (flow.protocol == FlowProtocol::Tcp)
         {
-          auto tcpBufferSize = CalculateTcpBufferSize (path, flow.packetSize);
+          auto tcpBufferSize = CalculateTcpBufferSize (path, /* mstcpFlow */ true);
           NS_LOG_INFO ("MultipathReceiver - Flow: " << flow.id << " Path: " << path.id
-                                                    << "calculated TCP buffer size: "
+                                                    << " calculated TCP buffer size: "
                                                     << tcpBufferSize << "bytes");
 
           auto tcpSocket = ns3::DynamicCast<ns3::TcpSocket> (pathInfo.rxListenSocket);
@@ -211,9 +211,8 @@ MultipathReceiver::SetDataPacketSize (const Flow &flow)
 {
   m_dataPacketSize = flow.packetSize - CalculateHeaderSize (flow.protocol);
 
-  NS_LOG_INFO ("MultipathReceiver - Packet size including headers is: "
-               << flow.packetSize << "bytes\n"
-               << "Packet size excluding headers is: " << m_dataPacketSize << "bytes");
+  NS_LOG_INFO ("MultipathReceiver - Packet size incl. headers: "
+               << flow.packetSize << " excl. headers: " << m_dataPacketSize << "bytes");
 }
 
 void

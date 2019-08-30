@@ -24,11 +24,14 @@ protected:
 
   ns3::Ptr<ns3::Socket> CreateSocket (ns3::Ptr<ns3::Node> srcNode, FlowProtocol protocol);
   virtual packetSize_t CalculateHeaderSize (FlowProtocol protocol);
-  uint32_t CalculateTcpBufferSize (const Flow &flow);
-  uint32_t CalculateTcpBufferSize (const Path &path, packetSize_t packetSize);
+  uint32_t CalculateTcpBufferSize (const Flow &flow, bool mstcpFlow);
+  uint32_t CalculateTcpBufferSize (const Path &path, bool mstcpFlow);
 
   id_t m_id{0}; /**< The id of the flow that this application represents. */
   packetSize_t m_dataPacketSize{0}; /**< The data packet size in bytes. */
+
+private:
+  uint32_t GetTcpBufferSizeFromBdp (double bdp, bool mstcpFlow);
 };
 
 class ReceiverBase : public ApplicationBase

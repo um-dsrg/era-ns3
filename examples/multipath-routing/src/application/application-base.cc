@@ -1,3 +1,5 @@
+#include <boost/numeric/conversion/cast.hpp>
+
 #include "ns3/log.h"
 #include "ns3/simulator.h"
 #include "ns3/ppp-header.h"
@@ -5,6 +7,7 @@
 #include "ns3/tcp-socket-factory.h"
 #include "ns3/udp-socket-factory.h"
 
+#include "../mptcp-header.h"
 #include "application-base.h"
 
 using namespace ns3;
@@ -28,9 +31,8 @@ ApplicationBase::SetDataPacketSize (const Flow &flow)
 {
   m_dataPacketSize = flow.packetSize - CalculateHeaderSize (flow.protocol);
 
-  NS_LOG_INFO ("ApplicationBase - Packet size including headers is: "
-               << flow.packetSize << "bytes\n"
-               << "Packet size excluding headers is: " << m_dataPacketSize << "bytes");
+  NS_LOG_INFO ("ApplicationBase - Packet size incl. headers: "
+               << flow.packetSize << " excl. headers: " << m_dataPacketSize << "bytes");
 }
 
 Ptr<Socket>
@@ -86,7 +88,7 @@ ApplicationBase::CalculateHeaderSize (FlowProtocol protocol)
  * @param flow The flow
  */
 uint32_t
-ApplicationBase::CalculateTcpBufferSize (const Flow &flow)
+ApplicationBase::CalculateTcpBufferSize (const Flow &flow, bool mstcpFlow)
 {
   uint64_t flowDr{flow.dataRate.GetBitRate ()};
 
@@ -107,10 +109,7 @@ ApplicationBase::CalculateTcpBufferSize (const Flow &flow)
   auto rtt{maxPathDelay * 2}; // Round Trip Time in Seconds
   auto bdp{ceil ((flowDr * (rtt)) / 8)}; // The Bandwidth Delay Product (BDP) value in bytes
 
-  // If the calculated bdp is smaller than the packet size then set the buffer
-  // size equal to the packet size otherwise the flow will not be able to
-  // transmit anything.
-  return flow.packetSize > bdp ? flow.packetSize : bdp;
+  return GetTcpBufferSizeFromBdp (bdp, mstcpFlow);
 }
 
 /**
@@ -121,7 +120,7 @@ ApplicationBase::CalculateTcpBufferSize (const Flow &flow)
  * @return The Tcp buffer size in bytes
  */
 uint32_t
-ApplicationBase::CalculateTcpBufferSize (const Path &path, packetSize_t packetSize)
+ApplicationBase::CalculateTcpBufferSize (const Path &path, bool mstcpFlow)
 {
   auto pathDr = uint64_t{path.dataRate.GetBitRate ()};
 
@@ -136,10 +135,61 @@ ApplicationBase::CalculateTcpBufferSize (const Path &path, packetSize_t packetSi
   auto rtt{pathDelay * 2}; // Round Trip Time in Seconds
   auto bdp{ceil ((pathDr * (rtt)) / 8)}; // The Bandwidth Delay Product (BDP) value in bytes
 
-  // If the calculated bdp is smaller than the packet size then set the buffer
-  // size equal to the packet size otherwise the flow will not be able to
-  // transmit anything.
-  return packetSize > bdp ? packetSize : bdp;
+  return GetTcpBufferSizeFromBdp (bdp, mstcpFlow);
+}
+
+/**
+ * @brief Calculates the TCP buffer size given the BDP value in terms of number
+ * of packets.
+ *
+ * The TCP buffer is calculated such that the buffer size is in terms of the
+ * number of packets it can hold. The buffer size is such that an integer number
+ * of packets can fit in the buffer.
+ *
+ * If the calculated buffer size is too small, a minimum set value will be used
+ * instead.
+ *
+ * @param bdp The BDP value in bytes
+ * @param mstcpFlow Flag indicating whether the flow is an MSTCP flow or not
+ * @return uint32_t The TCP buffer size in bytes
+ */
+uint32_t
+ApplicationBase::GetTcpBufferSizeFromBdp (double bdp, bool mstcpFlow)
+{
+  using boost::numeric_cast;
+
+  auto packetSize = m_dataPacketSize;
+  if (mstcpFlow)
+    {
+      packetSize += MptcpHeader ().GetSerializedSize ();
+    }
+
+  auto actualBufferSize = uint32_t{0};
+
+  try
+    {
+      // The 4096 minimum is used to replicate the value used by Linux
+      auto minimumValue = numeric_cast<uint32_t> (ceil (4096.0 / packetSize) * packetSize);
+      auto calculatedBufferSize = numeric_cast<uint32_t> (ceil (bdp / packetSize) * packetSize);
+
+      // If the calculated buffer size is smaller than the minimum set value, the
+      // minimumValue will be set.
+      actualBufferSize = std::max (minimumValue, calculatedBufferSize);
+  } catch (const boost::numeric::positive_overflow &e)
+    {
+      NS_ABORT_MSG ("GetTcpBufferSizeFromBdp - Calculating the TCP buffer size for Flow: "
+                    << m_id << "caused a positive overflow.\nError message: " << e.what ());
+  } catch (const boost::numeric::negative_overflow &e)
+    {
+      NS_ABORT_MSG ("GetTcpBufferSizeFromBdp - Calculating the TCP buffer size for Flow: "
+                    << m_id << "caused a negative overflow.\nError message: " << e.what ());
+  } catch (const boost::numeric::bad_numeric_cast &e)
+    {
+      NS_ABORT_MSG ("GetTcpBufferSizeFromBdp - Calculating the TCP buffer size for Flow: "
+                    << m_id << "caused a bad numeric cast.\nError message: " << e.what ());
+  }
+
+  return actualBufferSize;
 }
 
 /*******************************************/

@@ -23,7 +23,7 @@ UnipathReceiver::UnipathReceiver (const Flow &flow, ResultsContainer &resContain
 
   if (flow.protocol == FlowProtocol::Tcp)
     {
-      auto tcpBufferSize = CalculateTcpBufferSize (flow);
+      auto tcpBufferSize = CalculateTcpBufferSize (flow, /* mstcpFlow */ false);
       NS_LOG_INFO ("UnipathReceiver - Flow: " << flow.id << " calculated TCP buffer size: "
                                               << tcpBufferSize << "bytes");
 
